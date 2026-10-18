@@ -10,6 +10,7 @@ import {
   Copy,
   Infinity as InfinityIcon,
   LogOut,
+  Route,
   Ticket,
   Wallet,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { PAGE_GUTTER } from "@/components/common/section";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
+import { RoutesPanel } from "@/components/partners/dashboard/routes-panel";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -27,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
+import type { PartnerLane } from "@/lib/lanes";
 import { REGIONS, REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
 import { AVG_LEAD_FEE_USD, LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
 import { DEMO_PARTNER, DEMO_PARTNER_ID, PARTNER_COOKIE } from "@/lib/partner-session";
@@ -34,22 +37,31 @@ import { formatNumber, formatUsdPrecise } from "@/lib/format";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
-type SectionId = "inbox" | "billing";
+type SectionId = "inbox" | "lanes" | "billing";
 
 const SECTIONS: Array<{ id: SectionId; label: string; icon: typeof Inbox }> = [
   { id: "inbox", label: "Lead board", icon: Inbox },
+  { id: "lanes", label: "Routes", icon: Route },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
 /**
  * Partner dashboard.
  *
- * Two sections behind a sidebar, and nothing on screen the platform cannot
+ * Three sections behind a sidebar, and nothing on screen the platform cannot
  * actually observe. The performance charts and the win-rate figures that used
  * to sit here were invented — Rotamove never learns whether a partner won the
  * job — so what remains is lead flow, response speed and spend.
  */
-export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: number }) {
+export function PartnerDashboard({
+  board,
+  now,
+  lanes,
+}: {
+  board: BoardLead[];
+  now: number;
+  lanes: PartnerLane[];
+}) {
   const { dict, href } = useI18n();
   const router = useRouter();
   const [isPro, setIsPro] = useState(true);
@@ -272,6 +284,8 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
             </div>
           </div>
         )}
+
+        {section === "lanes" && <RoutesPanel initial={lanes} />}
 
         {section === "billing" && (
           <BillingPanel isPro={isPro} walletSpent={walletSpent} metrics={metrics} />

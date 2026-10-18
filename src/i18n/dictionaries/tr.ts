@@ -557,6 +557,17 @@ export const tr = {
     requestSent: "Talep gönderildi",
     willReply: "{promise} — {time} içinde.",
     manualPickup: "Talepleri elle alır — genellikle aynı gün yanıtlar.",
+    /**
+     * A run the carrier declared themselves.
+     *
+     * The only line on the card that is the carrier's own claim rather
+     * than our model of them, which is why it gets its own strip.
+     */
+    lane: {
+      running: "Bu sefere araç çıkıyor",
+      scheduled: "Bu hatta tarifeli seferi var",
+      spare: "{volume} boş",
+    },
     channels: {
       whatsapp: {
         label: "WhatsApp",

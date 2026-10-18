@@ -192,6 +192,24 @@ export interface PriceLine {
  */
 export type DateRange = [string, string];
 
+/**
+ * A run the carrier has declared on this exact route.
+ *
+ * Attached to a quote when the partner's own lane board says a vehicle is
+ * already going — the backload. It is the only part of a quote that comes
+ * from the carrier rather than from our model of them, which is precisely why
+ * it is worth showing the customer.
+ */
+export interface QuoteLane {
+  vehicle: "lorry" | "van";
+  /** ISO `[start, end]` for a single dated run; `null` for a standing service. */
+  window: DateRange | null;
+  /** Space the carrier says is still free on it, m³. */
+  capacityM3: number;
+  /** That space covers this whole load. */
+  fits: boolean;
+}
+
 export type QuoteKind =
   /** Pro Unlimited partner: availability is confirmed straight away. */
   | "instant"
@@ -220,6 +238,8 @@ export interface Quote {
   matchReasons: string[];
   co2Kg: number;
   depositPct: number;
+  /** Set when the partner has declared a vehicle already running this lane. */
+  lane?: QuoteLane;
   /** Only populated for pay-per-lead partners — what Rotamove charges them (USD). */
   leadFeeUsd?: number;
 }
@@ -245,6 +265,8 @@ export interface PublicQuote {
   co2Kg: number;
   /** Median minutes to a first human reply, copied from the partner record. */
   responseMins: number;
+  /** Carries no money, so it crosses the boundary unchanged. */
+  lane?: QuoteLane;
 }
 
 export function toPublicQuote(quote: Quote, responseMins: number): PublicQuote {
@@ -261,6 +283,7 @@ export function toPublicQuote(quote: Quote, responseMins: number): PublicQuote {
     matchReasons: quote.matchReasons,
     co2Kg: quote.co2Kg,
     responseMins,
+    lane: quote.lane,
   };
 }
 

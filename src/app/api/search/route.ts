@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { cityCountry, getCity, isCoreCorridor } from "@/lib/geo";
 import { leadFromToken } from "@/lib/lead-codec";
 import { leadRepository } from "@/lib/lead-store";
+import { laneRepository } from "@/lib/lane-store";
 import { matchLead } from "@/lib/matching";
 import { getMover, NETWORK_PARTNER_CLAIM } from "@/lib/movers";
 import { createRng } from "@/lib/rand";
@@ -50,7 +51,10 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Lead not found or expired" }, { status: 404 });
   }
 
-  const result = matchLead(lead);
+  // Partner-declared lanes are read per request: a carrier who adds a run in
+  // their dashboard is matchable on the very next search, which is the whole
+  // reason the lane board exists.
+  const result = matchLead(lead, await laneRepository.index());
   if (!result) {
     return Response.json({ error: "No corridor available for this route" }, { status: 422 });
   }

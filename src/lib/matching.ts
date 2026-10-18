@@ -10,6 +10,8 @@ import {
 } from "@/lib/pricing";
 import { createRng } from "@/lib/rand";
 import { addDays } from "@/lib/format";
+import { bestLaneFor, windowOverlap, type LaneMatch } from "@/lib/lanes";
+import type { LaneIndex } from "@/lib/lane-store";
 import type {
   DateRange,
   Lead,
@@ -32,6 +34,12 @@ import type {
  *    within a few hours.
  *  - Results are deterministic for a given lead id, so the page can be
  *    refreshed, re-sorted and shared without the order shifting.
+ *
+ * Partner-declared lanes enter here as an argument rather than an import.
+ * This module runs in the browser as well as on the server — the wizard uses
+ * it for a preview — so it cannot reach for a repository. Callers that have
+ * the lane index pass it; callers that do not get exactly the behaviour they
+ * had before lanes existed.
  */
 
 type ServiceKey = "packing" | "storage" | "customs" | "vehicle" | "piano" | "cleaning";
@@ -47,14 +55,18 @@ export function leadServiceNeeds(lead: Lead): ServiceKey[] {
   return needs;
 }
 
+const NO_LANES: LaneIndex = new Map();
+
 export interface EligibleMover {
   mover: Mover;
   /** true when the partner covers both ends of the route directly. */
   fullCoverage: boolean;
   missingServices: ServiceKey[];
+  /** A run the partner has declared on this exact route, if they have one. */
+  laneMatch: LaneMatch | null;
 }
 
-export function eligibleMovers(lead: Lead): EligibleMover[] {
+export function eligibleMovers(lead: Lead, lanes: LaneIndex = NO_LANES): EligibleMover[] {
   const from = getCity(lead.origin.cityCode);
   const to = getCity(lead.destination.cityCode);
   if (!from || !to) return [];
@@ -68,20 +80,30 @@ export function eligibleMovers(lead: Lead): EligibleMover[] {
     const fullCoverage = set.has(fromRegion) && set.has(toRegion);
     const partial = set.has(fromRegion) || set.has(toRegion);
     const missingServices = needs.filter((n) => !mover.services[n]);
-    return { mover, fullCoverage, partial, missingServices };
+    const laneMatch = bestLaneFor(lanes.get(mover.id) ?? [], lead);
+    return { mover, fullCoverage, partial, missingServices, laneMatch };
   });
 
-  const strong = scored.filter((s) => s.fullCoverage && s.missingServices.length === 0);
+  // A declared run on this exact route qualifies a partner on its own. The
+  // region map is our model of where a carrier operates; a lane is the carrier
+  // telling us a vehicle is going there on these dates, which is better
+  // evidence than the model it would otherwise be judged by.
+  const strong = scored.filter(
+    (s) => (s.fullCoverage || s.laneMatch) && s.missingServices.length === 0,
+  );
   // Keep the board healthy: if strict matching is thin, widen in controlled steps.
   const relaxed =
     strong.length >= 6
       ? strong
-      : scored.filter((s) => s.fullCoverage || (s.partial && s.missingServices.length <= 1));
+      : scored.filter(
+          (s) => s.fullCoverage || s.laneMatch || (s.partial && s.missingServices.length <= 1),
+        );
 
-  return relaxed.map(({ mover, fullCoverage, missingServices }) => ({
+  return relaxed.map(({ mover, fullCoverage, missingServices, laneMatch }) => ({
     mover,
     fullCoverage,
     missingServices,
+    laneMatch,
   }));
 }
 
@@ -89,7 +111,11 @@ function chooseMode(
   mover: Mover,
   basis: QuoteBasis,
   rng: ReturnType<typeof createRng>,
+  laneMatch: LaneMatch | null,
 ): TransportMode {
+  // No need to guess when the carrier has already said what is running.
+  if (laneMatch && basis.modes.includes(laneMatch.lane.mode)) return laneMatch.lane.mode;
+
   const shared = basis.modes.filter((m) => mover.modes.includes(m));
   const options = shared.length ? shared : [basis.modes[0] ?? "road"];
   if (options.length === 1) return options[0];
@@ -127,6 +153,7 @@ function pickupWindow(lead: Lead): { pickup: string; range: DateRange } {
 interface Scored {
   quote: Quote;
   mover: Mover;
+  laneMatch: LaneMatch | null;
 }
 
 export interface MatchResult {
@@ -137,27 +164,37 @@ export interface MatchResult {
   bidCount: number;
 }
 
-export function matchLead(lead: Lead): MatchResult | null {
+export function matchLead(lead: Lead, lanes: LaneIndex = NO_LANES): MatchResult | null {
   const basis = buildQuoteBasis(lead);
   if (!basis) return null;
 
-  const eligible = eligibleMovers(lead);
+  const eligible = eligibleMovers(lead, lanes);
   const window = pickupWindow(lead);
   const feeUsd = leadFeeUsd(lead);
 
-  const raw: Scored[] = eligible.map(({ mover, fullCoverage, missingServices }) => {
+  const raw: Scored[] = eligible.map(({ mover, fullCoverage, missingServices, laneMatch }) => {
     const rng = createRng(lead.id, mover.id);
-    const mode = chooseMode(mover, basis, rng);
+    const mode = chooseMode(mover, basis, rng, laneMatch);
     const ref = referenceQuote(lead, basis, mode);
 
     // Partner-specific commercial position, plus a small stable jitter so two
     // partners with the same index do not land on an identical number.
     const jitter = 0.96 + rng.next() * 0.08;
-    const coveragePenalty = fullCoverage ? 1 : 1.07;
+    // A partner reached only through a declared lane is not a stretch for
+    // them, so there is nothing to surcharge.
+    const coveragePenalty = fullCoverage || laneMatch ? 1 : 1.07;
     const total = Math.round((ref.total * mover.priceIndex * jitter * coveragePenalty) / 5) * 5;
 
     const transitDays = transitDaysFor(basis.corridor, mode, mover.speedIndex);
     const isInstant = mover.plan === "pro_unlimited";
+
+    // A dated run replaces the customer's whole flexible window with the days
+    // the vehicle is actually on the road. That narrowing is the point: the
+    // customer sees real departure dates instead of a band we invented, and
+    // it can only ever be a subset of what they said they could do.
+    const declared = laneMatch?.lane.window ?? null;
+    const collection = (declared && windowOverlap(window.range, declared)) || window.range;
+    const departs = declared ? collection[0] : window.pickup;
 
     const quote: Quote = {
       id: `q_${lead.id}_${mover.id}`,
@@ -173,16 +210,21 @@ export function matchLead(lead: Lead): MatchResult | null {
       })),
       mode,
       transitDays,
-      pickupWindow: window.range,
-      deliveryWindow: [
-        addDays(window.pickup, transitDays[0]),
-        addDays(window.pickup, transitDays[1]),
-      ],
+      pickupWindow: collection,
+      deliveryWindow: [addDays(departs, transitDays[0]), addDays(departs, transitDays[1])],
       validUntilDays: isInstant ? 14 : 7,
       matchScore: 0,
       matchReasons: [],
       co2Kg: ref.co2Kg,
       depositPct: mover.priceIndex > 1.15 ? 25 : 15,
+      lane: laneMatch
+        ? {
+            vehicle: laneMatch.lane.vehicle,
+            window: laneMatch.lane.window,
+            capacityM3: laneMatch.lane.capacityM3,
+            fits: laneMatch.fits,
+          }
+        : undefined,
       leadFeeUsd: isInstant ? undefined : feeUsd,
     };
 
@@ -192,7 +234,7 @@ export function matchLead(lead: Lead): MatchResult | null {
       );
     }
 
-    return { quote, mover };
+    return { quote, mover, laneMatch };
   });
 
   if (!raw.length) return null;
@@ -207,7 +249,7 @@ export function matchLead(lead: Lead): MatchResult | null {
   const maxDays = Math.max(...speeds);
   const daySpread = Math.max(1, maxDays - minDays);
 
-  for (const { quote, mover } of raw) {
+  for (const { quote, mover, laneMatch } of raw) {
     const priceScore = 1 - (quote.total - minPrice) / spread;
     const speedScore = 1 - (quote.transitDays[1] - minDays) / daySpread;
     const ratingScore = (mover.rating - 3.8) / 1.2;
@@ -224,11 +266,30 @@ export function matchLead(lead: Lead): MatchResult | null {
     // Confirmed availability is worth more to the customer than a callback.
     const kindBoost = quote.kind === "instant" ? 0.06 : 0;
 
-    quote.matchScore = Math.round(Math.max(1, Math.min(100, (composite + kindBoost) * 100)));
+    // A vehicle already going there outranks every modelled signal, so it is
+    // the largest single boost in the formula — but still a boost, not an
+    // override: a declared run on a 3-star carrier does not beat a 4.8-star
+    // one outright. A dated run counts for more than a timetable entry, and
+    // only one with room for the load gets the full weight.
+    const laneBoost = laneMatch
+      ? (laneMatch.dated ? 0.1 : 0.05) + (laneMatch.fits ? 0.02 : 0)
+      : 0;
+
+    quote.matchScore = Math.round(
+      Math.max(1, Math.min(100, (composite + kindBoost + laneBoost) * 100)),
+    );
 
     // Standout traits first, then always-true facts — every card has to be able
     // to explain its own position, including the unremarkable ones in the middle.
     const standout: string[] = [];
+    if (laneMatch) {
+      const vehicle = laneMatch.lane.vehicle === "lorry" ? "Lorry" : "Van";
+      standout.push(
+        laneMatch.dated
+          ? `${vehicle} already running this lane, ${laneMatch.lane.capacityM3} m³ free`
+          : `Scheduled service on this lane, ${laneMatch.lane.capacityM3} m³ per departure`,
+      );
+    }
     if (quote.transitDays[1] === minDays) standout.push("Fastest delivery window");
     if (mover.plan === "pro_unlimited" && mover.responseMins <= 20)
       standout.push("Confirms availability instantly");

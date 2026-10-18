@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { encodeMoveSpec } from "@/lib/lead-codec";
 import { leadDraftSchema } from "@/lib/lead-schema";
 import { leadRepository } from "@/lib/lead-store";
+import { laneRepository } from "@/lib/lane-store";
 import { matchLead } from "@/lib/matching";
 
 export const runtime = "nodejs";
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   const lead = await leadRepository.create(parsed.data);
-  const match = matchLead(lead);
+  const match = matchLead(lead, await laneRepository.index());
 
   // Deliberately minimal: the consumer response carries no pricing of any
   // kind, not even the partner-side lead fee. Mirrors the per-tier caps the

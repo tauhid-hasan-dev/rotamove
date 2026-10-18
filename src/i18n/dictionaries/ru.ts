@@ -576,6 +576,17 @@ export const ru = {
     requestSent: "Заявка отправлена",
     willReply: "{promise} — в течение {time}.",
     manualPickup: "Разбирает заявки вручную — обычно отвечает в тот же день.",
+    /**
+     * A run the carrier declared themselves.
+     *
+     * The only line on the card that is the carrier's own claim rather
+     * than our model of them, which is why it gets its own strip.
+     */
+    lane: {
+      running: "Машина уже идёт этим рейсом",
+      scheduled: "Регулярный рейс по этому направлению",
+      spare: "{volume} свободно",
+    },
     channels: {
       whatsapp: {
         label: "WhatsApp",

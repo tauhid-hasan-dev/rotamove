@@ -558,6 +558,17 @@ export const de = {
     requestSent: "Anfrage gesendet",
     willReply: "{promise} — innerhalb von {time}.",
     manualPickup: "Nimmt Anfragen manuell auf — antwortet meist am selben Tag.",
+    /**
+     * A run the carrier declared themselves.
+     *
+     * The only line on the card that is the carrier's own claim rather
+     * than our model of them, which is why it gets its own strip.
+     */
+    lane: {
+      running: "Fahrzeug ist auf dieser Strecke schon unterwegs",
+      scheduled: "Planmäßiger Verkehr auf dieser Strecke",
+      spare: "{volume} frei",
+    },
     channels: {
       whatsapp: {
         label: "WhatsApp",

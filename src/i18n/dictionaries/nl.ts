@@ -555,6 +555,17 @@ export const nl = {
     requestSent: "Aanvraag verzonden",
     willReply: "{promise} — binnen {time}.",
     manualPickup: "Pakt aanvragen handmatig op — reageert meestal dezelfde dag.",
+    /**
+     * A run the carrier declared themselves.
+     *
+     * The only line on the card that is the carrier's own claim rather
+     * than our model of them, which is why it gets its own strip.
+     */
+    lane: {
+      running: "Er rijdt al een voertuig op deze rit",
+      scheduled: "Vaste dienst op deze route",
+      spare: "{volume} vrij",
+    },
     channels: {
       whatsapp: {
         label: "WhatsApp",

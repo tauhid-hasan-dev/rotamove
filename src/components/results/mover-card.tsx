@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { BadgeCheck, Check, Clock, Leaf, Mail, MessageCircle, Phone, Zap } from "lucide-react";
+import { BadgeCheck, Check, Clock, Leaf, Mail, MessageCircle, Phone, Truck, Zap } from "lucide-react";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { MODE_ICONS } from "@/components/common/route-line";
 import { Stars } from "@/components/common/stars";
@@ -138,6 +138,33 @@ export function MoverCard({
             </div>
           </dl>
         </div>
+
+        {/* declared run --------------------------------------------- */}
+        {quote.lane && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-xl bg-brand-soft px-3.5 py-2.5 text-[13px] dark:bg-accent">
+            <Truck className="size-3.5 shrink-0 text-brand" strokeWidth={2.2} />
+            <span className="font-medium">
+              {quote.lane.window ? dict.moverCard.lane.running : dict.moverCard.lane.scheduled}
+            </span>
+            {quote.lane.window && (
+              <span className="text-muted-foreground tnum">
+                {t.dateRange(quote.lane.window)}
+              </span>
+            )}
+            {/* Only worth saying when the space covers the whole load —
+                otherwise it reads as a limitation, which is not what a
+                matching lane is. */}
+            {quote.lane.fits && (
+              <span className="text-muted-foreground tnum">
+                {t.fill(dict.moverCard.lane.spare, {
+                  volume: t.fill(dict.units.cubicMetres, {
+                    n: t.number(quote.lane.capacityM3),
+                  }),
+                })}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* proof ---------------------------------------------------- */}
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">

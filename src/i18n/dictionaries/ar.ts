@@ -618,6 +618,17 @@ export const ar = {
     requestSent: "تم إرسال الطلب",
     willReply: "{promise} — خلال {time}.",
     manualPickup: "يستلم الطلبات يدويًا — ويرد عادةً في اليوم نفسه.",
+    /**
+     * A run the carrier declared themselves.
+     *
+     * The only line on the card that is the carrier's own claim rather
+     * than our model of them, which is why it gets its own strip.
+     */
+    lane: {
+      running: "مركبة بالفعل على هذا الخط",
+      scheduled: "خدمة منتظمة على هذا الخط",
+      spare: "{volume} متاح",
+    },
     channels: {
       whatsapp: {
         label: "واتساب",

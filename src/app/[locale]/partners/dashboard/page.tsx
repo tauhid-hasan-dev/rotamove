@@ -5,7 +5,8 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { PartnerDashboard } from "@/components/partners/dashboard/dashboard";
 import { generateLeadBoard } from "@/lib/demo-leads";
-import { PARTNER_COOKIE } from "@/lib/partner-session";
+import { laneRepository } from "@/lib/lane-store";
+import { DEMO_PARTNER, PARTNER_COOKIE } from "@/lib/partner-session";
 import { resolveLocale } from "@/i18n/dictionaries";
 import { localePath } from "@/i18n/paths";
 
@@ -39,12 +40,15 @@ export default async function PartnerDashboardPage({
   if (!signedIn) redirect(localePath(locale, "/partners/login"));
 
   const { now, board } = await loadBoard();
+  // Server-rendered rather than fetched on mount: the lane board is the
+  // partner's own data, so it should be on screen in the first paint.
+  const lanes = await laneRepository.list(DEMO_PARTNER.id);
 
   return (
     <>
       <SiteHeader variant="flush" />
       <main id="main">
-        <PartnerDashboard board={board} now={now} />
+        <PartnerDashboard board={board} now={now} lanes={lanes} />
       </main>
       <SiteFooter />
     </>

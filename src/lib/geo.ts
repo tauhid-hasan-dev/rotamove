@@ -51,7 +51,8 @@ export const REGIONS: Record<RegionId, Region> = {
     id: "BALKANS",
     name: "Balkans",
     short: "BLK",
-    blurb: "Serbia, Bulgaria, Romania, Croatia, Slovenia, Bosnia, North Macedonia, Albania.",
+    blurb:
+      "Serbia, Bulgaria, Romania, Croatia, Slovenia, Bosnia, North Macedonia, Albania, Hungary, Slovakia.",
   },
   NORDICS: {
     id: "NORDICS",
@@ -139,6 +140,8 @@ export const COUNTRIES: Country[] = [
   C("AL", "Albania", "🇦🇱", "BALKANS", 2),
   C("ME", "Montenegro", "🇲🇪", "BALKANS", 2),
   C("XK", "Kosovo", "🇽🇰", "BALKANS", 2),
+  C("HU", "Hungary", "🇭🇺", "BALKANS", 0, true),
+  C("SK", "Slovakia", "🇸🇰", "BALKANS", 0, true),
 
   C("SE", "Sweden", "🇸🇪", "NORDICS", 0, true),
   C("NO", "Norway", "🇳🇴", "NORDICS", 1),
@@ -242,6 +245,8 @@ const RAW_CITIES: RawCity[] = [
   ["BUH", "Bucharest", "RO", 44.4268, 26.1025, 1],
   ["ZAG", "Zagreb", "HR", 45.815, 15.9819, 2],
   ["LJU", "Ljubljana", "SI", 46.0569, 14.5058, 2],
+  ["BUD", "Budapest", "HU", 47.4979, 19.0402, 1],
+  ["BTS", "Bratislava", "SK", 48.1486, 17.1077, 2],
   ["SJJ", "Sarajevo", "BA", 43.8563, 18.4131, 3],
   ["SKP", "Skopje", "MK", 41.9981, 21.4254, 3],
   ["TIA", "Tirana", "AL", 41.3275, 19.8187, 3],
