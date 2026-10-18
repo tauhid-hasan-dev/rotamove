@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { ArrowRight, ArrowLeftRight, Loader2, Search } from "lucide-react";
 import { CityField } from "@/components/search/city-field";
+import { DateRangeField } from "@/components/search/date-range-field";
+import type { DateRange } from "@/components/common/range-calendar";
 import { getCity } from "@/lib/geo";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -11,8 +13,9 @@ import { cn } from "@/lib/utils";
 /**
  * The search bar.
  *
- * Two fields and a button, balanced so the eye lands in the middle: equal
- * halves, a swap control on the seam, the action pill inset on the right.
+ * Three segments and a button in one pill: where from, where to, when. Only
+ * the route is required — dates are frequently unknown this early, and a
+ * mandatory date field would turn an exploratory search into a dead end.
  */
 
 const QUICK_ROUTES: Array<[string, string]> = [
@@ -22,7 +25,7 @@ const QUICK_ROUTES: Array<[string, string]> = [
   ["IST", "DXB"],
 ];
 
-type Field = "from" | "to" | null;
+type Field = "from" | "to" | "dates" | null;
 
 export function RouteSearch({
   size = "lg",
@@ -36,6 +39,7 @@ export function RouteSearch({
 
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
+  const [dates, setDates] = useState<DateRange>({ start: null, end: null });
   const [active, setActive] = useState<Field>(null);
   const [pending, startTransition] = useTransition();
 
@@ -46,8 +50,13 @@ export function RouteSearch({
       setActive(from ? "to" : "from");
       return;
     }
-    startTransition(() => router.push(href(`/quote?from=${from}&to=${to}`)));
-  }, [complete, from, to, router, href]);
+    const params = new URLSearchParams({ from: from!, to: to! });
+    // The wizard turns these into a move date plus a flexibility window.
+    if (dates.start) params.set("start", dates.start);
+    if (dates.end) params.set("end", dates.end);
+
+    startTransition(() => router.push(href(`/quote?${params.toString()}`)));
+  }, [complete, from, to, dates, router, href]);
 
   const swap = () => {
     setFrom(to);
@@ -98,7 +107,16 @@ export function RouteSearch({
           active={active === "to"}
           onActivate={() => setActive("to")}
           onDismiss={() => setActive(null)}
-          align="end"
+        />
+
+        <div className="mx-5 h-px shrink-0 bg-border sm:mx-0 sm:h-7 sm:w-px sm:self-center" />
+
+        <DateRangeField
+          value={dates}
+          onChange={setDates}
+          active={active === "dates"}
+          onActivate={() => setActive("dates")}
+          onDismiss={() => setActive(null)}
         />
 
         <button

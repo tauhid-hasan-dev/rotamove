@@ -243,7 +243,7 @@ export const ar = {
 
   coveragePage: {
     eyebrow: "الشبكة",
-    title: "تركيا هي المفصل بين أوروبا والقوقاز والخليج.",
+    title: "تركيا تقرّب أوروبا وآسيا والشرق الأوسط من بعضها",
     lede: "{corridors} ممرًّا، يسيّرها أسبوعيًا شركاء يعرفون طرقها فعلًا.",
     statCountries: "دولة",
     statCities: "مدينة محورية",
@@ -434,6 +434,24 @@ export const ar = {
     swap: "تبديل نقطة الانطلاق والوصول",
     popular: "الأكثر شيوعًا",
     noMatch: "لا نتائج لـ «{query}»",
+  },
+
+  dates: {
+    label: "متى",
+    placeholder: "أضف التواريخ",
+    hint: "اختياري — اختر نافذة التحميل",
+    clear: "مسح",
+    done: "تم",
+    flexibleBy: "نافذة التحميل · {days}",
+    previousMonth: "الشهر السابق",
+    nextMonth: "الشهر التالي",
+  },
+
+  lastCall: {
+    badge: "فرصة أخيرة",
+    body: "{count} يمكنهم التحميل خلال 24 ساعة.",
+    cta: "اعثر عليهم",
+    dismiss: "إغلاق",
   },
 
   quote: {

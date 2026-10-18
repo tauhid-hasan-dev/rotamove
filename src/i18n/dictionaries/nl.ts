@@ -180,7 +180,7 @@ export const nl = {
 
   coveragePage: {
     eyebrow: "Netwerk",
-    title: "Turkije is het scharnier tussen Europa, de Kaukasus en de Golfregio.",
+    title: "Turkije brengt Europa, Azië en het Midden-Oosten dichter bij elkaar",
     lede: "{corridors} corridors, wekelijks gereden door partners die ze echt kennen.",
     statCountries: "Landen",
     statCities: "Hubsteden",
@@ -371,6 +371,24 @@ export const nl = {
     swap: "Vertrek en bestemming omwisselen",
     popular: "Populair",
     noMatch: "Geen resultaat voor “{query}”",
+  },
+
+  dates: {
+    label: "Wanneer",
+    placeholder: "Data toevoegen",
+    hint: "Optioneel — kies een ophaalperiode",
+    clear: "Wissen",
+    done: "Klaar",
+    flexibleBy: "Ophaalperiode · {days}",
+    previousMonth: "Vorige maand",
+    nextMonth: "Volgende maand",
+  },
+
+  lastCall: {
+    badge: "Last minute",
+    body: "{count} kunnen binnen 24 uur ophalen.",
+    cta: "Bekijk ze",
+    dismiss: "Sluiten",
   },
 
   quote: {

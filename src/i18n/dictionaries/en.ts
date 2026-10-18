@@ -202,7 +202,7 @@ export const en = {
 
   coveragePage: {
     eyebrow: "Network",
-    title: "Türkiye is the hinge between Europe, the Caucasus and the Gulf.",
+    title: "Türkiye brings Europe, Asia, and the Middle East closer together",
     lede: "{corridors} corridors, run weekly by partners who actually drive them.",
     statCountries: "Countries",
     statCities: "Hub cities",
@@ -397,6 +397,24 @@ export const en = {
   },
 
   /* ------------------------------------------------------------ quote -- */
+  dates: {
+    label: "When",
+    placeholder: "Add dates",
+    hint: "Optional — pick a collection window",
+    clear: "Clear",
+    done: "Done",
+    flexibleBy: "Collection window · {days}",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+  },
+
+  lastCall: {
+    badge: "Last call",
+    body: "{count} have space to collect within 24 hours.",
+    cta: "Find them",
+    dismiss: "Dismiss",
+  },
+
   quote: {
     steps: {
       home: "Load",

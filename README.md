@@ -28,6 +28,18 @@ last one. No form, no dropdown pair.
 question per screen. Email and phone are confirmed by a one-time code before the
 enquiry can be sent.
 
+**One search box, three segments.** Where from, where to, when. The date field
+is a two-month range picker built on `Intl` — month names, weekday initials and
+*which day the week starts on* all come from the locale, so Arabic opens on a
+Saturday because CLDR says so, not because of a special case. Dates are
+optional; a range becomes a collection date plus a flexibility band in the
+wizard.
+
+**Last-call strip.** Partners who can collect inside 24 hours are surfaced in a
+dismissible bar above the navigation. The dismissal is remembered and applied
+by a blocking script before first paint, so it never flashes back on the next
+page.
+
 **You choose how many carriers hear about it.** Two, five, or every match on the
 route — asked outright on the contact step, because "I filled in one form and
 got nine phone calls" is the main thing people fear about a lead marketplace.

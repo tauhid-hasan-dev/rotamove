@@ -907,3 +907,19 @@ export const PRO_PARTNER_COUNT = MOVERS.filter((m) => m.plan === "pro_unlimited"
 
 /** Marketing figure: the partner base we claim to scan, beyond the seeded set. */
 export const NETWORK_PARTNER_CLAIM = 412;
+
+/**
+ * Partners with spare capacity in the next 24 hours.
+ *
+ * Derived rather than stored: a "last call" flag in the seed data would go
+ * stale the moment anything else changed. These are the instant-match partners
+ * who answer fastest and run above-average speed — exactly the ones who can
+ * realistically turn a collection around inside a day.
+ */
+export function lastCallMovers(limit = 6): Mover[] {
+  return MOVERS.filter(
+    (m) => m.plan === "pro_unlimited" && m.responseMins <= 18 && m.speedIndex <= 1,
+  )
+    .sort((a, b) => a.responseMins - b.responseMins)
+    .slice(0, limit);
+}

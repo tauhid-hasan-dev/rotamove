@@ -181,7 +181,7 @@ export const fr = {
 
   coveragePage: {
     eyebrow: "Réseau",
-    title: "La Turquie est la charnière entre l’Europe, le Caucase et le Golfe.",
+    title: "La Turquie rapproche l’Europe, l’Asie et le Moyen-Orient",
     lede: "{corridors} corridors, assurés chaque semaine par des partenaires qui les parcourent vraiment.",
     statCountries: "Pays",
     statCities: "Villes-hubs",
@@ -373,6 +373,24 @@ export const fr = {
     swap: "Inverser le départ et la destination",
     popular: "Populaires",
     noMatch: "Aucun résultat pour « {query} »",
+  },
+
+  dates: {
+    label: "Quand",
+    placeholder: "Ajouter des dates",
+    hint: "Facultatif — choisissez une période d’enlèvement",
+    clear: "Effacer",
+    done: "Terminé",
+    flexibleBy: "Période d’enlèvement · {days}",
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
+  },
+
+  lastCall: {
+    badge: "Dernière minute",
+    body: "{count} peuvent enlever sous 24 heures.",
+    cta: "Les trouver",
+    dismiss: "Fermer",
   },
 
   quote: {

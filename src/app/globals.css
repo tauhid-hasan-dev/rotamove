@@ -33,6 +33,10 @@
   --color-line: var(--line);
   --color-verify: var(--verify);
 
+  --color-lastcall: var(--lastcall);
+  --color-lastcall-foreground: var(--lastcall-foreground);
+  --color-lastcall-accent: var(--lastcall-accent);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -95,6 +99,12 @@
   --line: #e7ebe4;
   --verify: #1f8a5f;
 
+  /* Last-call strip. Yellow is the one colour in the system that is not the
+     brand, which is the point: it has to read as a notice, not as navigation. */
+  --lastcall: #fdf3c7;
+  --lastcall-foreground: #4a3c06;
+  --lastcall-accent: #f7e08a;
+
   --radius: 0.75rem;
 
   --background: #ffffff;
@@ -144,6 +154,12 @@
   --surface: #161a14;
   --line: #262b23;
   --verify: #4ade9b;
+
+  /* Muted right down for dark mode: a full-strength yellow bar at the top of
+     a dark page is a flashbang. */
+  --lastcall: #302a12;
+  --lastcall-foreground: #f2e4ab;
+  --lastcall-accent: #4a3f16;
 
   --background: #0f120e;
   --foreground: #f1f4ef;
@@ -388,6 +404,18 @@
   50% {
     transform: translate3d(2%, -3%, 0) scale(1.06);
   }
+}
+
+/*
+ * Set before first paint by the inline script in the root layout, so a visitor
+ * who dismissed the last-call strip never sees it flash back.
+ *
+ * Deliberately NOT inside `@layer utilities`: Tailwind v4 tree-shakes that
+ * layer against the classes it finds in the source, and this rule was being
+ * dropped from the build entirely.
+ */
+[data-lastcall="off"] .last-call-bar {
+  display: none;
 }
 
 .skeleton-shimmer {

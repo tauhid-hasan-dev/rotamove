@@ -1,3 +1,5 @@
+import { addDaysIso, todayLocalIso } from "@/lib/calendar";
+
 const eur = new Intl.NumberFormat("en-GB", {
   style: "currency",
   currency: "EUR",
@@ -57,15 +59,16 @@ export function formatDateShort(iso: string, locale = "en-GB") {
   return d.toLocaleDateString(locale, { day: "numeric", month: "short" });
 }
 
-export function addDays(iso: string, days: number): string {
-  const d = new Date(iso);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-export function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+/**
+ * Date arithmetic in local time.
+ *
+ * These used to go through `toISOString()`, which returns the *UTC* date: east
+ * of Greenwich, "today" before mid-morning came back as yesterday, and the
+ * wizard would reject a move date the calendar had just offered. Both now
+ * delegate to the calendar helpers so every date in the product agrees.
+ */
+export const addDays = addDaysIso;
+export const todayIso = todayLocalIso;
 
 export function formatResponseTime(mins: number) {
   if (mins < 60) return `${mins} min`;

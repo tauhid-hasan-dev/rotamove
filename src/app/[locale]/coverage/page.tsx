@@ -65,7 +65,9 @@ export default async function CoveragePage({ params }: PageProps<"/[locale]/cove
               <span className="inline-block h-px w-6 bg-brand" aria-hidden />
               {dict.coveragePage.eyebrow}
             </p>
-            <h1 className="mt-6 max-w-3xl text-[clamp(2.4rem,5.6vw,4rem)] leading-[1.0] tracking-[-0.045em]">
+            {/* Sized to hold one line in every language; Dutch is the longest at 67
+                characters and sets the ceiling. */}
+            <h1 className="mt-6 max-w-full text-balance text-[clamp(1.7rem,2.8vw,2.4rem)] leading-[1.08] tracking-[-0.04em]">
               {dict.coveragePage.title}
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-muted-foreground">

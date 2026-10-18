@@ -180,7 +180,7 @@ export const it = {
 
   coveragePage: {
     eyebrow: "Rete",
-    title: "La Turchia è la cerniera fra Europa, Caucaso e Golfo.",
+    title: "La Turchia avvicina Europa, Asia e Medio Oriente",
     lede: "{corridors} corridoi, serviti ogni settimana da partner che li percorrono davvero.",
     statCountries: "Paesi",
     statCities: "Città hub",
@@ -371,6 +371,24 @@ export const it = {
     swap: "Scambia partenza e destinazione",
     popular: "Popolari",
     noMatch: "Nessun risultato per «{query}»",
+  },
+
+  dates: {
+    label: "Quando",
+    placeholder: "Aggiungi le date",
+    hint: "Facoltativo: scegli una finestra di ritiro",
+    clear: "Cancella",
+    done: "Fatto",
+    flexibleBy: "Finestra di ritiro · {days}",
+    previousMonth: "Mese precedente",
+    nextMonth: "Mese successivo",
+  },
+
+  lastCall: {
+    badge: "Ultimo minuto",
+    body: "{count} possono ritirare entro 24 ore.",
+    cta: "Trovali",
+    dismiss: "Chiudi",
   },
 
   quote: {

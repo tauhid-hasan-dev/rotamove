@@ -184,7 +184,7 @@ export const tr = {
 
   coveragePage: {
     eyebrow: "Ağ",
-    title: "Türkiye, Avrupa ile Kafkasya ve Körfez arasındaki menteşedir.",
+    title: "Türkiye, Avrupa, Asya ve Orta Doğu'yu birbirine yaklaştırıyor",
     lede: "{corridors} koridor, bu yolları gerçekten süren partnerler tarafından haftalık işletiliyor.",
     statCountries: "Ülke",
     statCities: "Merkez şehir",
@@ -373,6 +373,24 @@ export const tr = {
     swap: "Çıkış ve varış noktasını değiştir",
     popular: "Popüler",
     noMatch: "“{query}” için sonuç yok",
+  },
+
+  dates: {
+    label: "Ne zaman",
+    placeholder: "Tarih ekleyin",
+    hint: "İsteğe bağlı — bir yükleme aralığı seçin",
+    clear: "Temizle",
+    done: "Tamam",
+    flexibleBy: "Yükleme aralığı · {days}",
+    previousMonth: "Önceki ay",
+    nextMonth: "Sonraki ay",
+  },
+
+  lastCall: {
+    badge: "Son çağrı",
+    body: "{count} 24 saat içinde yükleme yapabilir.",
+    cta: "Hemen bul",
+    dismiss: "Kapat",
   },
 
   quote: {

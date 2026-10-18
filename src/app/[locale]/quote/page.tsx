@@ -5,9 +5,10 @@ import { Shell } from "@/components/common/section";
 import { QuoteWizard } from "@/components/quote/quote-wizard";
 import { CITY_BY_CODE } from "@/lib/geo";
 import { estimateVolume } from "@/lib/pricing";
+import { daysBetween, todayLocalIso } from "@/lib/calendar";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
 import { alternateLanguages, localePath } from "@/i18n/paths";
-import type { LeadDraft, PropertySize } from "@/lib/types";
+import type { DateFlexibility, LeadDraft, PropertySize } from "@/lib/types";
 
 export async function generateMetadata({
   params,
@@ -23,6 +24,20 @@ export async function generateMetadata({
     },
   };
 }
+
+/**
+ * A date range from the home search becomes a move date plus a flexibility
+ * band — the two fields the wizard and the matching engine already speak.
+ * Wider window, looser band; the buckets mirror the ones the wizard offers.
+ */
+function flexibilityForSpan(span: number): DateFlexibility {
+  if (span <= 0) return "exact";
+  if (span <= 6) return "plus_minus_3";
+  if (span <= 16) return "within_2_weeks";
+  return "flexible";
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 const SIZES: PropertySize[] = [
   "few_items",
@@ -57,6 +72,17 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/[l
   if (size && SIZES.includes(size)) {
     initial.propertySize = size;
     initial.volumeM3 = estimateVolume(size);
+  }
+
+  // Dates are optional in the search bar, so everything here is conditional —
+  // and a start date in the past is ignored rather than carried forward.
+  const start = read("start");
+  const end = read("end");
+  if (start && ISO_DATE.test(start) && start >= todayLocalIso()) {
+    initial.moveDate = start;
+    if (end && ISO_DATE.test(end) && end >= start) {
+      initial.flexibility = flexibilityForSpan(daysBetween(start, end));
+    }
   }
 
   return (

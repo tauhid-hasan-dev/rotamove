@@ -180,7 +180,7 @@ export const de = {
 
   coveragePage: {
     eyebrow: "Netzwerk",
-    title: "Die Türkei ist das Scharnier zwischen Europa, dem Kaukasus und der Golfregion.",
+    title: "Die Türkei rückt Europa, Asien und den Nahen Osten näher zusammen",
     lede: "{corridors} Korridore, wöchentlich gefahren von Partnern, die sie wirklich kennen.",
     statCountries: "Länder",
     statCities: "Hub-Städte",
@@ -372,6 +372,24 @@ export const de = {
     swap: "Start und Ziel tauschen",
     popular: "Beliebt",
     noMatch: "Kein Treffer für „{query}“",
+  },
+
+  dates: {
+    label: "Wann",
+    placeholder: "Zeitraum wählen",
+    hint: "Optional — wählen Sie ein Abholfenster",
+    clear: "Löschen",
+    done: "Fertig",
+    flexibleBy: "Abholfenster · {days}",
+    previousMonth: "Voriger Monat",
+    nextMonth: "Nächster Monat",
+  },
+
+  lastCall: {
+    badge: "Kurzfristig frei",
+    body: "{count} können innerhalb von 24 Stunden abholen.",
+    cta: "Jetzt finden",
+    dismiss: "Schließen",
   },
 
   quote: {
