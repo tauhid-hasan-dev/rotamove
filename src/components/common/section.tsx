@@ -10,10 +10,12 @@ import { cn } from "@/lib/utils";
  * not line up with the page under it. One component means that cannot drift
  * again.
  *
- * Below `lg` the gutter is a fixed size instead: 10% of a 390px phone is 39px
- * a side, which would throw away a fifth of the usable width.
+ * It narrows on the way down rather than holding at 10%: a tenth of a 390px
+ * phone is 39px a side, which would throw away a fifth of the usable width on
+ * the screen that can least afford it. 4% on a phone, 6% through the tablet
+ * range, 10% once there is room to spare.
  */
-export const PAGE_GUTTER = "mx-auto w-full px-5 sm:px-8 lg:px-[10%]";
+export const PAGE_GUTTER = "mx-auto w-full px-[4%] sm:px-[6%] lg:px-[10%]";
 
 export function Shell({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn(PAGE_GUTTER, className)}>{children}</div>;
