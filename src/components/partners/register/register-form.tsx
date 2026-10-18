@@ -250,18 +250,26 @@ export function RegisterForm() {
         {ledes[index]}
       </h2>
 
-      <div className="relative mt-7 overflow-hidden">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: direction * slide * 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * slide * -24 }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {renderStep(index, { draft, update, touched, invalid })}
-          </motion.div>
-        </AnimatePresence>
+      {/*
+        Padded for the same reason as the quote wizard: `overflow` clips at
+        the padding box, so a flush wrapper slices the focus ring off every
+        field at the container's edges. The negative margin keeps the layout
+        identical.
+      */}
+      <div className="mt-7">
+        <div className="relative -m-2 overflow-hidden p-2">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: direction * slide * 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction * slide * -24 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {renderStep(index, { draft, update, touched, invalid })}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       {touched && invalid.size > 0 && (

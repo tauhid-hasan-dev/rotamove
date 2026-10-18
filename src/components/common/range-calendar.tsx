@@ -149,6 +149,11 @@ export function RangeCalendar({
                       aria-pressed={edge || inRange}
                       className={cn(
                         "relative h-8 text-[13.5px] tnum transition-colors",
+                        // Inset, because the popover clips: an outline drawn
+                        // outside the button is sliced off for days in the
+                        // first and last columns, which is exactly where
+                        // keyboard users land first.
+                        "rounded-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/70",
                         "disabled:pointer-events-none disabled:text-muted-foreground/35",
                         // The connecting band sits behind the day, squared off
                         // between the two ends and rounded at them.

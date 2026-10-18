@@ -123,22 +123,32 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
         {dict.quote.headings[step.id]}
       </h1>
 
-      <div className="relative mt-8 overflow-hidden">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={step.id}
-            initial={{ opacity: 0, x: direction * slide * 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * slide * -24 }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {step.id === "home" && <StepHome draft={draft} update={update} />}
-            {step.id === "services" && <StepServices draft={draft} update={update} />}
-            {step.id === "contact" && (
-              <StepContact draft={draft} update={update} touched={touched} />
-            )}
-          </motion.div>
-        </AnimatePresence>
+      {/*
+        The clip contains the step slide; the padding is what stops it eating
+        focus rings. `overflow` clips at the *padding box*, and this wrapper
+        used to sit flush against the fields, so the 3px ring painted outside
+        each input was sliced off at both edges. `-m-2 p-2` pushes the clip
+        boundary 8px out and pulls the layout back, so the geometry is
+        unchanged and the ring has room to draw.
+      */}
+      <div className="mt-8">
+        <div className="relative -m-2 overflow-hidden p-2">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, x: direction * slide * 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction * slide * -24 }}
+              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {step.id === "home" && <StepHome draft={draft} update={update} />}
+              {step.id === "services" && <StepServices draft={draft} update={update} />}
+              {step.id === "contact" && (
+                <StepContact draft={draft} update={update} touched={touched} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* footer --------------------------------------------------- */}
