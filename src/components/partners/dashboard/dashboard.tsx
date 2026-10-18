@@ -6,6 +6,8 @@ import {
   CreditCard,
   Filter,
   Inbox,
+  Check,
+  Copy,
   Infinity as InfinityIcon,
   LogOut,
   Ticket,
@@ -26,7 +28,7 @@ import {
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import { REGIONS, REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
 import { AVG_LEAD_FEE_USD, LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
-import { DEMO_PARTNER, PARTNER_COOKIE } from "@/lib/partner-session";
+import { DEMO_PARTNER, DEMO_PARTNER_ID, PARTNER_COOKIE } from "@/lib/partner-session";
 import { formatNumber, formatUsdPrecise } from "@/lib/format";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -54,6 +56,7 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
   const [region, setRegion] = useState<string>("all");
   const [onlyNew, setOnlyNew] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   const metrics = useMemo(() => generatePartnerMetrics(isPro), [isPro]);
 
@@ -108,6 +111,33 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
               </p>
             </div>
           </div>
+
+          {/* The account number. Partners quote this to support, so it is
+              one click to copy rather than something to read off a screen. */}
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(DEMO_PARTNER_ID);
+              setCopiedId(true);
+              setTimeout(() => setCopiedId(false), 1800);
+            }}
+            className="group mt-4 flex w-full items-center gap-2 rounded-xl border bg-surface px-3 py-2.5 text-start transition-colors hover:border-foreground/25"
+            aria-label={`Partner ID ${DEMO_PARTNER_ID}`}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                Partner ID
+              </span>
+              <span className="code mt-0.5 block truncate text-[13px] font-semibold">
+                {DEMO_PARTNER_ID}
+              </span>
+            </span>
+            {copiedId ? (
+              <Check className="size-3.5 shrink-0 text-verify" strokeWidth={3} />
+            ) : (
+              <Copy className="size-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            )}
+          </button>
 
           <nav className="mt-6 flex gap-1 lg:flex-col" aria-label="Dashboard">
             {SECTIONS.map((item) => {

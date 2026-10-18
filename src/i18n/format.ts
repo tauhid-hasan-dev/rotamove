@@ -73,13 +73,29 @@ export const formatDecimal = (locale: Locale, value: number, digits = 1) =>
     maximumFractionDigits: digits,
   }).format(value);
 
-/** Platform billing is USD; only the presentation is localised. */
+/**
+ * Platform billing is USD; only the presentation is localised.
+ *
+ * Two deliberate departures from the default output:
+ *
+ * `currencyDisplay: "narrowSymbol"` — the default disambiguates the dollar
+ * against every other dollar, so en-GB renders "US$100", fr "100 $US" and it
+ * "100 USD". There is only one currency anywhere in this product, so the
+ * disambiguation buys nothing and just adds noise to a price.
+ *
+ * The replace afterwards — Arabic has no narrow symbol in CLDR and keeps
+ * "US$" regardless of the option, so the prefix is stripped explicitly rather
+ * than leaving one locale inconsistent with the other seven.
+ */
 export const formatUsd = (locale: Locale, value: number) =>
   numberFormat(locale, {
     style: "currency",
     currency: "USD",
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
-  }).format(value);
+  })
+    .format(value)
+    .replace("US$", "$");
 
 /* ------------------------------------------------------------------ dates -- */
 

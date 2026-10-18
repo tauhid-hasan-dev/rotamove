@@ -144,6 +144,7 @@ shared link carries its language with it.
 | `/[locale]/coverage` | Region explorer and the full corridor table |
 | `/[locale]/how-it-works` | Ranking weights and the verification checklist |
 | `/[locale]/partners` | Two plans, plan chooser, lead-fee explainer |
+| `/[locale]/partners/register` | Five-step carrier application with save-and-resume |
 | `/[locale]/partners/login` | Partner sign-in; demo credentials shown on the form |
 | `/[locale]/partners/dashboard` | Lead board and billing, behind the sign-in (English only — internal tool) |
 | `/[locale]/movers/[slug]` | Partner profile (28 partners × 8 locales prerendered) |
@@ -155,9 +156,29 @@ shared link carries its language with it.
 
 ## The partner side
 
-`/partners/login` takes `demo@rotamove.com` / `rotamove` — printed on the form,
-because a demo login nobody can get past is a dead end. The dashboard checks a
-session cookie server-side and redirects if it is missing.
+**Applying.** `/partners/register` collects what accreditation bodies and
+freight marketplaces actually verify, rather than what is easy to ask for:
+legal entity and registration number, operating licence, insurance *with cover
+amounts*, fleet composition and ownership, operating regions, and the documents
+behind all of it. FIDI/FAIM turns on the same spine — trading history, an
+insurance declaration and a signed conduct charter — so the form mirrors it.
+
+Five steps rather than one page, because split forms complete substantially
+better, and the indicator is labelled ("Step 3 of 5 · Credentials") rather than
+a bare bar: it tells an applicant both where they are and what is still coming.
+Validation runs per step on Continue, never per keystroke. The draft is
+mirrored to `localStorage` and offered back on return — this is the kind of
+form people abandon to go and find an insurance certificate.
+
+Every application is scored 0–100 on submission and stored with the record.
+The score is never returned to the applicant: a visible score is a score people
+optimise against.
+
+**Signing in.** `/partners/login` takes `demo@rotamove.com` / `rotamove` —
+printed on the form, because a demo login nobody can get past is a dead end.
+The dashboard checks a session cookie server-side and redirects if it is
+missing, and shows the account's partner ID (`RM-TR-57986`) with one-click
+copy.
 
 The board itself is deliberately small: lead flow, response speed and spend.
 A lead is either **New** or **Unlocked**, and contact details stay masked until

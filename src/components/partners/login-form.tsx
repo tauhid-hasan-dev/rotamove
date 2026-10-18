@@ -165,10 +165,10 @@ export function LoginForm() {
       <p className="mt-5 text-center text-[13.5px] text-muted-foreground">
         {dict.login.notPartner}{" "}
         <Link
-          href={href("/partners")}
+          href={href("/partners/register")}
           className="underline underline-offset-4 transition-colors hover:text-foreground"
         >
-          {dict.login.seePlans}
+          {dict.register.title}
         </Link>
       </p>
     </form>
