@@ -1,23 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import {
-  AlertCircle,
   CreditCard,
-  Download,
   Filter,
   Inbox,
   Infinity as InfinityIcon,
-  Settings2,
-  Sparkles,
+  LogOut,
   Ticket,
   Wallet,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Shell } from "@/components/common/section";
 import { MoverLogo } from "@/components/common/mover-logo";
-import { CorridorSplit, KpiCard, WeeklyChart } from "@/components/partners/dashboard/charts";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,25 +25,32 @@ import {
 } from "@/components/ui/select";
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import { REGIONS, REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
-import { MOVERS } from "@/lib/movers";
-import { LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
-import { formatNumber, formatUsdPrecise, pct } from "@/lib/format";
+import { AVG_LEAD_FEE_USD, LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
+import { DEMO_PARTNER, PARTNER_COOKIE } from "@/lib/partner-session";
+import { formatNumber, formatUsdPrecise } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
-type TabId = "inbox" | "performance" | "billing";
+type SectionId = "inbox" | "billing";
 
-const TABS: Array<{ id: TabId; label: string; icon: typeof Inbox }> = [
+const SECTIONS: Array<{ id: SectionId; label: string; icon: typeof Inbox }> = [
   { id: "inbox", label: "Lead board", icon: Inbox },
-  { id: "performance", label: "Performance", icon: Sparkles },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
-/** The partner account the demo signs you in as. */
-const DEMO_PARTNER = MOVERS[0];
-
+/**
+ * Partner dashboard.
+ *
+ * Two sections behind a sidebar, and nothing on screen the platform cannot
+ * actually observe. The performance charts and the win-rate figures that used
+ * to sit here were invented — Rotamove never learns whether a partner won the
+ * job — so what remains is lead flow, response speed and spend.
+ */
 export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: number }) {
+  const { dict, href } = useI18n();
+  const router = useRouter();
   const [isPro, setIsPro] = useState(true);
-  const [tab, setTab] = useState<TabId>("inbox");
+  const [section, setSection] = useState<SectionId>("inbox");
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
   const [region, setRegion] = useState<string>("all");
   const [onlyNew, setOnlyNew] = useState(false);
@@ -57,146 +60,140 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
   const visible = useMemo(
     () =>
       board.filter((item) => {
-        if (onlyNew && item.status !== "new") return false;
+        const isNew = item.status === "new" && !unlocked.has(item.lead.id);
+        if (onlyNew && !isNew) return false;
         if (region === "all") return true;
         const from = getCity(item.lead.origin.cityCode);
         const to = getCity(item.lead.destination.cityCode);
         if (!from || !to) return false;
         return cityRegion(from) === region || cityRegion(to) === region;
       }),
-    [board, region, onlyNew],
+    [board, region, onlyNew, unlocked],
   );
 
+  const newCount = visible.filter(
+    (v) => v.status === "new" && !unlocked.has(v.lead.id),
+  ).length;
+
+  // Pro partners unlock for nothing; only pay-per-lead unlocks cost money.
   const walletSpent = useMemo(
     () =>
-      [...unlocked].reduce(
-        (sum, id) => sum + (board.find((b) => b.lead.id === id)?.feeUsd ?? 0),
-        0,
-      ),
-    [unlocked, board],
+      isPro
+        ? 0
+        : [...unlocked].reduce(
+            (sum, id) => sum + (board.find((b) => b.lead.id === id)?.feeUsd ?? 0),
+            0,
+          ),
+    [unlocked, board, isPro],
   );
 
-  const unlock = (id: string) => setUnlocked((prev) => new Set(prev).add(id));
+  const signOut = () => {
+    document.cookie = `${PARTNER_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    router.push(href("/partners/login"));
+  };
 
   return (
-    <div className="pb-20">
-      {/* account bar -------------------------------------------- */}
-      <div className="border-b bg-surface">
-        <Shell className="flex flex-wrap items-center gap-4 py-5">
-          <MoverLogo mover={DEMO_PARTNER} size="md" />
-          <div className="min-w-0">
-            <p className="truncate text-[17px] font-semibold tracking-[-0.025em]">
-              {DEMO_PARTNER.name}
-            </p>
-            <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              Partner ID {DEMO_PARTNER.id} · Istanbul
-            </p>
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:gap-10 lg:px-8">
+      {/* sidebar ------------------------------------------------- */}
+      <aside className="lg:w-[228px] lg:shrink-0">
+        <div className="lg:sticky lg:top-24">
+          <div className="flex items-center gap-3">
+            <MoverLogo mover={DEMO_PARTNER} size="md" />
+            <div className="min-w-0">
+              <p className="truncate text-[14.5px] font-semibold tracking-[-0.02em]">
+                {DEMO_PARTNER.name}
+              </p>
+              <p className="truncate text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                {isPro ? "Pro Unlimited" : "Pay Per Lead"}
+              </p>
+            </div>
           </div>
 
-          <div className="ml-auto flex flex-wrap items-center gap-3">
+          <nav className="mt-6 flex gap-1 lg:flex-col" aria-label="Dashboard">
+            {SECTIONS.map((item) => {
+              const active = section === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSection(item.id)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "inline-flex flex-1 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[14px] transition-colors lg:flex-none",
+                    active
+                      ? "bg-brand-soft font-medium text-foreground dark:bg-accent"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <item.icon className="size-4 shrink-0" strokeWidth={2} />
+                  {item.label}
+                  {item.id === "inbox" && newCount > 0 && (
+                    <span className="ms-auto rounded-full bg-brand px-1.5 py-0.5 text-[10.5px] font-medium text-ink tnum">
+                      {newCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="mt-6 hidden border-t pt-6 lg:block">
             <PlanSwitch isPro={isPro} onChange={setIsPro} />
-            <Button variant="outline" size="sm" onClick={() => toast.info("CSV export queued")}>
-              <Download className="size-3.5" />
-              Export
-            </Button>
-            <Button variant="ghost" size="icon" aria-label="Settings">
-              <Settings2 className="size-4" />
-            </Button>
+            <button
+              type="button"
+              onClick={signOut}
+              className="mt-4 inline-flex items-center gap-2 px-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <LogOut className="size-3.5 rtl:-scale-x-100" />
+              {dict.login.signOut}
+            </button>
           </div>
-        </Shell>
-      </div>
-
-      {/* demo notice -------------------------------------------- */}
-      <Shell className="pt-5">
-        <p className="flex items-start gap-2.5 rounded-xl border border-brand bg-brand-soft p-3.5 text-[13px] leading-relaxed text-muted-foreground dark:bg-accent/50">
-          <AlertCircle className="mt-0.5 size-4 shrink-0 text-brand" />
-          <span>
-            <span className="font-medium text-foreground">Interactive demo.</span> Flip the plan
-            switch above to see exactly how the lead board changes between{" "}
-            <span className="font-medium text-foreground">Pro Unlimited</span> (everything
-            unlocked, instant placement in customer search) and{" "}
-            <span className="font-medium text-foreground">Pay Per Lead</span> (contact details
-            hidden until you pay, capped at ${LEAD_FEE_CAP_USD}).
-          </span>
-        </p>
-      </Shell>
-
-      {/* tabs --------------------------------------------------- */}
-      <Shell className="pt-6">
-        <div role="tablist" className="flex gap-1 overflow-x-auto rounded-full border p-1 scrollbar-slim">
-          {TABS.map((t) => {
-            const active = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                role="tab"
-                aria-selected={active}
-                onClick={() => setTab(t.id)}
-                className={cn(
-                  "relative inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium transition-colors",
-                  active ? "text-ink" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {active && (
-                  <motion.span
-                    layoutId="dash-tab"
-                    className="absolute inset-0 rounded-full bg-brand"
-                    transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                  />
-                )}
-                <t.icon className="relative size-3.5" />
-                <span className="relative">{t.label}</span>
-              </button>
-            );
-          })}
         </div>
-      </Shell>
+      </aside>
 
-      {/* kpis --------------------------------------------------- */}
-      <Shell className="pt-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard
+      {/* content ------------------------------------------------- */}
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-3 lg:hidden">
+          <PlanSwitch isPro={isPro} onChange={setIsPro} />
+          <button
+            type="button"
+            onClick={signOut}
+            className="ms-auto inline-flex items-center gap-2 text-[13px] text-muted-foreground"
+          >
+            <LogOut className="size-3.5 rtl:-scale-x-100" />
+            {dict.login.signOut}
+          </button>
+        </div>
+
+        {/* kpis ------------------------------------------------- */}
+        <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:mt-0">
+          <Kpi
             label="Leads this month"
             value={formatNumber(metrics.leadsThisMonth)}
             sub={isPro ? "Unlimited on your plan" : `${metrics.unlocked} unlocked`}
           />
-          <KpiCard
-            label="Jobs won"
-            value={String(metrics.won)}
-            sub={`${pct(metrics.winRate)} of quotes`}
-            tone="brand"
-          />
-          <KpiCard
+          <Kpi
             label="Avg. reply time"
             value={`${metrics.avgResponseMins} min`}
             sub={isPro ? "Auto-confirmed from your rate card" : "Manual pickup"}
           />
-          <KpiCard
+          <Kpi
             label="Platform spend"
             value={formatUsdPrecise(metrics.spendUsd + walletSpent)}
             sub={
               isPro
                 ? `Flat $${PRO_MONTHLY_USD}/mo, any volume`
-                : `avg ${formatUsdPrecise(metrics.spendUsd / Math.max(1, metrics.unlocked))}/lead`
+                : `≈ ${formatUsdPrecise(AVG_LEAD_FEE_USD)} per lead`
             }
-            tone="verify"
           />
         </div>
-      </Shell>
 
-      {/* panels ------------------------------------------------- */}
-      <Shell className="pt-8">
-        {tab === "inbox" && (
-          <div>
+        {section === "inbox" && (
+          <div className="mt-8">
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-[20px] tracking-[-0.03em]">
-                Live lead board
-              </h2>
-              <span className="rounded-full bg-brand px-2.5 py-0.5 text-[11.5px] font-medium text-ink tnum">
-                {visible.filter((v) => v.status === "new").length} new
-              </span>
+              <h2 className="text-[20px] tracking-[-0.03em]">Lead board</h2>
 
-              <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="ms-auto flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setOnlyNew((v) => !v)}
@@ -232,7 +229,7 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
                   item={item}
                   isPro={isPro}
                   unlocked={unlocked.has(item.lead.id)}
-                  onUnlock={unlock}
+                  onUnlock={(id) => setUnlocked((prev) => new Set(prev).add(id))}
                   now={now}
                 />
               ))}
@@ -245,52 +242,27 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
           </div>
         )}
 
-        {tab === "performance" && (
-          <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
-            <WeeklyChart data={metrics.weekly} />
-            <CorridorSplit data={metrics.corridorSplit} />
-            <div className="rounded-2xl border bg-card p-5 sm:p-6 lg:col-span-2">
-              <h3 className="text-[17px] tracking-[-0.025em]">
-                Where you are losing
-              </h3>
-              <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed text-muted-foreground">
-                See where you ranked on every enquiry you lost, and why.
-              </p>
-              <dl className="mt-6 grid gap-5 sm:grid-cols-3">
-                <div>
-                  <dt className="eyebrow">Median rank shown</dt>
-                  <dd className="mt-1.5 text-[22px] font-medium tnum">3rd of 9</dd>
-                </div>
-                <div>
-                  <dt className="eyebrow">Contacted after shortlist</dt>
-                  <dd className="mt-1.5 text-[22px] font-medium tnum">41%</dd>
-                </div>
-                <div>
-                  <dt className="eyebrow">Lost to response time</dt>
-                  <dd className="mt-1.5 text-[22px] font-medium tnum">
-                    {isPro ? "6%" : "31%"}
-                  </dd>
-                </div>
-              </dl>
-              {!isPro && (
-                <p className="mt-5 rounded-lg border-l-2 border-brand bg-surface px-3 py-2 text-[13px] text-muted-foreground">
-                  Nearly a third of your losses are speed, not price. Pro partners quote
-                  automatically from their rate card and lose 6%.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {tab === "billing" && (
+        {section === "billing" && (
           <BillingPanel isPro={isPro} walletSpent={walletSpent} metrics={metrics} />
         )}
-      </Shell>
+      </div>
     </div>
   );
 }
 
 /* ---------------------------------------------------------------- */
+
+function Kpi({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-2xl border bg-card p-5">
+      <p className="eyebrow">{label}</p>
+      <p className="mt-2.5 text-[26px] font-medium leading-none tracking-[-0.035em] tnum">
+        {value}
+      </p>
+      <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">{sub}</p>
+    </div>
+  );
+}
 
 function PlanSwitch({ isPro, onChange }: { isPro: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -300,8 +272,8 @@ function PlanSwitch({ isPro, onChange }: { isPro: boolean; onChange: (v: boolean
       className="inline-flex rounded-full border bg-background p-1"
     >
       {[
-        { pro: true, label: "Pro Unlimited", icon: InfinityIcon, meta: `$${PRO_MONTHLY_USD}/mo` },
-        { pro: false, label: "Pay Per Lead", icon: Ticket, meta: `≤$${LEAD_FEE_CAP_USD}` },
+        { pro: true, label: "Pro", icon: InfinityIcon },
+        { pro: false, label: "Per lead", icon: Ticket },
       ].map((option) => {
         const active = option.pro === isPro;
         return (
@@ -311,7 +283,7 @@ function PlanSwitch({ isPro, onChange }: { isPro: boolean; onChange: (v: boolean
             aria-checked={active}
             onClick={() => onChange(option.pro)}
             className={cn(
-              "relative inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+              "relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
               active ? "text-ink" : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -324,14 +296,6 @@ function PlanSwitch({ isPro, onChange }: { isPro: boolean; onChange: (v: boolean
             )}
             <option.icon className="relative size-3.5" />
             <span className="relative">{option.label}</span>
-            <span
-              className={cn(
-                "relative text-[10.5px] tnum",
-                active ? "text-ink/60" : "text-muted-foreground",
-              )}
-            >
-              {option.meta}
-            </span>
           </button>
         );
       })}
@@ -355,7 +319,7 @@ function BillingPanel({
   ];
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+    <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
       <div className="rounded-2xl border bg-card p-6">
         <div className="flex items-center gap-2.5">
           <Wallet className="size-4 text-brand" />
@@ -409,7 +373,7 @@ function BillingPanel({
             toast.success(isPro ? "Downgrade scheduled" : "Upgrade to Pro Unlimited", {
               description: isPro
                 ? "You will move to Pay Per Lead at the end of the cycle."
-                : `$${PRO_MONTHLY_USD}/month, unlimited leads, instant-match placement. 14-day trial starts now.`,
+                : `$${PRO_MONTHLY_USD}/month, unlimited leads, instant-match placement.`,
             })
           }
         >
@@ -418,9 +382,7 @@ function BillingPanel({
       </div>
 
       <div className="rounded-2xl border bg-card p-6">
-        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-          Invoices
-        </h3>
+        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Invoices</h3>
         <ul className="mt-5 divide-y">
           {invoices.map((inv) => (
             <li key={inv.ref} className="flex items-center gap-4 py-3.5">
@@ -428,15 +390,13 @@ function BillingPanel({
                 <p className="truncate text-[12.5px] tnum">{inv.ref}</p>
                 <p className="text-[12px] text-muted-foreground">{inv.period}</p>
               </div>
-              <span className="shrink-0 text-[13px] tnum">
-                {formatUsdPrecise(inv.amount)}
-              </span>
+              <span className="shrink-0 text-[13px] tnum">{formatUsdPrecise(inv.amount)}</span>
               <span
                 className={cn(
                   "shrink-0 rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em]",
                   inv.status === "Paid"
                     ? "bg-verify/12 text-verify"
-                    : "bg-brand-soft text-foreground",
+                    : "bg-brand-soft text-foreground dark:bg-accent",
                 )}
               >
                 {inv.status}

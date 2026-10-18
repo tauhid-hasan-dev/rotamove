@@ -20,14 +20,15 @@ export function Hero({ dict, rtl }: { dict: Dictionary; rtl: boolean }) {
           <p className="eyebrow animate-rise">{dict.hero.eyebrow}</p>
 
           {/*
-            No `whitespace-nowrap` here. The English headline would hold one
-            line from md up, but German and Russian run roughly a third longer
-            and Arabic sets wider still — forcing a single line overflows the
-            viewport in five of the eight locales. Wrapping is the correct
-            default once the copy is not fixed.
+            Sized to hold one line on a desktop viewport in every language.
+            There is no `whitespace-nowrap`: the longest translations (French
+            and Russian run roughly a third longer than English) would overflow
+            rather than wrap, and an overflowing headline is worse than a
+            wrapped one. The vw term shrinks the type instead, so the line
+            breaks only on genuinely narrow screens.
           */}
           <h1
-            className="mt-5 max-w-[22ch] animate-rise text-balance text-[clamp(2.1rem,4.4vw,3.55rem)] leading-[1.06] tracking-[-0.042em]"
+            className="mt-5 max-w-full animate-rise text-balance text-[clamp(1.95rem,3.9vw,3.3rem)] leading-[1.06] tracking-[-0.042em]"
             style={{ animationDelay: "60ms" }}
           >
             {dict.hero.title}

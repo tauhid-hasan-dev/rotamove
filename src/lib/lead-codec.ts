@@ -228,6 +228,8 @@ export function leadFromToken(id: string, token: string): Lead | null {
       emailVerified: false,
       phoneVerified: false,
     },
+    // Not encoded in the token; the results URL carries it separately.
+    preferredMatches: null,
     consent: true,
   };
 }

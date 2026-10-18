@@ -1,20 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import {
-  ArrowRight,
-  BadgeCheck,
-  Check,
-  Clock,
-  Leaf,
-  Mail,
-  MessageCircle,
-  Phone,
-  Zap,
-} from "lucide-react";
-import { toast } from "sonner";
+import { motion } from "motion/react";
+import { BadgeCheck, Check, Clock, Leaf, Mail, MessageCircle, Phone, Zap } from "lucide-react";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { MODE_ICONS } from "@/components/common/route-line";
 import { Stars } from "@/components/common/stars";
@@ -32,15 +20,21 @@ const CHANNEL_ICONS: Record<ContactChannel, typeof Phone> = {
   email: Mail,
 };
 
-const CHANNEL_ORDER: ContactChannel[] = ["whatsapp", "phone", "email"];
-
-
+/**
+ * A carrier the enquiry was sent to.
+ *
+ * The card no longer asks the customer to pick a channel or press send. Both
+ * decisions were already made in the wizard — the preferred channel, and how
+ * many carriers to contact — so by the time this board renders the requests
+ * are out. The card's job is to confirm that and say what happens next, which
+ * is why the only status it carries is "Request sent".
+ */
 export function MoverCard({
   quote,
   mover,
   tag,
   index,
-  defaultChannel,
+  channel,
   originCode,
   destCode,
 }: {
@@ -48,26 +42,18 @@ export function MoverCard({
   mover: Mover;
   tag: MoverTag;
   index: number;
-  defaultChannel: ContactChannel;
+  /** The channel the customer chose in the wizard. */
+  channel: ContactChannel;
   originCode: string;
   destCode: string;
 }) {
-  const { dict, t } = useI18n();
-  const [channel, setChannel] = useState<ContactChannel>(defaultChannel);
-  const [sent, setSent] = useState(false);
+  const { dict, t, href } = useI18n();
   const instant = quote.kind === "instant";
   const ModeIcon = MODE_ICONS[quote.mode];
   const modeLabel = dict.enums.modes[quote.mode].label;
   const active = dict.moverCard.channels[channel];
-
+  const ChannelIcon = CHANNEL_ICONS[channel];
   const hq = getCity(mover.hqCity);
-
-  const connect = () => {
-    setSent(true);
-    toast.success(t.fill(dict.moverCard.sentToast, { name: mover.name }), {
-      description: active.done,
-    });
-  };
 
   return (
     <motion.article
@@ -79,10 +65,7 @@ export function MoverCard({
         ease: [0.22, 1, 0.36, 1],
         delay: Math.min(index * 0.035, 0.22),
       }}
-      className={cn(
-        "group overflow-hidden rounded-2xl border bg-card transition-all duration-300",
-        sent ? "border-verify/40" : "hover:shadow-float",
-      )}
+      className="group overflow-hidden rounded-2xl border border-verify/35 bg-card transition-all duration-300 hover:shadow-float"
     >
       <div className="p-5 sm:p-6">
         {/* identity ------------------------------------------------ */}
@@ -90,28 +73,33 @@ export function MoverCard({
           <MoverLogo mover={mover} size="lg" className="rounded-2xl" />
 
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <div className="flex flex-wrap items-start gap-x-2.5 gap-y-1.5">
               <Link
-                href={`/movers/${mover.slug}`}
+                href={href(`/movers/${mover.slug}`)}
                 className="text-[19px] font-semibold tracking-[-0.025em] underline-offset-4 hover:underline"
               >
                 {mover.name}
               </Link>
               {tag === "best" && <Tag tone="brand">{dict.moverCard.bestMatch}</Tag>}
-              {tag === "fastest" && <Tag>{dict.moverCard.fastest}</Tag>}
               {instant && (
                 <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] text-muted-foreground">
                   <Zap className="size-3" strokeWidth={2.5} />
                   {dict.moverCard.instantMatch}
                 </span>
               )}
+
+              {/* The status the whole board exists to report. */}
+              <span className="ms-auto inline-flex shrink-0 items-center gap-1.5 rounded-full bg-verify/12 px-2.5 py-1 text-[11.5px] font-medium text-verify">
+                <Check className="size-3" strokeWidth={3} />
+                {dict.moverCard.requestSent}
+              </span>
             </div>
 
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
               <Stars rating={mover.rating} count={mover.reviewCount} />
               <span className="text-[13.5px] text-muted-foreground">
                 {hq?.name ?? mover.hqCity} ·{" "}
-                {t.fill(dict.moverCard.since, { year: t.number(mover.since) })}
+                {t.fill(dict.moverCard.since, { year: t.year(mover.since) })}
               </span>
             </div>
           </div>
@@ -178,101 +166,19 @@ export function MoverCard({
         </div>
       </div>
 
-      {/* contact -------------------------------------------------- */}
-      <div className="border-t bg-surface/60 px-5 py-4 sm:px-6">
-        <AnimatePresence mode="wait" initial={false}>
-          {sent ? (
-            <motion.div
-              key="sent"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-wrap items-center gap-3"
-            >
-              <span className="grid size-7 place-items-center rounded-full bg-verify text-white">
-                <Check className="size-3.5" strokeWidth={3} />
-              </span>
-              <p className="min-w-0 flex-1 text-[14.5px]">
-                <span className="font-medium">{dict.moverCard.requestSent}</span>{" "}
-                <span className="text-muted-foreground">
-                  {t.fill(dict.moverCard.willReply, {
-                    promise: active.done,
-                    time: t.responseTime(mover.responseMins),
-                  })}
-                </span>
-              </p>
-              <button
-                type="button"
-                onClick={() => setSent(false)}
-                className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
-              >
-                {dict.common.undo}
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="pick"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-wrap items-center gap-3"
-            >
-              <div
-                role="radiogroup"
-                aria-label={dict.moverCard.channelAria}
-                className="flex rounded-full border bg-card p-1"
-              >
-                {CHANNEL_ORDER.map((id) => {
-                  const on = id === channel;
-                  const Icon = CHANNEL_ICONS[id];
-                  return (
-                    <button
-                      key={id}
-                      role="radio"
-                      aria-checked={on}
-                      onClick={() => setChannel(id)}
-                      className={cn(
-                        "relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] transition-colors",
-                        on ? "text-ink" : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {on && (
-                        <motion.span
-                          layoutId={`channel-${quote.id}`}
-                          className="absolute inset-0 rounded-full bg-brand"
-                          transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                        />
-                      )}
-                      <Icon className="relative size-3.5" strokeWidth={2} />
-                      <span className="relative">{dict.moverCard.channels[id].label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={connect}
-                className={cn(
-                  "group/cta ms-auto inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-medium transition-all duration-200 active:scale-[0.985]",
-                  instant
-                    ? "bg-ink text-background hover:opacity-90"
-                    : "border hover:border-foreground/25 hover:bg-muted",
-                )}
-              >
-                {active.cta}
-                <ArrowRight className="size-4 transition-transform duration-200 group-hover/cta:translate-x-0.5 rtl:-scale-x-100" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {!sent && !instant && (
-          <p className="mt-2.5 text-[12.5px] text-muted-foreground">
-            {dict.moverCard.manualPickup}
-          </p>
+      {/* what happens next ---------------------------------------- */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t bg-surface/60 px-5 py-3.5 sm:px-6">
+        <p className="inline-flex min-w-0 items-center gap-2 text-[14px]">
+          <ChannelIcon className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={2} />
+          <span className="text-muted-foreground">
+            {t.fill(dict.moverCard.willReply, {
+              promise: active.done,
+              time: t.responseTime(mover.responseMins),
+            })}
+          </span>
+        </p>
+        {!instant && (
+          <p className="text-[12.5px] text-muted-foreground/80">{dict.moverCard.manualPickup}</p>
         )}
       </div>
     </motion.article>

@@ -2,20 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import {
-  Box,
-  CalendarDays,
-  Eye,
-  Lock,
-  Mail,
-  MessageCircle,
-  Phone,
-  Unlock,
-  Users,
-} from "lucide-react";
+import { Box, CalendarDays, Loader2, Lock, Mail, MessageCircle, Phone, Unlock, Users } from "lucide-react";
 import { toast } from "sonner";
 import { RouteLine } from "@/components/common/route-line";
-import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { en } from "@/i18n/dictionaries/en";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
@@ -24,11 +13,8 @@ import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<BoardStatus, { label: string; className: string }> = {
-  new: { label: "New", className: "bg-brand text-white" },
-  unlocked: { label: "Unlocked", className: "bg-ink text-white dark:bg-[#2a2a33]" },
-  contacted: { label: "Quoted", className: "border bg-background text-muted-foreground" },
-  won: { label: "Won", className: "bg-verify text-white" },
-  lost: { label: "Lost", className: "border bg-background text-muted-foreground line-through" },
+  new: { label: "New", className: "bg-brand text-ink" },
+  unlocked: { label: "Unlocked", className: "bg-verify/12 text-verify" },
 };
 
 const CHANNEL_ICON = {
@@ -37,6 +23,17 @@ const CHANNEL_ICON = {
   email: Mail,
 } as const;
 
+/**
+ * One enquiry on the partner board.
+ *
+ * Contact details are masked until the partner unlocks the lead. That is the
+ * whole measurement: the gap between a lead landing and someone acting on it
+ * is the number that tells a partner — and us — how fast they really are.
+ *
+ * Pro Unlimited partners still press unlock; they are just never charged for
+ * it. Keeping the action identical on both plans is what makes the timing
+ * comparable across the network.
+ */
 export function LeadRow({
   item,
   isPro,
@@ -56,10 +53,9 @@ export function LeadRow({
   const to = getCity(lead.destination.cityCode);
   const corridor = from && to ? resolveCorridor(from, to) : null;
   const mode = corridor?.modes[0] ?? "road";
-  // A lead you already bought stays bought — only "new" leads are still locked
-  // on the pay-per-lead plan.
-  const alreadyBought = item.status !== "new";
-  const revealed = isPro || unlocked || alreadyBought;
+
+  const revealed = unlocked || item.status === "unlocked";
+  const status: BoardStatus = revealed ? "unlocked" : "new";
   const ChannelIcon = CHANNEL_ICON[lead.contact.channel];
 
   const unlock = async () => {
@@ -68,7 +64,9 @@ export function LeadRow({
     setWorking(false);
     onUnlock(lead.id);
     toast.success("Lead unlocked", {
-      description: `${formatUsdPrecise(item.feeUsd)} charged to your wallet. Contact details are now visible.`,
+      description: isPro
+        ? "Included in Pro Unlimited. Contact details are now visible."
+        : `${formatUsdPrecise(item.feeUsd)} charged to your wallet. Contact details are now visible.`,
     });
   };
 
@@ -82,7 +80,7 @@ export function LeadRow({
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         "group rounded-xl border bg-card p-4 transition-shadow duration-300 hover:shadow-soft",
-        item.status === "new" && "border-brand",
+        !revealed && "border-brand/70",
       )}
     >
       <div className="flex flex-wrap items-start gap-4">
@@ -100,10 +98,10 @@ export function LeadRow({
             <span
               className={cn(
                 "rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.14em]",
-                STATUS_META[item.status].className,
+                STATUS_META[status].className,
               )}
             >
-              {STATUS_META[item.status].label}
+              {STATUS_META[status].label}
             </span>
             <span className="text-[11px] text-muted-foreground tnum">
               {formatRelative(now - item.ageMins * 60_000, now)}
@@ -152,13 +150,13 @@ export function LeadRow({
           </dl>
 
           {lead.notes && (
-            <p className="mt-3 border-l-2 border-border pl-3 text-[12.5px] italic leading-relaxed text-muted-foreground">
+            <p className="mt-3 border-s-2 border-border ps-3 text-[12.5px] italic leading-relaxed text-muted-foreground">
               “{lead.notes}”
             </p>
           )}
         </div>
 
-        {/* contact / action ------------------------------------- */}
+        {/* contact ---------------------------------------------- */}
         <div className="flex w-full shrink-0 flex-col gap-2 sm:w-[228px]">
           <div
             className={cn(
@@ -166,9 +164,10 @@ export function LeadRow({
               revealed ? "bg-surface" : "border-dashed bg-muted/40",
             )}
           >
+            <p className="truncate text-[13.5px] font-semibold">{lead.contact.fullName}</p>
+
             {revealed ? (
               <>
-                <p className="truncate text-[13.5px] font-semibold">{lead.contact.fullName}</p>
                 <p className="mt-1 truncate text-[12px] text-muted-foreground tnum">
                   {lead.contact.phone}
                 </p>
@@ -181,50 +180,74 @@ export function LeadRow({
                 </p>
               </>
             ) : (
-              <div className="flex items-center gap-2.5">
+              <div className="mt-2 flex items-center gap-2.5">
                 <Lock className="size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0">
-                  <p className="text-[12.5px] font-medium">Contact hidden</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground tnum">
-                    unlock for {formatUsdPrecise(item.feeUsd)}
+                  {/* Masked rather than absent, so the partner can see that a
+                      real number and address are waiting behind the unlock. */}
+                  <p className="truncate text-[12px] text-muted-foreground tnum">
+                    {maskPhone(lead.contact.phone)}
+                  </p>
+                  <p className="truncate text-[11.5px] text-muted-foreground">
+                    {maskEmail(lead.contact.email)}
                   </p>
                 </div>
               </div>
             )}
           </div>
-
-          {revealed ? (
-            <Button variant="outline" size="sm" className="w-full">
-              <Eye className="size-3.5" />
-              Open & quote
-            </Button>
-          ) : (
-            <Button size="sm" className="w-full" onClick={unlock} disabled={working}>
-              <Unlock className="size-3.5" />
-              {working ? "Unlocking…" : `Unlock ${formatUsdPrecise(item.feeUsd)}`}
-            </Button>
-          )}
-
-          {isPro ? (
-            <p className="text-center text-[10px] uppercase tracking-[0.12em] text-verify">
-              included in Pro
-            </p>
-          ) : (
-            alreadyBought && (
-              <p className="text-center text-[10px] uppercase tracking-[0.12em] text-muted-foreground tnum">
-                paid {formatUsdPrecise(item.feeUsd)}
-              </p>
-            )
-          )}
         </div>
       </div>
+
+      {/* action ------------------------------------------------- */}
+      {!revealed && (
+        <div className="mt-3 flex flex-wrap items-center justify-end gap-3 border-t pt-3">
+          <p className="me-auto text-[11.5px] text-muted-foreground">
+            {isPro ? (
+              <span className="text-verify">Included in Pro Unlimited</span>
+            ) : (
+              <>Unlock to reveal the phone number and email</>
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={unlock}
+            disabled={working}
+            className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[13.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] disabled:opacity-70"
+          >
+            {working ? (
+              <>
+                <Loader2 className="size-3.5 animate-spin" />
+                Unlocking…
+              </>
+            ) : (
+              <>
+                <Unlock className="size-3.5" />
+                {isPro ? "Unlock" : `Unlock ${formatUsdPrecise(item.feeUsd)}`}
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </motion.article>
   );
 }
 
+/** "+90 532 111 22 33" → "+90 532 ••• •• ••" */
+function maskPhone(phone: string) {
+  const visible = phone.slice(0, Math.min(8, phone.length));
+  return `${visible}${phone.slice(visible.length).replace(/\d/g, "•")}`;
+}
+
+/** "elif@example.com" → "e•••@example.com" */
+function maskEmail(email: string) {
+  const [user, domain] = email.split("@");
+  if (!domain) return "•••";
+  return `${user.slice(0, 1)}${"•".repeat(Math.max(2, user.length - 1))}@${domain}`;
+}
+
 function ScoreDial({ score }: { score: number }) {
   const circumference = 2 * Math.PI * 18;
-  const tone = score >= 75 ? "var(--verify)" : score >= 50 ? "var(--brand)" : "var(--bid)";
+  const tone = score >= 75 ? "var(--verify)" : score >= 50 ? "var(--brand)" : "var(--muted-foreground)";
   return (
     <span className="relative grid size-12 place-items-center" aria-label={`Quality score ${score}`}>
       <svg viewBox="0 0 44 44" className="absolute size-12 -rotate-90">

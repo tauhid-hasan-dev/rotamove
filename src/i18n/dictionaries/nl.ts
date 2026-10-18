@@ -42,6 +42,8 @@ export const nl = {
     allCorridors: "Alle corridors",
     browseCorridors: "Corridors bekijken",
     partnerLogin: "Partner-login",
+    ratingLabel: "{rating} van 5",
+    ratingLabelWithCount: "{rating} van 5 uit {count} beoordelingen",
     verifiedBooking: "gecontroleerde boeking",
   },
 
@@ -102,7 +104,7 @@ export const nl = {
     steps: [
       { title: "Zoeken", body: "Één veld. Waarvandaan, waarnaartoe." },
       { title: "Matchen", body: "Wij vinden vervoerders die uw route daadwerkelijk rijden." },
-      { title: "Overleggen", body: "Kies WhatsApp, een telefoontje of e-mail. Zij nemen contact op." },
+      { title: "Vervoeren", body: "Kies WhatsApp, een telefoontje of e-mail. Zij nemen contact op." },
     ],
   },
 
@@ -204,7 +206,7 @@ export const nl = {
     steps: [
       { title: "Zoeken", body: "Één veld: waarvandaan, waarnaartoe." },
       { title: "Matchen", body: "We bevragen het netwerk. Duurt ongeveer acht seconden." },
-      { title: "Overleggen", body: "Kies het kanaal. Alleen uw keuzes nemen contact op." },
+      { title: "Vervoeren", body: "Kies het kanaal. Alleen uw keuzes nemen contact op." },
     ],
     rankingTitle: "Vijf factoren. Gepubliceerde weging.",
     rankingBody:
@@ -415,6 +417,17 @@ export const nl = {
     moversMatch: "{count} passend",
     sendFailed: "Uw aanvraag kon niet worden verzonden",
     somethingWrong: "Er ging iets mis",
+    matchCount: {
+      legend: "Hoeveel vervoerders zullen we benaderen?",
+      hint: "Uw aanvraag gaat alleen naar de vervoerders die u kiest.",
+      two: "2 vervoerders",
+      twoHint: "De twee sterkste matches",
+      five: "5 vervoerders",
+      fiveHint: "Een evenwichtige selectie",
+      all: "Alle vervoerders",
+      allHint: "Elke match op uw route",
+      recommended: "Aanbevolen",
+    },
     extras: {
       packing: "Inpakken",
       unpacking: "Uitpakken",
@@ -461,15 +474,12 @@ export const nl = {
     openingSearch: "Uw zoekopdracht wordt geopend",
     oneMoment: "Een moment",
     canTakeThis: "vervoerders kunnen dit aannemen",
-    matchedIn: "Gematcht in {seconds} s · kies wie contact opneemt",
-    complete: "Zoekopdracht afgerond",
+    matchedIn: "Gematcht in {seconds} s · zij nemen contact met u op",
+    complete: "Aanvraag verzonden",
     rankingNote:
       "Onafhankelijk gerangschikt. Vervoerders betalen ons een vast bedrag of een kleine, gemaximeerde vergoeding per aanvraag — nooit commissie — dus niemand kan een hogere positie kopen.",
     sort: {
       best: "Beste match",
-      fastest: "Snelste",
-      rating: "Best beoordeeld",
-      replies: "Reageren het eerst",
     },
     stages: {
       secure: { label: "Uw aanvraag wordt beveiligd", detail: "Versleuteld en gecontroleerd" },
@@ -526,19 +536,16 @@ export const nl = {
     onTime: "{pct} op tijd",
     repliesIn: "Reageert binnen {time}",
     co2: "{amount} kg CO₂e",
-    channelAria: "Hoe kunnen ze u bereiken?",
-    requestSent: "Aanvraag verzonden.",
+    requestSent: "Aanvraag verzonden",
     willReply: "{promise} — binnen {time}.",
-    sentToast: "Aanvraag verzonden naar {name}",
     manualPickup: "Pakt aanvragen handmatig op — reageert meestal dezelfde dag.",
     channels: {
       whatsapp: {
         label: "WhatsApp",
-        cta: "Bericht via WhatsApp",
         done: "Ze sturen u een WhatsApp-bericht",
       },
-      phone: { label: "Telefoon", cta: "Vraag een telefoontje aan", done: "Ze bellen u" },
-      email: { label: "E-mail", cta: "Vraag per e-mail", done: "Ze mailen u" },
+      phone: { label: "Telefoon", done: "Ze bellen u" },
+      email: { label: "E-mail", done: "Ze mailen u" },
     },
   },
 
@@ -579,6 +586,22 @@ export const nl = {
       piano: "Piano- en kunsttransport",
       cleaning: "Eindschoonmaak",
     },
+  },
+
+  login: {
+    title: "Partner-login",
+    lede: "Beheer uw aanvragenoverzicht, geef aanvragen vrij en houd uw pakket in de gaten.",
+    email: "Zakelijk e-mailadres",
+    password: "Wachtwoord",
+    submit: "Inloggen",
+    signingIn: "Bezig met inloggen…",
+    demoTitle: "Demo-account",
+    demoBody: "Dit is een demo — alleen deze gegevens werken.",
+    demoFill: "Demogegevens gebruiken",
+    error: "Deze gegevens horen niet bij het demo-account.",
+    notPartner: "Nog geen partner?",
+    seePlans: "Bekijk de partnerpakketten",
+    signOut: "Uitloggen",
   },
 
   notFound: {

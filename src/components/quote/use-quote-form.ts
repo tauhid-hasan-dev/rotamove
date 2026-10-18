@@ -62,6 +62,9 @@ export function createDefaultDraft(
       phoneVerified: false,
     },
     notes: "",
+    // Five is the default because it is the useful middle: enough competition
+    // to compare, few enough to answer in one sitting.
+    preferredMatches: 5,
     consent: false,
     ...overrides,
   };

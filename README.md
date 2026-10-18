@@ -28,13 +28,20 @@ last one. No form, no dropdown pair.
 question per screen. Email and phone are confirmed by a one-time code before the
 enquiry can be sent.
 
-**A streaming results board.** Matches arrive one at a time over NDJSON while a
-single line of text narrates the search. Sort by match, speed, rating or reply
-time; filter by mode, rating and services.
+**You choose how many carriers hear about it.** Two, five, or every match on the
+route — asked outright on the contact step, because "I filled in one form and
+got nine phone calls" is the main thing people fear about a lead marketplace.
+The number is carried through to the results board, so what you picked is
+exactly what you get.
 
-**Contact on your terms.** Every mover card has a WhatsApp / Call / Email
-selector. Pick one, hit the button, and that mover gets your enquiry — nobody
-else does.
+**A streaming results board.** Matches arrive one at a time over NDJSON while a
+single line of text narrates the search, then stops at the number you asked
+for. Filter by mode, rating and services; ranking is always best-match, because
+re-sorting after the fact would change *which* carriers were contacted.
+
+**Contact on your terms.** You pick the channel once, in the wizard. By the time
+the board renders the requests are already out, so each card reports *Request
+sent* and what happens next — no second decision, no send button.
 
 ### No prices, anywhere
 
@@ -123,11 +130,29 @@ shared link carries its language with it.
 | `/[locale]/coverage` | Region explorer and the full corridor table |
 | `/[locale]/how-it-works` | Ranking weights and the verification checklist |
 | `/[locale]/partners` | Two plans, plan chooser, lead-fee explainer |
-| `/[locale]/partners/dashboard` | Interactive partner demo (English only — internal tool) |
+| `/[locale]/partners/login` | Partner sign-in; demo credentials shown on the form |
+| `/[locale]/partners/dashboard` | Lead board and billing, behind the sign-in (English only — internal tool) |
 | `/[locale]/movers/[slug]` | Partner profile (28 partners × 8 locales prerendered) |
 | `POST /api/leads` | Validated intake → `{ id, token, expectedMatches }` |
 | `POST /api/search` | NDJSON stream of price-free matches |
 | `GET /api/movers` | Public partner directory |
+
+---
+
+## The partner side
+
+`/partners/login` takes `demo@rotamove.com` / `rotamove` — printed on the form,
+because a demo login nobody can get past is a dead end. The dashboard checks a
+session cookie server-side and redirects if it is missing.
+
+The board itself is deliberately small: lead flow, response speed and spend.
+A lead is either **New** or **Unlocked**, and contact details stay masked until
+the partner presses unlock. That gap — enquiry lands, someone acts — is the one
+thing the platform can honestly measure about a partner.
+
+Win rates, revenue, ROI and the performance charts were removed rather than
+restyled. Rotamove never learns whether a partner won the job, so every one of
+those figures was invented.
 
 ---
 

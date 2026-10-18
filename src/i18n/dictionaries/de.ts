@@ -42,6 +42,8 @@ export const de = {
     allCorridors: "Alle Korridore",
     browseCorridors: "Korridore ansehen",
     partnerLogin: "Partner-Login",
+    ratingLabel: "{rating} von 5",
+    ratingLabelWithCount: "{rating} von 5 aus {count} Bewertungen",
     verifiedBooking: "verifizierte Buchung",
   },
 
@@ -102,7 +104,7 @@ export const de = {
     steps: [
       { title: "Suchen", body: "Ein Feld. Von wo, nach wo." },
       { title: "Matchen", body: "Wir finden Speditionen, die Ihre Route wirklich fahren." },
-      { title: "Sprechen", body: "WhatsApp, Anruf oder E-Mail — sie melden sich bei Ihnen." },
+      { title: "Transportieren", body: "WhatsApp, Anruf oder E-Mail — sie melden sich bei Ihnen." },
     ],
   },
 
@@ -204,7 +206,7 @@ export const de = {
     steps: [
       { title: "Suchen", body: "Ein Feld: von wo, nach wo." },
       { title: "Matchen", body: "Wir fragen das Netzwerk ab. Dauert etwa acht Sekunden." },
-      { title: "Sprechen", body: "Kanal wählen. Nur Ihre Auswahl meldet sich." },
+      { title: "Transportieren", body: "Kanal wählen. Nur Ihre Auswahl meldet sich." },
     ],
     rankingTitle: "Fünf Faktoren. Offengelegte Gewichtung.",
     rankingBody:
@@ -416,6 +418,17 @@ export const de = {
     moversMatch: "{count} passend",
     sendFailed: "Ihre Anfrage konnte nicht gesendet werden",
     somethingWrong: "Etwas ist schiefgelaufen",
+    matchCount: {
+      legend: "Wie viele Speditionen sollen wir kontaktieren?",
+      hint: "Ihre Anfrage geht nur an die Speditionen, die Sie auswählen.",
+      two: "2 Speditionen",
+      twoHint: "Die zwei stärksten Treffer",
+      five: "5 Speditionen",
+      fiveHint: "Eine ausgewogene Auswahl",
+      all: "Alle Speditionen",
+      allHint: "Jeder Treffer auf Ihrer Route",
+      recommended: "Empfohlen",
+    },
     extras: {
       packing: "Einpacken",
       unpacking: "Auspacken",
@@ -464,15 +477,12 @@ export const de = {
     openingSearch: "Ihre Suche wird geöffnet",
     oneMoment: "Einen Moment",
     canTakeThis: "Speditionen können das übernehmen",
-    matchedIn: "In {seconds} s gematcht · wählen Sie, wer sich meldet",
-    complete: "Suche abgeschlossen",
+    matchedIn: "In {seconds} s gematcht · sie melden sich bei Ihnen",
+    complete: "Anfrage gesendet",
     rankingNote:
       "Unabhängig gerankt. Speditionen zahlen uns eine Pauschale oder eine kleine, gedeckelte Gebühr pro Anfrage — niemals eine Provision. Niemand kann sich also eine höhere Position kaufen.",
     sort: {
       best: "Beste Übereinstimmung",
-      fastest: "Schnellste",
-      rating: "Bestbewertet",
-      replies: "Antwortet zuerst",
     },
     stages: {
       secure: { label: "Ihre Anfrage wird gesichert", detail: "Verschlüsselt und verifiziert" },
@@ -529,19 +539,16 @@ export const de = {
     onTime: "{pct} pünktlich",
     repliesIn: "Antwortet in {time}",
     co2: "{amount} kg CO₂e",
-    channelAria: "Wie sollen sie Sie erreichen?",
-    requestSent: "Anfrage gesendet.",
+    requestSent: "Anfrage gesendet",
     willReply: "{promise} — innerhalb von {time}.",
-    sentToast: "Anfrage an {name} gesendet",
     manualPickup: "Nimmt Anfragen manuell auf — antwortet meist am selben Tag.",
     channels: {
       whatsapp: {
         label: "WhatsApp",
-        cta: "Per WhatsApp schreiben",
         done: "Sie schreiben Ihnen auf WhatsApp",
       },
-      phone: { label: "Anruf", cta: "Rückruf anfordern", done: "Sie rufen Sie an" },
-      email: { label: "E-Mail", cta: "Per E-Mail anfragen", done: "Sie schreiben Ihnen eine E-Mail" },
+      phone: { label: "Anruf", done: "Sie rufen Sie an" },
+      email: { label: "E-Mail", done: "Sie schreiben Ihnen eine E-Mail" },
     },
   },
 
@@ -582,6 +589,22 @@ export const de = {
       piano: "Klavier- und Kunsttransport",
       cleaning: "Endreinigung",
     },
+  },
+
+  login: {
+    title: "Partner-Anmeldung",
+    lede: "Verwalten Sie Ihr Anfragen-Board, schalten Sie Anfragen frei und behalten Sie Ihren Tarif im Blick.",
+    email: "Geschäftliche E-Mail",
+    password: "Passwort",
+    submit: "Anmelden",
+    signingIn: "Anmeldung läuft …",
+    demoTitle: "Demo-Konto",
+    demoBody: "Dies ist eine Demo — nur diese Zugangsdaten funktionieren.",
+    demoFill: "Demo-Zugangsdaten einsetzen",
+    error: "Diese Zugangsdaten passen nicht zum Demo-Konto.",
+    notPartner: "Noch kein Partner?",
+    seePlans: "Partner-Tarife ansehen",
+    signOut: "Abmelden",
   },
 
   notFound: {

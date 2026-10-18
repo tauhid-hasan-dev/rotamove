@@ -42,6 +42,8 @@ export const it = {
     allCorridors: "Tutti i corridoi",
     browseCorridors: "Sfoglia i corridoi",
     partnerLogin: "Area partner",
+    ratingLabel: "{rating} su 5",
+    ratingLabelWithCount: "{rating} su 5 da {count} recensioni",
     verifiedBooking: "prenotazione verificata",
   },
 
@@ -102,7 +104,7 @@ export const it = {
     steps: [
       { title: "Cerca", body: "Un campo solo. Da dove, a dove." },
       { title: "Abbina", body: "Troviamo i trasportatori che fanno davvero la tua tratta." },
-      { title: "Parla", body: "Scegli WhatsApp, una chiamata o l’e-mail. Ti contattano loro." },
+      { title: "Trasporta", body: "Scegli WhatsApp, una chiamata o l’e-mail. Ti contattano loro." },
     ],
   },
 
@@ -204,7 +206,7 @@ export const it = {
     steps: [
       { title: "Cerca", body: "Un campo solo: da dove, a dove." },
       { title: "Abbina", body: "Interroghiamo la rete. Ci vogliono circa otto secondi." },
-      { title: "Parla", body: "Scegli il canale. Ti contattano solo quelli che hai scelto." },
+      { title: "Trasporta", body: "Scegli il canale. Ti contattano solo quelli che hai scelto." },
     ],
     rankingTitle: "Cinque criteri. Pesi pubblicati.",
     rankingBody:
@@ -415,6 +417,17 @@ export const it = {
     moversMatch: "{count} idonei",
     sendFailed: "Non è stato possibile inviare la richiesta",
     somethingWrong: "Qualcosa è andato storto",
+    matchCount: {
+      legend: "Quanti trasportatori dobbiamo contattare?",
+      hint: "La tua richiesta arriva solo ai trasportatori che scegli.",
+      two: "2 trasportatori",
+      twoHint: "I due abbinamenti migliori",
+      five: "5 trasportatori",
+      fiveHint: "Una rosa equilibrata",
+      all: "Tutti i trasportatori",
+      allHint: "Ogni abbinamento sulla tua tratta",
+      recommended: "Consigliato",
+    },
     extras: {
       packing: "Imballaggio",
       unpacking: "Disimballaggio",
@@ -461,15 +474,12 @@ export const it = {
     openingSearch: "Apertura della tua ricerca",
     oneMoment: "Un attimo",
     canTakeThis: "trasportatori possono prenderlo in carico",
-    matchedIn: "Abbinati in {seconds} s · scegli chi ti contatta",
-    complete: "Ricerca completata",
+    matchedIn: "Abbinati in {seconds} s · ti contatteranno loro",
+    complete: "Richiesta inviata",
     rankingNote:
       "Classifica indipendente. I trasportatori ci pagano una quota fissa o una piccola commissione per contatto con un tetto massimo — mai una provvigione — quindi nessuno può comprarsi una posizione più alta.",
     sort: {
       best: "Miglior abbinamento",
-      fastest: "Più rapido",
-      rating: "Più votati",
-      replies: "Rispondono prima",
     },
     stages: {
       secure: { label: "Stiamo mettendo in sicurezza la richiesta", detail: "Cifrata e verificata" },
@@ -526,19 +536,16 @@ export const it = {
     onTime: "{pct} puntuale",
     repliesIn: "Risponde in {time}",
     co2: "{amount} kg CO₂e",
-    channelAria: "Come devono contattarti?",
-    requestSent: "Richiesta inviata.",
+    requestSent: "Richiesta inviata",
     willReply: "{promise} — entro {time}.",
-    sentToast: "Richiesta inviata a {name}",
     manualPickup: "Prende le richieste manualmente: di norma risponde lo stesso giorno.",
     channels: {
       whatsapp: {
         label: "WhatsApp",
-        cta: "Scrivi su WhatsApp",
         done: "Ti scriveranno su WhatsApp",
       },
-      phone: { label: "Chiamata", cta: "Richiedi una chiamata", done: "Ti chiameranno" },
-      email: { label: "E-mail", cta: "Chiedi per e-mail", done: "Ti scriveranno un’e-mail" },
+      phone: { label: "Chiamata", done: "Ti chiameranno" },
+      email: { label: "E-mail", done: "Ti scriveranno un’e-mail" },
     },
   },
 
@@ -579,6 +586,22 @@ export const it = {
       piano: "Trasporto pianoforti e opere d’arte",
       cleaning: "Pulizia di fine locazione",
     },
+  },
+
+  login: {
+    title: "Accesso partner",
+    lede: "Gestisci la bacheca richieste, sblocca le richieste e tieni d’occhio il tuo piano.",
+    email: "E-mail aziendale",
+    password: "Password",
+    submit: "Accedi",
+    signingIn: "Accesso in corso…",
+    demoTitle: "Account dimostrativo",
+    demoBody: "Questa è una demo: funzionano solo queste credenziali.",
+    demoFill: "Usa le credenziali demo",
+    error: "Queste credenziali non corrispondono all’account dimostrativo.",
+    notPartner: "Non sei ancora partner?",
+    seePlans: "Guarda i piani partner",
+    signOut: "Esci",
   },
 
   notFound: {

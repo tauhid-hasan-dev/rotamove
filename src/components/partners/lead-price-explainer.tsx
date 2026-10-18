@@ -84,6 +84,7 @@ export function LeadPriceExplainer() {
         emailVerified: true,
         phoneVerified: true,
       },
+      preferredMatches: 5,
       consent: true,
     }),
     [dest, volume, daysOut, fullService, storage],

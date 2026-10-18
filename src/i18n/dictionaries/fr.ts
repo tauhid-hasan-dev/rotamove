@@ -42,6 +42,8 @@ export const fr = {
     allCorridors: "Tous les corridors",
     browseCorridors: "Parcourir les corridors",
     partnerLogin: "Espace partenaire",
+    ratingLabel: "{rating} sur 5",
+    ratingLabelWithCount: "{rating} sur 5 d’après {count} avis",
     verifiedBooking: "réservation vérifiée",
   },
 
@@ -102,7 +104,7 @@ export const fr = {
     steps: [
       { title: "Rechercher", body: "Un seul champ. D’où, vers où." },
       { title: "Associer", body: "Nous trouvons les transporteurs qui font vraiment votre trajet." },
-      { title: "Échanger", body: "WhatsApp, appel ou e-mail : ce sont eux qui vous contactent." },
+      { title: "Transporter", body: "WhatsApp, appel ou e-mail : ce sont eux qui vous contactent." },
     ],
   },
 
@@ -205,7 +207,7 @@ export const fr = {
     steps: [
       { title: "Rechercher", body: "Un seul champ : d’où, vers où." },
       { title: "Associer", body: "Nous interrogeons le réseau. Environ huit secondes." },
-      { title: "Échanger", body: "Choisissez le canal. Seuls vos choix vous contactent." },
+      { title: "Transporter", body: "Choisissez le canal. Seuls vos choix vous contactent." },
     ],
     rankingTitle: "Cinq critères. Pondérations publiées.",
     rankingBody:
@@ -417,6 +419,17 @@ export const fr = {
     moversMatch: "{count} correspondance",
     sendFailed: "Impossible d’envoyer votre demande",
     somethingWrong: "Une erreur est survenue",
+    matchCount: {
+      legend: "Combien de transporteurs devons-nous contacter ?",
+      hint: "Votre demande ne part qu’aux transporteurs que vous choisissez.",
+      two: "2 transporteurs",
+      twoHint: "Les deux meilleures correspondances",
+      five: "5 transporteurs",
+      fiveHint: "Une sélection équilibrée",
+      all: "Tous les transporteurs",
+      allHint: "Toutes les correspondances de votre trajet",
+      recommended: "Recommandé",
+    },
     extras: {
       packing: "Emballage",
       unpacking: "Déballage",
@@ -464,15 +477,12 @@ export const fr = {
     openingSearch: "Ouverture de votre recherche",
     oneMoment: "Un instant",
     canTakeThis: "transporteurs peuvent prendre ce chargement",
-    matchedIn: "Associé en {seconds} s · choisissez qui vous contacte",
-    complete: "Recherche terminée",
+    matchedIn: "Associé en {seconds} s · ils vont vous contacter",
+    complete: "Demande envoyée",
     rankingNote:
       "Classement indépendant. Les transporteurs nous versent un forfait ou une petite commission plafonnée par demande — jamais de commission sur la mission — donc personne ne peut acheter une meilleure position.",
     sort: {
       best: "Meilleure correspondance",
-      fastest: "Le plus rapide",
-      rating: "Les mieux notés",
-      replies: "Répondent en premier",
     },
     stages: {
       secure: { label: "Sécurisation de votre demande", detail: "Chiffrée et vérifiée" },
@@ -529,19 +539,16 @@ export const fr = {
     onTime: "{pct} à l’heure",
     repliesIn: "Répond en {time}",
     co2: "{amount} kg éq. CO₂",
-    channelAria: "Comment doivent-ils vous joindre ?",
-    requestSent: "Demande envoyée.",
+    requestSent: "Demande envoyée",
     willReply: "{promise} — sous {time}.",
-    sentToast: "Demande envoyée à {name}",
     manualPickup: "Traite les demandes manuellement — répond généralement le jour même.",
     channels: {
       whatsapp: {
         label: "WhatsApp",
-        cta: "Écrire sur WhatsApp",
         done: "Ils vous écriront sur WhatsApp",
       },
-      phone: { label: "Appel", cta: "Demander un appel", done: "Ils vous appelleront" },
-      email: { label: "E-mail", cta: "Demander par e-mail", done: "Ils vous écriront par e-mail" },
+      phone: { label: "Appel", done: "Ils vous appelleront" },
+      email: { label: "E-mail", done: "Ils vous écriront par e-mail" },
     },
   },
 
@@ -582,6 +589,22 @@ export const fr = {
       piano: "Transport de pianos et d’œuvres d’art",
       cleaning: "Nettoyage de fin de bail",
     },
+  },
+
+  login: {
+    title: "Connexion partenaire",
+    lede: "Gérez votre tableau de demandes, débloquez des enquêtes et suivez votre formule.",
+    email: "E-mail professionnel",
+    password: "Mot de passe",
+    submit: "Se connecter",
+    signingIn: "Connexion…",
+    demoTitle: "Compte de démonstration",
+    demoBody: "Ceci est une démo — seuls ces identifiants fonctionnent.",
+    demoFill: "Utiliser les identifiants de démo",
+    error: "Ces identifiants ne correspondent pas au compte de démonstration.",
+    notPartner: "Pas encore partenaire ?",
+    seePlans: "Voir les formules partenaires",
+    signOut: "Se déconnecter",
   },
 
   notFound: {

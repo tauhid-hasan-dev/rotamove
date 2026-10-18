@@ -3,6 +3,7 @@
 import {
   Building2,
   CalendarDays,
+  Check,
   Mail,
   MessageCircle,
   Package,
@@ -10,6 +11,7 @@ import {
   Phone,
   Sparkles,
   Truck,
+  Users,
 } from "lucide-react";
 import { FieldSet, OptionCard, SwitchRow, ToggleChip } from "@/components/quote/fields";
 import { VerifyField } from "@/components/quote/verify-field";
@@ -26,6 +28,7 @@ import type {
   AccessType,
   ContactChannel,
   LeadDraft,
+  MatchCount,
   PropertySize,
   ServiceLevel,
   SpecialItems,
@@ -381,6 +384,11 @@ export function StepContact({ draft, update, touched }: StepProps & { touched: b
         />
       </div>
 
+      <MatchCountPicker
+        value={draft.preferredMatches}
+        onChange={(v) => update({ preferredMatches: v })}
+      />
+
       <label
         className={cn(
           "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors",
@@ -398,5 +406,87 @@ export function StepContact({ draft, update, touched }: StepProps & { touched: b
         </span>
       </label>
     </div>
+  );
+}
+
+/* -------------------------------------------------- how many carriers -- */
+
+/**
+ * How many carriers should hear about this load.
+ *
+ * The single most common objection to a lead marketplace is "I submitted one
+ * form and got nine phone calls". Asking the question outright — right before
+ * consent, where the customer is already weighing who gets their number —
+ * turns that fear into a choice, and the number is carried through to the
+ * results board so what they picked is what they get.
+ */
+function MatchCountPicker({
+  value,
+  onChange,
+}: {
+  value: MatchCount;
+  onChange: (value: MatchCount) => void;
+}) {
+  const { dict } = useI18n();
+
+  const options: Array<{ id: MatchCount; label: string; hint: string; recommended?: boolean }> = [
+    { id: 2, label: dict.quote.matchCount.two, hint: dict.quote.matchCount.twoHint },
+    {
+      id: 5,
+      label: dict.quote.matchCount.five,
+      hint: dict.quote.matchCount.fiveHint,
+      recommended: true,
+    },
+    { id: null, label: dict.quote.matchCount.all, hint: dict.quote.matchCount.allHint },
+  ];
+
+  return (
+    <FieldSet legend={dict.quote.matchCount.legend} hint={dict.quote.matchCount.hint}>
+      <div role="radiogroup" aria-label={dict.quote.matchCount.legend} className="grid gap-2.5 sm:grid-cols-3">
+        {options.map((option) => {
+          const selected = option.id === value;
+          return (
+            <button
+              key={String(option.id)}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onChange(option.id)}
+              className={cn(
+                "group relative flex flex-col items-start gap-1 rounded-2xl border bg-background p-4 text-start transition-all duration-200 outline-none",
+                "hover:border-foreground/25 hover:shadow-sm",
+                "focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/20",
+                selected &&
+                  "border-brand bg-brand-soft shadow-[0_0_0_1px_var(--brand)] dark:bg-accent dark:shadow-[0_0_0_1px_var(--brand)]",
+              )}
+            >
+              <span className="flex w-full items-center gap-2">
+                <Users
+                  className={cn(
+                    "size-4 shrink-0 transition-colors",
+                    selected ? "text-foreground" : "text-muted-foreground",
+                  )}
+                  strokeWidth={2}
+                />
+                <span className="text-[15px] font-medium">{option.label}</span>
+                {selected && (
+                  <span className="ms-auto grid size-4 shrink-0 place-items-center rounded-full bg-brand text-white">
+                    <Check className="size-2.5" strokeWidth={3.5} />
+                  </span>
+                )}
+              </span>
+              <span className="text-[12.5px] leading-snug text-muted-foreground">
+                {option.hint}
+              </span>
+              {option.recommended && !selected && (
+                <span className="mt-1 rounded-full bg-muted px-2 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {dict.quote.matchCount.recommended}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </FieldSet>
   );
 }

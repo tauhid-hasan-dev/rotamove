@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { AlertTriangle, PencilLine, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { Shell } from "@/components/common/section";
 import { FiltersPanel } from "@/components/results/filters-panel";
@@ -16,26 +16,28 @@ import { getCity, type TransportMode } from "@/lib/geo";
 import { applyFilters, sortQuotes, DEFAULT_FILTERS } from "@/lib/matching";
 import { getMover } from "@/lib/movers";
 import { useI18n } from "@/i18n/provider";
-import type { ContactChannel, QuoteFilters, SortKey } from "@/lib/types";
+import type { ContactChannel, QuoteFilters } from "@/lib/types";
 import type { DecodedMoveSpec } from "@/lib/lead-codec";
-import { cn } from "@/lib/utils";
-
-const SORT_ORDER: SortKey[] = ["best", "fastest", "rating", "replies"];
 
 export function ResultsBoard({
   leadId,
   token,
   spec,
   channel = "whatsapp",
+  limit,
 }: {
   leadId: string;
   token: string | null;
   spec: DecodedMoveSpec;
   channel?: ContactChannel;
+  /**
+   * How many carriers the customer asked us to contact, or `null` for all.
+   * Chosen on the contact step and carried through the results URL.
+   */
+  limit: number | null;
 }) {
   const { dict, t, href, rtl } = useI18n();
   const stream = useSearchStream(leadId, token);
-  const [sort, setSort] = useState<SortKey>("best");
   const [filters, setFilters] = useState<QuoteFilters>(DEFAULT_FILTERS);
 
   const from = getCity(spec.origin.cityCode);
@@ -47,27 +49,46 @@ export function ResultsBoard({
     [quotes],
   );
 
+  /**
+   * Ranking is always "best match" now — the customer asked for the top N
+   * carriers, so re-ordering by speed or rating after the fact would change
+   * *which* ones were contacted, which is not something a list control should
+   * quietly do.
+   */
+  const ranked = useMemo(
+    () => sortQuotes(applyFilters(quotes, filters), "best"),
+    [quotes, filters],
+  );
+
   const visible = useMemo(
-    () => sortQuotes(applyFilters(quotes, filters), sort),
-    [quotes, filters, sort],
+    () => (limit === null ? ranked : ranked.slice(0, limit)),
+    [ranked, limit],
   );
 
   const tags = useMemo(() => {
     const map = new Map<string, MoverTag>();
     if (!visible.length) return map;
     const best = [...visible].sort((a, b) => b.matchScore - a.matchScore)[0];
-    const fastest = visible.reduce((a, b) => (b.transitDays[1] < a.transitDays[1] ? b : a));
     if (best) map.set(best.id, "best");
-    if (fastest && !map.has(fastest.id)) map.set(fastest.id, "fastest");
     return map;
   }, [visible]);
 
-  const pending =
-    stream.status === "searching" && stream.expectedTotal
-      ? Math.max(0, stream.expectedTotal - quotes.length)
-      : stream.status === "connecting"
-        ? 3
-        : 0;
+  /**
+   * Skeletons stand in for results still arriving, but never for more than the
+   * customer asked for — showing five placeholders when they requested two
+   * promises something the board will not deliver.
+   */
+  const pending = (() => {
+    const expected =
+      stream.status === "searching" && stream.expectedTotal
+        ? stream.expectedTotal
+        : stream.status === "connecting"
+          ? 3
+          : 0;
+    if (!expected) return 0;
+    const target = limit === null ? expected : Math.min(expected, limit);
+    return Math.max(0, target - visible.length);
+  })();
 
   if (!from || !to) {
     return (
@@ -99,16 +120,9 @@ export function ResultsBoard({
           <p className="text-[13px] text-muted-foreground tnum">
             {t.volume(spec.volumeM3)} · {t.dateShort(spec.moveDate)}
           </p>
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="ms-auto rounded-full text-[13px]"
-          >
+          <Button asChild variant="ghost" size="sm" className="ms-auto rounded-full text-[13px]">
             <Link
-              href={href(
-                `/quote?from=${from.code}&to=${to.code}&size=${spec.propertySize}`,
-              )}
+              href={href(`/quote?from=${from.code}&to=${to.code}&size=${spec.propertySize}`)}
             >
               <PencilLine className="size-3.5" />
               {dict.common.edit}
@@ -121,7 +135,7 @@ export function ResultsBoard({
         <SearchHud
           stages={stream.stages}
           progress={stream.progress}
-          found={quotes.length}
+          found={visible.length}
           originCode={from.code}
           destCode={to.code}
           status={stream.status}
@@ -141,47 +155,21 @@ export function ResultsBoard({
 
         <div className="grid gap-10 pb-16 lg:grid-cols-[216px_minmax(0,1fr)] lg:gap-12">
           <aside className="hidden lg:block">
-            <div className="sticky top-[150px] max-h-[calc(100vh-180px)] overflow-y-auto pr-2 scrollbar-slim">
+            <div className="sticky top-[150px] max-h-[calc(100vh-180px)] overflow-y-auto pe-2 scrollbar-slim">
               {filterPanel}
             </div>
           </aside>
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <div
-                role="tablist"
-                aria-label={dict.results.sortAria}
-                className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full border p-1 scrollbar-slim"
-              >
-                {SORT_ORDER.map((id) => {
-                  const on = sort === id;
-                  return (
-                    <button
-                      key={id}
-                      role="tab"
-                      aria-selected={on}
-                      onClick={() => setSort(id)}
-                      className={cn(
-                        "relative shrink-0 rounded-full px-4 py-2 text-[13.5px] transition-colors",
-                        on ? "text-ink" : "text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      {on && (
-                        <motion.span
-                          layoutId="sort-pill"
-                          className="absolute inset-0 rounded-full bg-brand"
-                          transition={{ type: "spring", stiffness: 440, damping: 36 }}
-                        />
-                      )}
-                      <span className="relative">{dict.results.sort[id]}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {/* One ranking, stated rather than offered as a choice. */}
+              <span className="inline-flex items-center rounded-full bg-brand px-4 py-2 text-[13.5px] font-medium text-ink">
+                {dict.results.sort.best}
+              </span>
 
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="rounded-full lg:hidden">
+                  <Button variant="outline" className="ms-auto rounded-full lg:hidden">
                     <SlidersHorizontal className="size-4" />
                     {dict.results.filtersTitle}
                   </Button>
@@ -207,7 +195,7 @@ export function ResultsBoard({
                       mover={mover}
                       tag={tags.get(quote.id) ?? null}
                       index={i}
-                      defaultChannel={channel}
+                      channel={channel}
                       originCode={from.code}
                       destCode={to.code}
                     />

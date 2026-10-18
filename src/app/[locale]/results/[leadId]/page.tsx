@@ -59,6 +59,12 @@ export default async function ResultsPage({
       ? channelParam
       : "whatsapp";
 
+  // How many carriers the customer agreed to be contacted by. Anything we do
+  // not recognise falls back to the five-carrier default rather than to "all"
+  // — erring towards fewer replies is the safer failure.
+  const countParam = typeof query.n === "string" ? query.n : null;
+  const limit = countParam === "all" ? null : countParam === "2" ? 2 : 5;
+
   // Stored lead wins; the URL token is the stateless fallback for shared links.
   const stored = await leadRepository.get(leadId);
   const spec = stored
@@ -104,7 +110,13 @@ export default async function ResultsPage({
     <>
       <SiteHeader variant="flush" />
       <main id="main" className="pb-16">
-        <ResultsBoard leadId={leadId} token={token} spec={spec} channel={channel} />
+        <ResultsBoard
+          leadId={leadId}
+          token={token}
+          spec={spec}
+          channel={channel}
+          limit={limit}
+        />
       </main>
       <SiteFooter />
     </>

@@ -62,8 +62,13 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
         throw new Error(data?.issues?.[0]?.message ?? data?.error ?? dict.quote.sendFailed);
       }
       const data = (await res.json()) as { id: string; token: string };
+      const matches = draft.preferredMatches === null ? "all" : String(draft.preferredMatches);
       startTransition(() =>
-        router.push(href(`/results/${data.id}?d=${data.token}&c=${draft.contact.channel}`)),
+        router.push(
+          href(
+            `/results/${data.id}?d=${data.token}&c=${draft.contact.channel}&n=${matches}`,
+          ),
+        ),
       );
     } catch (error) {
       setSubmitting(false);

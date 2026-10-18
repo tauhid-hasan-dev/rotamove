@@ -81,7 +81,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
           <LanguageSwitcher className="hidden sm:inline-flex" />
           <ThemeToggle className="hidden rounded-full sm:inline-flex" />
           <Link
-            href={href("/partners/dashboard")}
+            href={href("/partners/login")}
             className="hidden rounded-full px-4 py-2 text-[14px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:inline-flex"
           >
             {dict.common.partnerLogin}
@@ -122,7 +122,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
                   </Link>
                 ))}
                 <Link
-                  href={href("/partners/dashboard")}
+                  href={href("/partners/login")}
                   className="rounded-xl px-3 py-3 text-[16px] transition-colors hover:bg-muted"
                 >
                   {dict.common.partnerLogin}

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { PartnerDashboard } from "@/components/partners/dashboard/dashboard";
 import { generateLeadBoard } from "@/lib/demo-leads";
+import { PARTNER_COOKIE } from "@/lib/partner-session";
+import { resolveLocale } from "@/i18n/dictionaries";
+import { localePath } from "@/i18n/paths";
 
 export const metadata: Metadata = {
   title: "Partner dashboard demo",
@@ -23,7 +28,16 @@ async function loadBoard() {
   return { now, board: generateLeadBoard(now, 18) };
 }
 
-export default async function PartnerDashboardPage() {
+export default async function PartnerDashboardPage({
+  params,
+}: PageProps<"/[locale]/partners/dashboard">) {
+  const locale = resolveLocale((await params).locale);
+
+  // Checked on the server before anything renders, so the board never flashes
+  // to a signed-out visitor.
+  const signedIn = (await cookies()).get(PARTNER_COOKIE)?.value === "1";
+  if (!signedIn) redirect(localePath(locale, "/partners/login"));
+
   const { now, board } = await loadBoard();
 
   return (

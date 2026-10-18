@@ -58,6 +58,15 @@ export const formatPercent = (locale: Locale, ratio: number, digits = 0) =>
     maximumFractionDigits: digits,
   }).format(ratio);
 
+/**
+ * A calendar year.
+ *
+ * Plain `formatNumber` groups thousands, which turned "since 1998" into
+ * "since 1,998". A year is an identifier, not a quantity.
+ */
+export const formatYear = (locale: Locale, year: number) =>
+  numberFormat(locale, { useGrouping: false, maximumFractionDigits: 0 }).format(year);
+
 export const formatDecimal = (locale: Locale, value: number, digits = 1) =>
   numberFormat(locale, {
     minimumFractionDigits: digits,

@@ -25,6 +25,17 @@ export type AccessType = "ground" | "lift" | "stairs_1_2" | "stairs_3_plus";
 
 export type ContactChannel = "phone" | "whatsapp" | "email";
 
+/**
+ * How many carriers the enquiry goes to.
+ *
+ * `null` means every match on the route. A number caps it — the customer is
+ * choosing how many replies they are willing to field, which is the single
+ * biggest complaint about lead marketplaces.
+ */
+export type MatchCount = 2 | 5 | null;
+
+export const MATCH_COUNTS: readonly MatchCount[] = [2, 5, null];
+
 /** Owned by the i18n layer; re-exported so the domain model has one source. */
 export type { Locale };
 
@@ -83,6 +94,8 @@ export interface Lead {
   specialItems: SpecialItems;
   extras: ExtraServices;
   contact: LeadContact;
+  /** How many carriers to contact. `null` = all matches. */
+  preferredMatches: MatchCount;
   notes?: string;
   consent: boolean;
 }

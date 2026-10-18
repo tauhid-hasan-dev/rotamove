@@ -1,5 +1,5 @@
 import { CITIES, cityCountry, getCity } from "@/lib/geo";
-import { leadFeeUsd, leadQualityScore } from "@/lib/plans";
+import { AVG_LEAD_FEE_USD, PRO_MONTHLY_USD, leadFeeUsd, leadQualityScore } from "@/lib/plans";
 import { estimateVolume } from "@/lib/pricing";
 import { createRng } from "@/lib/rand";
 import type { Lead, PropertySize } from "@/lib/types";
@@ -12,7 +12,15 @@ import type { Lead, PropertySize } from "@/lib/types";
  * with no hydration drift.
  */
 
-export type BoardStatus = "new" | "unlocked" | "contacted" | "won" | "lost";
+/**
+ * A lead is either waiting to be opened, or opened.
+ *
+ * The board used to carry "quoted", "won" and "lost" as well, which implied an
+ * outcome pipeline nothing in the product actually updates. What it can
+ * measure honestly is how quickly a partner acts on a lead, so unlocking is
+ * the only transition.
+ */
+export type BoardStatus = "new" | "unlocked";
 
 export interface BoardLead {
   lead: Lead;
@@ -167,24 +175,18 @@ export function generateLeadBoard(now: number, count = 18): BoardLead[] {
         emailVerified: true,
         phoneVerified: true,
       },
+      // Seed enquiries came through the wizard, where five is the default.
+      preferredMatches: rng.pick([2, 5, null] as const),
       // Indexed rather than sampled: a pure draw clusters, and two adjacent
       // leads carrying the identical note reads as broken data.
       notes: NOTE_POOL[(i * 3 + 1) % NOTE_POOL.length] || undefined,
       consent: true,
     };
 
+    // Anything under 45 minutes old is still fresh; older leads are a mix, so
+    // the board shows both states on first load.
     const status: BoardStatus =
-      ageMins < 45
-        ? "new"
-        : rng.pick([
-            "new",
-            "unlocked",
-            "unlocked",
-            "contacted",
-            "contacted",
-            "won",
-            "lost",
-          ] as const);
+      ageMins < 45 ? "new" : rng.pick(["new", "unlocked", "unlocked"] as const);
 
     return {
       lead,
@@ -198,53 +200,28 @@ export function generateLeadBoard(now: number, count = 18): BoardLead[] {
   }).sort((a, b) => a.ageMins - b.ageMins);
 }
 
+/**
+ * What the dashboard can state as fact.
+ *
+ * Win rates, revenue and ROI came out of this type along with the charts that
+ * displayed them: the platform never sees whether a partner won the job, so
+ * every one of those figures was invented. What is left is what the lead board
+ * genuinely knows.
+ */
 export interface PartnerMetrics {
   leadsThisMonth: number;
   unlocked: number;
-  quoted: number;
-  won: number;
-  winRate: number;
-  revenueEur: number;
   spendUsd: number;
-  roi: number;
   avgResponseMins: number;
-  corridorSplit: Array<{ corridor: string; leads: number; won: number }>;
-  weekly: Array<{ week: string; leads: number; won: number; revenue: number }>;
 }
 
 export function generatePartnerMetrics(planIsPro: boolean): PartnerMetrics {
-  const rng = createRng("metrics", planIsPro ? "pro" : "ppl");
   const leadsThisMonth = planIsPro ? 312 : 47;
   const unlocked = planIsPro ? 312 : 31;
-  const quoted = Math.round(unlocked * 0.78);
-  const won = Math.round(quoted * (planIsPro ? 0.19 : 0.16));
-  const revenueEur = won * rng.int(1900, 2600);
-  const spendUsd = planIsPro ? 100 : Math.round(unlocked * 5.2 * 100) / 100;
-
   return {
     leadsThisMonth,
     unlocked,
-    quoted,
-    won,
-    winRate: won / Math.max(1, quoted),
-    revenueEur,
-    spendUsd,
-    // Return on platform spend measured on gross profit, not turnover — the
-    // turnover figure flatters a flat-fee plan to the point of absurdity.
-    roi: (revenueEur * 0.26) / Math.max(1, spendUsd / 1.08),
+    spendUsd: planIsPro ? PRO_MONTHLY_USD : Math.round(unlocked * AVG_LEAD_FEE_USD * 100) / 100,
     avgResponseMins: planIsPro ? 12 : 41,
-    corridorSplit: [
-      { corridor: "TR → EU-West", leads: Math.round(leadsThisMonth * 0.34), won: Math.round(won * 0.36) },
-      { corridor: "EU-West → TR", leads: Math.round(leadsThisMonth * 0.22), won: Math.round(won * 0.2) },
-      { corridor: "TR → Nordics", leads: Math.round(leadsThisMonth * 0.14), won: Math.round(won * 0.14) },
-      { corridor: "TR → Gulf", leads: Math.round(leadsThisMonth * 0.12), won: Math.round(won * 0.12) },
-      { corridor: "TR → Central Asia", leads: Math.round(leadsThisMonth * 0.09), won: Math.round(won * 0.08) },
-      { corridor: "Domestic TR", leads: Math.round(leadsThisMonth * 0.09), won: Math.round(won * 0.1) },
-    ],
-    weekly: ["W-5", "W-4", "W-3", "W-2", "W-1", "Now"].map((week, i) => {
-      const leads = Math.round((leadsThisMonth / 6) * rng.range(0.78, 1.26) * (1 + i * 0.04));
-      const w = Math.round(leads * (planIsPro ? 0.15 : 0.11) * rng.range(0.7, 1.4));
-      return { week, leads, won: w, revenue: w * rng.int(1900, 2600) };
-    }),
   };
 }

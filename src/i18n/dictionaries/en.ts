@@ -54,6 +54,8 @@ export const en = {
     allCorridors: "All corridors",
     browseCorridors: "Browse corridors",
     partnerLogin: "Partner login",
+    ratingLabel: "{rating} out of 5",
+    ratingLabelWithCount: "{rating} out of 5 from {count} reviews",
     verifiedBooking: "verified booking",
   },
 
@@ -120,7 +122,7 @@ export const en = {
     steps: [
       { title: "Search", body: "One box. Where from, where to." },
       { title: "Match", body: "We find carriers who actually run your route." },
-      { title: "Talk", body: "Pick WhatsApp, a call or email. They reach out." },
+      { title: "Move", body: "Pick WhatsApp, a call or email. They reach out." },
     ],
   },
 
@@ -227,7 +229,7 @@ export const en = {
     steps: [
       { title: "Search", body: "One box: where from, where to." },
       { title: "Match", body: "We poll the network. Takes about eight seconds." },
-      { title: "Talk", body: "Choose the channel. Only your picks get in touch." },
+      { title: "Move", body: "Choose the channel. Only your picks get in touch." },
     ],
     rankingTitle: "Five inputs. Published weights.",
     rankingBody:
@@ -438,6 +440,17 @@ export const en = {
     moversMatch: "{count} match",
     sendFailed: "Could not send your enquiry",
     somethingWrong: "Something went wrong",
+    matchCount: {
+      legend: "How many carriers should we contact?",
+      hint: "Only the carriers you pick receive your enquiry.",
+      two: "2 carriers",
+      twoHint: "The two strongest matches",
+      five: "5 carriers",
+      fiveHint: "A balanced shortlist",
+      all: "All carriers",
+      allHint: "Every match on your route",
+      recommended: "Recommended",
+    },
     extras: {
       packing: "Packing",
       unpacking: "Unpacking",
@@ -484,15 +497,12 @@ export const en = {
     openingSearch: "Opening your search",
     oneMoment: "One moment",
     canTakeThis: "carriers can take this",
-    matchedIn: "Matched in {seconds}s · pick who gets in touch",
-    complete: "Search complete",
+    matchedIn: "Matched in {seconds}s · they will be in touch",
+    complete: "Request sent",
     rankingNote:
       "Ranked independently. Carriers pay us a flat fee or a small capped fee per lead — never a commission — so nobody can buy a higher position.",
     sort: {
       best: "Best match",
-      fastest: "Fastest",
-      rating: "Top rated",
-      replies: "Replies first",
     },
     /** Keyed by the stage ids the NDJSON stream emits. */
     stages: {
@@ -550,19 +560,16 @@ export const en = {
     onTime: "{pct} on time",
     repliesIn: "Replies in {time}",
     co2: "{amount} kg CO₂e",
-    channelAria: "How should they reach you?",
-    requestSent: "Request sent.",
+    requestSent: "Request sent",
     willReply: "{promise} within {time}.",
-    sentToast: "Request sent to {name}",
     manualPickup: "Picks up enquiries manually — usually replies the same day.",
     channels: {
       whatsapp: {
         label: "WhatsApp",
-        cta: "Message on WhatsApp",
         done: "They'll message you on WhatsApp",
       },
-      phone: { label: "Call", cta: "Request a call", done: "They'll call you" },
-      email: { label: "Email", cta: "Ask by email", done: "They'll email you" },
+      phone: { label: "Call", done: "They'll call you" },
+      email: { label: "Email", done: "They'll email you" },
     },
   },
 
@@ -603,6 +610,22 @@ export const en = {
       piano: "Piano and fine-art handling",
       cleaning: "End-of-tenancy cleaning",
     },
+  },
+
+  login: {
+    title: "Partner sign in",
+    lede: "Manage your lead board, unlock enquiries and track your plan.",
+    email: "Work email",
+    password: "Password",
+    submit: "Sign in",
+    signingIn: "Signing in…",
+    demoTitle: "Demo account",
+    demoBody: "This is a demo — these are the only credentials that work.",
+    demoFill: "Use demo credentials",
+    error: "Those credentials don't match the demo account.",
+    notPartner: "Not a partner yet?",
+    seePlans: "See partner plans",
+    signOut: "Sign out",
   },
 
   notFound: {

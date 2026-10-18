@@ -47,6 +47,8 @@ export const tr = {
     allCorridors: "Tüm koridorlar",
     browseCorridors: "Koridorlara göz at",
     partnerLogin: "Partner girişi",
+    ratingLabel: "5 üzerinden {rating}",
+    ratingLabelWithCount: "{count} değerlendirmede 5 üzerinden {rating}",
     verifiedBooking: "doğrulanmış rezervasyon",
   },
 
@@ -107,7 +109,7 @@ export const tr = {
     steps: [
       { title: "Ara", body: "Tek kutu. Nereden, nereye." },
       { title: "Eşleş", body: "Güzergâhınızı gerçekten işleten taşıyıcıları buluyoruz." },
-      { title: "Görüş", body: "WhatsApp, telefon veya e-posta seçin. Onlar size ulaşır." },
+      { title: "Taşı", body: "WhatsApp, telefon veya e-posta seçin. Onlar size ulaşır." },
     ],
   },
 
@@ -208,7 +210,7 @@ export const tr = {
     steps: [
       { title: "Ara", body: "Tek kutu: nereden, nereye." },
       { title: "Eşleş", body: "Ağı tarıyoruz. Yaklaşık sekiz saniye sürer." },
-      { title: "Görüş", body: "Kanalı seçin. Yalnızca seçtikleriniz sizinle iletişime geçer." },
+      { title: "Taşı", body: "Kanalı seçin. Yalnızca seçtikleriniz sizinle iletişime geçer." },
     ],
     rankingTitle: "Beş girdi. Yayınlanmış ağırlıklar.",
     rankingBody:
@@ -417,6 +419,17 @@ export const tr = {
     moversMatch: "{count} uygun",
     sendFailed: "Talebiniz gönderilemedi",
     somethingWrong: "Bir şeyler ters gitti",
+    matchCount: {
+      legend: "Kaç taşıyıcıyla iletişime geçelim?",
+      hint: "Talebiniz yalnızca seçtiğiniz taşıyıcılara ulaşır.",
+      two: "2 taşıyıcı",
+      twoHint: "En güçlü iki eşleşme",
+      five: "5 taşıyıcı",
+      fiveHint: "Dengeli bir kısa liste",
+      all: "Tüm taşıyıcılar",
+      allHint: "Güzergâhınızdaki her eşleşme",
+      recommended: "Önerilen",
+    },
     extras: {
       packing: "Paketleme",
       unpacking: "Kurulum",
@@ -463,15 +476,12 @@ export const tr = {
     openingSearch: "Aramanız açılıyor",
     oneMoment: "Bir saniye",
     canTakeThis: "taşıyıcı bu işi alabilir",
-    matchedIn: "{seconds} sn'de eşleşti · kimin ulaşacağını siz seçin",
-    complete: "Arama tamamlandı",
+    matchedIn: "{seconds} sn'de eşleşti · sizinle iletişime geçecekler",
+    complete: "Talep gönderildi",
     rankingNote:
       "Bağımsız olarak sıralanır. Taşıyıcılar bize sabit bir ücret ya da talep başına üst sınırlı küçük bir ücret öder — asla komisyon değil — bu yüzden kimse daha yüksek bir sıra satın alamaz.",
     sort: {
       best: "En iyi eşleşme",
-      fastest: "En hızlı",
-      rating: "En yüksek puan",
-      replies: "Önce yanıt verenler",
     },
     stages: {
       secure: { label: "Talebiniz güvene alınıyor", detail: "Şifrelendi ve doğrulandı" },
@@ -528,19 +538,16 @@ export const tr = {
     onTime: "{pct} zamanında",
     repliesIn: "{time} içinde yanıtlar",
     co2: "{amount} kg CO₂e",
-    channelAria: "Size nasıl ulaşsınlar?",
-    requestSent: "Talep gönderildi.",
+    requestSent: "Talep gönderildi",
     willReply: "{promise} — {time} içinde.",
-    sentToast: "{name} firmasına talep gönderildi",
     manualPickup: "Talepleri elle alır — genellikle aynı gün yanıtlar.",
     channels: {
       whatsapp: {
         label: "WhatsApp",
-        cta: "WhatsApp'tan yaz",
         done: "Size WhatsApp'tan yazacaklar",
       },
-      phone: { label: "Telefon", cta: "Arama talep et", done: "Sizi arayacaklar" },
-      email: { label: "E-posta", cta: "E-posta ile sor", done: "Size e-posta gönderecekler" },
+      phone: { label: "Telefon", done: "Sizi arayacaklar" },
+      email: { label: "E-posta", done: "Size e-posta gönderecekler" },
     },
   },
 
@@ -581,6 +588,22 @@ export const tr = {
       piano: "Piyano ve sanat eseri taşıma",
       cleaning: "Çıkış temizliği",
     },
+  },
+
+  login: {
+    title: "Partner girişi",
+    lede: "Talep panonuzu yönetin, talepleri açın ve planınızı takip edin.",
+    email: "Kurumsal e-posta",
+    password: "Parola",
+    submit: "Giriş yap",
+    signingIn: "Giriş yapılıyor…",
+    demoTitle: "Demo hesabı",
+    demoBody: "Bu bir demodur — yalnızca bu bilgiler çalışır.",
+    demoFill: "Demo bilgilerini kullan",
+    error: "Bu bilgiler demo hesabıyla eşleşmiyor.",
+    notPartner: "Henüz partner değil misiniz?",
+    seePlans: "Partner planlarına bakın",
+    signOut: "Çıkış yap",
   },
 
   notFound: {

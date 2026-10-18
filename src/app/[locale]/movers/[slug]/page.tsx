@@ -22,6 +22,7 @@ import {
   formatDays,
   formatNumber,
   formatPercent,
+  formatYear,
   formatResponseTime,
   formatUsd,
   formatVolume,
@@ -169,7 +170,7 @@ export default async function MoverPage({ params }: PageProps<"/[locale]/movers/
                 <p className="mt-2 text-[14px] text-muted-foreground">
                   {mover.legalName} ·{" "}
                   {hq ? cityLabel(locale, hq, hq.country) : mover.hqCity} ·{" "}
-                  {fill(profile.established, { year: formatNumber(locale, mover.since) })}
+                  {fill(profile.established, { year: formatYear(locale, mover.since) })}
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
                   <Stars rating={mover.rating} count={mover.reviewCount} />

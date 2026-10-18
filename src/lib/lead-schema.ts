@@ -87,6 +87,8 @@ export const leadDraftSchema = z
     specialItems: specialItemsSchema,
     extras: extraServicesSchema,
     contact: contactSchema,
+    // Mirrors `MatchCount`: two, five, or every match on the route.
+    preferredMatches: z.union([z.literal(2), z.literal(5), z.null()]),
     notes: z.string().max(1200).optional(),
     consent: z.literal(true, { message: "We need your consent to share the enquiry with movers" }),
   })
