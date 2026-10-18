@@ -100,10 +100,13 @@
   --verify: #1f8a5f;
 
   /* Last-call strip. Yellow is the one colour in the system that is not the
-     brand, which is the point: it has to read as a notice, not as navigation. */
-  --lastcall: #fdf3c7;
+     brand, which is the point: it has to read as a notice, not as navigation.
+     Full-strength rather than tinted — the strip only earns its place at the
+     top of the page if it is seen, and the pale version read as decoration.
+     The badge has to go darker to stay legible against it. */
+  --lastcall: #ffea5c;
   --lastcall-foreground: #4a3c06;
-  --lastcall-accent: #f7e08a;
+  --lastcall-accent: #f4d12a;
 
   --radius: 0.75rem;
 
