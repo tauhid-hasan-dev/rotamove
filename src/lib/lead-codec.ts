@@ -223,6 +223,10 @@ export function leadFromToken(id: string, token: string): Lead | null {
       phone: "",
       channel: "phone",
       locale: "en",
+      // The token carries no personal data, so there is nothing to have
+      // verified — this lead exists only to be re-quoted.
+      emailVerified: false,
+      phoneVerified: false,
     },
     consent: true,
   };

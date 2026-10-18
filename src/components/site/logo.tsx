@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 export function LogoMark({ className }: { className?: string }) {
@@ -26,18 +29,21 @@ export function LogoMark({ className }: { className?: string }) {
 
 export function Logo({
   className,
-  href = "/",
+  to = "/",
   compact = false,
 }: {
   className?: string;
-  href?: string;
+  /** Locale-free path; the active locale is prefixed here. */
+  to?: string;
   compact?: boolean;
 }) {
+  const { dict, href } = useI18n();
+
   return (
     <Link
-      href={href}
+      href={href(to)}
       className={cn("group flex items-center gap-2.5 outline-none", className)}
-      aria-label="Rotamove home"
+      aria-label={dict.nav.home}
     >
       <LogoMark className="transition-transform duration-300 group-hover:rotate-[14deg]" />
       {!compact && (

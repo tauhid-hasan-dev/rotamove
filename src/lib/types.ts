@@ -1,3 +1,4 @@
+import type { Locale } from "@/i18n/config";
 import type { RegionId, TransportMode } from "@/lib/geo";
 
 /* ------------------------------------------------------------------ *
@@ -24,7 +25,8 @@ export type AccessType = "ground" | "lift" | "stairs_1_2" | "stairs_3_plus";
 
 export type ContactChannel = "phone" | "whatsapp" | "email";
 
-export type Locale = "en" | "tr";
+/** Owned by the i18n layer; re-exported so the domain model has one source. */
+export type { Locale };
 
 export interface AddressDetail {
   cityCode: string;
@@ -61,6 +63,9 @@ export interface LeadContact {
   phone: string;
   channel: ContactChannel;
   locale: Locale;
+  /** Confirmed by the one-time code on the contact step. */
+  emailVerified: boolean;
+  phoneVerified: boolean;
 }
 
 export interface Lead {
@@ -158,6 +163,15 @@ export interface PriceLine {
   included?: boolean;
 }
 
+/**
+ * An ISO date range, carried as data rather than a formatted string.
+ *
+ * The matching engine runs on the server with no locale, so pre-rendering
+ * "29 Nov – 5 Dec" there froze every quote into English. Shipping the two
+ * dates lets the client format them in the reader's language and calendar.
+ */
+export type DateRange = [string, string];
+
 export type QuoteKind =
   /** Pro Unlimited partner: availability is confirmed straight away. */
   | "instant"
@@ -176,8 +190,9 @@ export interface Quote {
   lines: PriceLine[];
   mode: TransportMode;
   transitDays: [number, number];
-  pickupWindow: string;
-  deliveryWindow: string;
+  /** ISO [from, to]; both ends equal for a fixed date. */
+  pickupWindow: DateRange;
+  deliveryWindow: DateRange;
   validUntilDays: number;
   /** 0-100 composite used for the default "Best match" sort. */
   matchScore: number;
@@ -203,8 +218,8 @@ export interface PublicQuote {
   kind: QuoteKind;
   mode: TransportMode;
   transitDays: [number, number];
-  pickupWindow: string;
-  deliveryWindow: string;
+  pickupWindow: DateRange;
+  deliveryWindow: DateRange;
   matchScore: number;
   matchReasons: string[];
   co2Kg: number;
@@ -242,9 +257,39 @@ export interface QuoteFilters {
  * Search stream protocol
  * ------------------------------------------------------------------ */
 
+/**
+ * Values a stage's text is built from.
+ *
+ * The route handler has no locale — route handlers cannot read root params —
+ * so it ships the *ingredients* rather than only the finished English
+ * sentence, and the client assembles the narration in the reader's language.
+ * `label` and `detail` remain as an English fallback for any consumer that is
+ * not the UI (logs, a future webhook) and for stage ids the client does not
+ * recognise.
+ */
+export interface StageParams {
+  fromCode?: string;
+  toCode?: string;
+  fromCountry?: string;
+  toCountry?: string;
+  corridorId?: string;
+  corridorLabel?: string;
+  coreCorridor?: boolean;
+  transitDays?: [number, number];
+  count?: number;
+  date?: string;
+}
+
 export type SearchEvent =
   | { type: "open"; leadId: string; corridor: string; partnersScanned: number; startedAt: number }
-  | { type: "stage"; id: string; label: string; detail: string; progress: number }
+  | {
+      type: "stage";
+      id: string;
+      label: string;
+      detail: string;
+      progress: number;
+      params?: StageParams;
+    }
   | { type: "quote"; quote: PublicQuote; index: number; total: number }
   | {
       type: "done";

@@ -3,6 +3,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { cityCountry, getCity, searchCityHits, type CityHit } from "@/lib/geo";
+import { useI18n } from "@/i18n/provider";
+import { fill } from "@/i18n/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,6 +39,7 @@ export function CityField({
   /** Called after a pick, so the bar can move focus to the next field. */
   autoAdvance?: () => void;
 }) {
+  const { dict, t } = useI18n();
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +106,7 @@ export function CityField({
             onClick={onActivate}
             className={cn(
               // matches the action button's height so the bar reads as one object
-              "flex h-[52px] w-full flex-col items-start justify-center gap-[3px] rounded-full px-5 text-left transition-colors",
+              "flex h-[52px] w-full flex-col items-start justify-center gap-[3px] rounded-full px-5 text-start transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               active ? "bg-muted/70" : "hover:bg-muted/50",
             )}
@@ -149,11 +152,11 @@ export function CityField({
         onCloseAutoFocus={(e) => e.preventDefault()}
         className="w-[min(380px,calc(100vw-2rem))] gap-0 rounded-2xl p-1.5 shadow-float"
       >
-        {!query && <p className="eyebrow px-3 pb-1 pt-2">Popular</p>}
+        {!query && <p className="eyebrow px-3 pb-1 pt-2">{dict.search.popular}</p>}
 
         {hits.length === 0 ? (
           <p className="px-3 py-5 text-center text-[14px] text-muted-foreground">
-            No match for “{query}”
+            {fill(dict.search.noMatch, { query })}
           </p>
         ) : (
           <ul
@@ -163,7 +166,11 @@ export function CityField({
             className="max-h-[300px] overflow-y-auto scrollbar-slim"
           >
             {hits.map((hit, i) => {
-              const country = cityCountry(hit.city);
+              const source = cityCountry(hit.city);
+              const country = t.country(source.iso, source.name);
+              // The match offset was computed against the English name, so it
+              // only lines up when the displayed name is that same string.
+              const countryMatch = hit.field === "country" && country === source.name;
               return (
                 <li key={hit.city.code}>
                   <button
@@ -174,7 +181,7 @@ export function CityField({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => pick(hit)}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
+                      "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start transition-colors",
                       i === cursor ? "bg-accent" : "",
                     )}
                   >
@@ -186,10 +193,10 @@ export function CityField({
                           length={hit.length}
                         />
                       </span>
-                      <span className="ml-2 text-[13px] text-muted-foreground">
+                      <span className="ms-2 text-[13px] text-muted-foreground">
                         <Highlight
-                          text={country.name}
-                          start={hit.field === "country" ? hit.start : -1}
+                          text={country}
+                          start={countryMatch ? hit.start : -1}
                           length={hit.length}
                         />
                       </span>

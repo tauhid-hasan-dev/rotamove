@@ -9,8 +9,9 @@ import {
   type QuoteBasis,
 } from "@/lib/pricing";
 import { createRng } from "@/lib/rand";
-import { addDays, formatDateShort } from "@/lib/format";
+import { addDays } from "@/lib/format";
 import type {
+  DateRange,
   Lead,
   Mover,
   PublicQuote,
@@ -105,7 +106,7 @@ function chooseMode(
   return rng.pick(pool) as TransportMode;
 }
 
-function pickupWindow(lead: Lead): { pickup: string; label: string } {
+function pickupWindow(lead: Lead): { pickup: string; range: DateRange } {
   const slack =
     lead.flexibility === "exact"
       ? 0
@@ -116,10 +117,10 @@ function pickupWindow(lead: Lead): { pickup: string; label: string } {
           : 12;
   return {
     pickup: lead.moveDate,
-    label:
+    range:
       slack === 0
-        ? formatDateShort(lead.moveDate)
-        : `${formatDateShort(addDays(lead.moveDate, -slack))} – ${formatDateShort(addDays(lead.moveDate, slack))}`,
+        ? [lead.moveDate, lead.moveDate]
+        : [addDays(lead.moveDate, -slack), addDays(lead.moveDate, slack)],
   };
 }
 
@@ -172,10 +173,11 @@ export function matchLead(lead: Lead): MatchResult | null {
       })),
       mode,
       transitDays,
-      pickupWindow: window.label,
-      deliveryWindow: `${formatDateShort(addDays(window.pickup, transitDays[0]))} – ${formatDateShort(
+      pickupWindow: window.range,
+      deliveryWindow: [
+        addDays(window.pickup, transitDays[0]),
         addDays(window.pickup, transitDays[1]),
-      )}`,
+      ],
       validUntilDays: isInstant ? 14 : 7,
       matchScore: 0,
       matchReasons: [],

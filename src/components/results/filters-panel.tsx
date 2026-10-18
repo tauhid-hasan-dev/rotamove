@@ -1,18 +1,19 @@
 "use client";
 
 import { RotateCcw, Zap } from "lucide-react";
-import { MODE_META } from "@/components/common/route-line";
+import { MODE_ICONS } from "@/components/common/route-line";
+import { useI18n } from "@/i18n/provider";
 import type { TransportMode } from "@/lib/geo";
 import type { QuoteFilters } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const SERVICES: Array<{ id: QuoteFilters["needs"][number]; label: string }> = [
-  { id: "packing", label: "Packing" },
-  { id: "storage", label: "Storage" },
-  { id: "customs", label: "Customs" },
-  { id: "vehicle", label: "Vehicles" },
-  { id: "piano", label: "Piano" },
-  { id: "cleaning", label: "Cleaning" },
+const SERVICE_IDS: Array<QuoteFilters["needs"][number]> = [
+  "packing",
+  "storage",
+  "customs",
+  "vehicle",
+  "piano",
+  "cleaning",
 ];
 
 const RATINGS = [0, 4, 4.5, 4.7];
@@ -30,6 +31,7 @@ export function FiltersPanel({
   resultCount: number;
   totalCount: number;
 }) {
+  const { dict, t } = useI18n();
   const dirty =
     filters.modes.length > 0 ||
     filters.minRating > 0 ||
@@ -51,7 +53,12 @@ export function FiltersPanel({
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[13px] text-muted-foreground tnum">
-          {totalCount === 0 ? "Searching…" : `${resultCount} of ${totalCount}`}
+          {totalCount === 0
+            ? dict.filters.searching
+            : t.fill(dict.filters.ofTotal, {
+                shown: t.number(resultCount),
+                total: t.number(totalCount),
+              })}
         </p>
         {dirty && (
           <button
@@ -61,7 +68,7 @@ export function FiltersPanel({
             className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
           >
             <RotateCcw className="size-3" />
-            Reset
+            {dict.common.reset}
           </button>
         )}
       </div>
@@ -80,16 +87,17 @@ export function FiltersPanel({
             className={cn("size-4 shrink-0", filters.instantOnly ? "" : "text-muted-foreground")}
             strokeWidth={2}
           />
-          <span className="text-[14px] font-medium">Instant match only</span>
+          <span className="text-[14px] font-medium">{dict.filters.instantOnly}</span>
         </button>
       </section>
 
       {availableModes.length > 1 && (
         <section>
-          <h3 className="eyebrow">Mode</h3>
+          <h3 className="eyebrow">{dict.filters.mode}</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {availableModes.map((mode) => {
-              const { Icon, label } = MODE_META[mode];
+              const Icon = MODE_ICONS[mode];
+              const label = dict.enums.modes[mode].label;
               const on = filters.modes.includes(mode);
               return (
                 <button
@@ -111,7 +119,7 @@ export function FiltersPanel({
       )}
 
       <section>
-        <h3 className="eyebrow">Rating</h3>
+        <h3 className="eyebrow">{dict.filters.rating}</h3>
         <div className="mt-3 flex flex-wrap gap-2">
           {RATINGS.map((rating) => (
             <button
@@ -125,28 +133,30 @@ export function FiltersPanel({
                   : "hover:bg-muted",
               )}
             >
-              {rating === 0 ? "Any" : `${rating.toFixed(1)}+`}
+              {rating === 0
+                ? dict.common.any
+                : t.fill(dict.filters.ratingPlus, { rating: t.decimal(rating, 1) })}
             </button>
           ))}
         </div>
       </section>
 
       <section>
-        <h3 className="eyebrow">Must offer</h3>
+        <h3 className="eyebrow">{dict.filters.mustOffer}</h3>
         <div className="mt-3 flex flex-wrap gap-2">
-          {SERVICES.map((service) => {
-            const on = filters.needs.includes(service.id);
+          {SERVICE_IDS.map((id) => {
+            const on = filters.needs.includes(id);
             return (
               <button
-                key={service.id}
-                onClick={() => toggle("needs", service.id)}
+                key={id}
+                onClick={() => toggle("needs", id)}
                 aria-pressed={on}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-[13px] transition-colors",
                   on ? "border-brand bg-brand text-ink" : "hover:bg-muted",
                 )}
               >
-                {service.label}
+                {dict.filters.services[id]}
               </button>
             );
           })}

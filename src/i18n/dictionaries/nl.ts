@@ -1,0 +1,733 @@
+import type { Dictionary } from "@/i18n/dictionaries";
+
+/** Nederlands. */
+export const nl = {
+  units: {
+    days: { one: "{n} dag", other: "{n} dagen" },
+    weeks: { one: "{n} week", other: "{n} weken" },
+    monthsAgo: { one: "{n} maand geleden", other: "{n} maanden geleden" },
+    movers: { one: "{n} vervoerder", other: "{n} vervoerders" },
+    countries: { one: "{n} land", other: "{n} landen" },
+    cities: { one: "{n} stad", other: "{n} steden" },
+    boxes: { one: "{n} doos", other: "{n} dozen" },
+    attempts: { one: "{n} poging", other: "{n} pogingen" },
+    minutesShort: "{n} min",
+    hoursShort: "{n} uur",
+    daysShort: "{n} d",
+    perMonth: "{n}/mnd",
+    cubicMetres: "{n} m³",
+    none: "Geen",
+  },
+
+  common: {
+    skipToContent: "Naar de inhoud",
+    search: "Zoeken",
+    continue: "Doorgaan",
+    back: "Terug",
+    change: "Wijzigen",
+    edit: "Aanpassen",
+    reset: "Opnieuw instellen",
+    undo: "Ongedaan maken",
+    tryAgain: "Opnieuw proberen",
+    optional: "(optioneel)",
+    any: "Alle",
+    free: "Gratis · geen account · geen koude acquisitie",
+    appearance: "Weergave",
+    toggleTheme: "Wisselen tussen licht en donker",
+    openMenu: "Menu openen",
+    startSearch: "Start een zoekopdracht",
+    newSearch: "Nieuwe zoekopdracht",
+    startAgain: "Opnieuw beginnen",
+    searchAnyRoute: "Zoek een willekeurige route",
+    allCorridors: "Alle corridors",
+    browseCorridors: "Corridors bekijken",
+    partnerLogin: "Partner-login",
+    verifiedBooking: "gecontroleerde boeking",
+  },
+
+  language: {
+    label: "Taal",
+    choose: "Kies een taal",
+  },
+
+  nav: {
+    howItWorks: "Hoe het werkt",
+    coverage: "Dekking",
+    forMovers: "Voor vervoerders",
+    main: "Hoofdnavigatie",
+    mobile: "Mobiele navigatie",
+    home: "Rotamove-startpagina",
+  },
+
+  footer: {
+    blurb:
+      "Gecontroleerde vervoerders in Turkije, Europa, de Balkan, Scandinavië, het GOS, Centraal-Azië en het Midden-Oosten.",
+    move: "Transport",
+    movers: "Vervoerders",
+    company: "Bedrijf",
+    partnerPricing: "Partnertarieven",
+    dashboardDemo: "Dashboard-demo",
+    partnerFaq: "Partner-FAQ",
+    about: "Over ons",
+    trust: "Vertrouwen en controle",
+    contact: "Contact",
+    rights: "Rotamove · demoproduct",
+    privacy: "KVKK en AVG",
+    terms: "Voorwaarden",
+    offices: "Istanbul · Berlijn · Tasjkent",
+  },
+
+  hero: {
+    eyebrow: "Turkije · Europa · Centraal-Azië · Golfregio",
+    title: "Vind de juiste vervoerder voor elke lading.",
+    subtitle:
+      "Van particuliere verhuizingen tot commercieel vrachtvervoer: vind voor elke lading de juiste transporteur.",
+  },
+
+  scene: {
+    alt: "Een vrachtwagen en twee bestelwagens rijden van het laadpunt naar het afleverpunt.",
+    origin: "Ophalen",
+    originHint: "Waar u ook laadt",
+    destination: "Afleveren",
+    destinationHint: "Waar u ook lost",
+    inTransit: "Van deur tot deur",
+  },
+
+  trust: {
+    label: "Uitsluitend geaccrediteerde partners",
+  },
+
+  how: {
+    title: "Drie stappen. Geen telefoongedoe.",
+    steps: [
+      { title: "Zoeken", body: "Één veld. Waarvandaan, waarnaartoe." },
+      { title: "Matchen", body: "Wij vinden vervoerders die uw route daadwerkelijk rijden." },
+      { title: "Overleggen", body: "Kies WhatsApp, een telefoontje of e-mail. Zij nemen contact op." },
+    ],
+  },
+
+  testimonials: {
+    title: "24.800 ladingen vervoerd, en het gaat door.",
+    items: [
+      {
+        quote:
+          "Vier vervoerders stuurden me dezelfde middag een WhatsApp-bericht. Voor de avond had ik gekozen.",
+        name: "Aylin K.",
+        route: "Istanbul → Berlijn",
+      },
+      {
+        quote:
+          "Ze vonden vervoerders die de oversteek over de Kaspische Zee echt rijden. Niemand anders kon dat.",
+        name: "Rustam A.",
+        route: "Tasjkent → Istanbul",
+      },
+      {
+        quote: "Geen formulieren, geen spam. Één zoekopdracht en de juiste mensen namen contact op.",
+        name: "Jonas R.",
+        route: "Stockholm → Izmir",
+      },
+    ],
+  },
+
+  partnerTeaser: {
+    eyebrow: "Voor transportbedrijven",
+    title: "Koop vraag, geen telefoonnummers.",
+    body: "Vast maandbedrag, of betalen per aanvraag met een harde bovengrens. Niets anders.",
+    pricingCta: "Partnertarieven",
+    demoCta: "Bekijk de demo",
+    proBody: "Alle aanvragen, onbeperkt. Directe plaatsing in de zoekresultaten.",
+    proUnit: "/ maand",
+    pplBody: "Geen abonnement. Nooit meer dan {cap}.",
+    pplUnit: "/ aanvraag",
+  },
+
+  faq: {
+    title: "Vragen",
+    items: [
+      {
+        q: "Is het gratis?",
+        a: "Ja, altijd. Vervoerders betalen ons een vast maandbedrag of een kleine, gemaximeerde vergoeding per aanvraag — nooit commissie over uw lading, dus niemand kan een betere positie kopen.",
+      },
+      {
+        q: "Krijg ik ongewenste telefoontjes?",
+        a: "Nee. U kiest het kanaal — WhatsApp, telefoon of e-mail — en uw gegevens gaan alleen naar de vervoerders die u zelf selecteert.",
+      },
+      {
+        q: "Welke routes dekken jullie?",
+        a: "Turkije van en naar Europa, de Balkan, Scandinavië, het GOS en de Kaukasus, Centraal-Azië en het Midden-Oosten — plus binnenlands transport in alle 53 partnerlanden.",
+      },
+      {
+        q: "Hoe worden vervoerders gecontroleerd?",
+        a: "Transportvergunning, verzekering, schadehistorie en een echt depot, elk jaar opnieuw gecontroleerd. Wie zakt, verlaat het netwerk.",
+      },
+      {
+        q: "Hoe snel reageren ze?",
+        a: "Partners met directe match reageren meestal binnen een kwartier. De rest komt dezelfde dag terug.",
+      },
+    ],
+  },
+
+  ctaBand: {
+    title: "Wat vervoert u?",
+  },
+
+  coverageGrid: {
+    title: "Gebouwd voor de routes die niemand anders goed rijdt.",
+    regions: "Regio’s",
+  },
+
+  coveragePage: {
+    eyebrow: "Netwerk",
+    title: "Turkije is het scharnier tussen Europa, de Kaukasus en de Golfregio.",
+    lede: "{corridors} corridors, wekelijks gereden door partners die ze echt kennen.",
+    statCountries: "Landen",
+    statCities: "Hubsteden",
+    statCorridors: "Actieve corridors",
+    statLeads: "Aanvragen / maand",
+    tableEyebrow: "Elke verbinding",
+    tableTitle: "De volledige corridortabel.",
+    tableLede: "Mediaan van deur tot deur, gemeten over afgeronde ladingen.",
+    thCorridor: "Corridor",
+    thFrom: "Van",
+    thTo: "Naar",
+    thTransit: "Transit",
+    thModes: "Modaliteit",
+    thPartners: "Partners",
+    thDemand: "Vraag",
+    notListed:
+      "Staat uw route er niet bij? Het uitgebreide netwerk dekt via partneroverdrachten nog ruim negentig landencombinaties.",
+  },
+
+  howItWorksPage: {
+    title: "Een marktplaats werkt alleen als je kunt zien hoe hij beslist.",
+    lede: "Hier is dus de rangschikking, en de checklist die elke vervoerder moet doorstaan.",
+    steps: [
+      { title: "Zoeken", body: "Één veld: waarvandaan, waarnaartoe." },
+      { title: "Matchen", body: "We bevragen het netwerk. Duurt ongeveer acht seconden." },
+      { title: "Overleggen", body: "Kies het kanaal. Alleen uw keuzes nemen contact op." },
+    ],
+    rankingTitle: "Vijf factoren. Gepubliceerde weging.",
+    rankingBody:
+      "Geen vervoerder kan een betere positie kopen. Onze vergoeding is identiek, wie u ook kiest.",
+    ranking: {
+      routeFit: "Routegeschiktheid",
+      reviewScore: "Beoordelingscijfer",
+      onTime: "Punctualiteit",
+      transit: "Transitsnelheid",
+      response: "Reactietijd",
+    },
+    checksTitle: "Wat alle {count} partners moesten aantonen.",
+    checks: [
+      {
+        title: "Vergunning",
+        body: "Transportvergunning en inschrijving, getoetst aan het nationale register.",
+      },
+      { title: "Verzekering", body: "Geldige CMR en allriskdekking voor transport." },
+      {
+        title: "Schadehistorie",
+        body: "Continu gevolgd. Boven de grenswaarde verlaat u het overzicht.",
+      },
+      { title: "Echte operatie", body: "Een depot, een vloot, medewerkers met naam. Geen tussenpersonen." },
+    ],
+    aboutTitle: "Waarom corridors en geen landen.",
+    aboutBody1:
+      "Vrachtvervoer tussen Turkije en Europa is een van de drukste stromen ter wereld, en vrijwel niets ervan is online te vinden. De verbindingen naar het GOS, Centraal-Azië en de Golfregio zijn nog slechter ontsloten — een handvol vervoerders rijdt ze echt.",
+    aboutBody2:
+      "Rotamove kiest een klein aantal corridors en gaat de diepte in. Minder routes, echte partners, elk jaar gecontroleerd.",
+  },
+
+  partnersPage: {
+    eyebrow: "Voor transportbedrijven",
+    title: "Koop vraag, geen telefoonnummers.",
+    lede: "{leads} gecontroleerde aanvragen per maand op {corridors} corridors. Twee manieren om ze te kopen.",
+    plansNote:
+      "Beide pakketten omvatten controle van vergunning en verzekering, bemiddeling bij geschillen en verwijdering uit het overzicht als de normen zakken.",
+    chooserTitle: "Welke past bij u?",
+    feeTitle: "Nooit meer dan {cap}. Wat de lading ook is.",
+    whyItems: [
+      { title: "Alleen uw verbindingen", body: "Filter op corridor, volume en datum." },
+      { title: "Klaar om te rijden", body: "Route, data en volume zijn al ingevuld." },
+      { title: "Gecontroleerde contacten", body: "Bij binnenkomst gevalideerd. Score 0–100." },
+      { title: "Rapportage over slagingskans", body: "Zie per corridor waarom u verloor." },
+      { title: "API en webhooks", body: "Aanvragen komen direct in uw TMS binnen." },
+      { title: "Geen commissie", body: "Wij nemen nooit een deel van de opdracht." },
+    ],
+    faqTitle: "Partner-FAQ",
+    ctaTitle: "Begin gratis. Stap over wanneer het zich terugbetaalt.",
+    ctaBody: "De controle duurt ongeveer twee werkdagen.",
+    ctaButton: "Open het demodashboard",
+    ctaNote: "{pro}/maand onbeperkt · of maximaal {cap} per aanvraag",
+  },
+
+  plans: {
+    mostChosen: "Meest gekozen",
+    proName: "Pro Onbeperkt",
+    proSuffix: "/maand",
+    proNote: "Maandelijks gefactureerd in USD. Altijd opzegbaar, geen opzegtermijn.",
+    proCta: "Start de gratis proefperiode van 14 dagen",
+    proFeatures: [
+      "Onbeperkt internationale aanvragen",
+      "Onbeperkt binnenlandse aanvragen",
+      "Plaatsing met directe match in de zoekresultaten",
+      "Contact met één tik vanuit het resultatenoverzicht",
+      "Volledige contactgegevens van de klant, niet afgeschermd",
+      "Regelengine voor capaciteit en seizoen",
+      "Vraaganalyse per corridor en rapportage over slagingskans",
+      "Aanvragen-API en webhooks",
+      "Geschillen met prioriteit behandeld",
+      "Tot 8 gebruikersplaatsen",
+    ],
+    pplName: "Betalen per aanvraag",
+    pplSuffix: "/aanvraag",
+    pplNote: "Harde bovengrens van {cap} per aanvraag. U ziet de exacte prijs voordat u vrijgeeft.",
+    pplCta: "Maak een gratis partneraccount",
+    pplFeatures: [
+      "Geen maandbedrag, geen minimale besteding",
+      "Het volledige aanvragenoverzicht doorkijken",
+      "Een aanvraag vrijgeven om de contactgegevens te zien",
+      "Binnen 24 uur terugbetaling bij ongeldige contactgegevens",
+      "Filters op corridor en volume",
+      "Plaatsing met directe match in de zoekresultaten",
+      "Contact met één tik vanuit het resultatenoverzicht",
+      "Aanvragen-API en webhooks",
+      "Vraaganalyse per corridor",
+      "1 gebruikersplaats",
+    ],
+    faq: [
+      {
+        q: "Wat geldt precies als een aanvraag?",
+        a: "Een volledige aanvraag met gecontroleerde route, datum, volume en bereikbare contactgegevens. Aanvragen die onze validatie niet doorstaan, bereiken het overzicht nooit en worden u nooit in rekening gebracht.",
+      },
+      {
+        q: "Is Pro Onbeperkt echt onbeperkt?",
+        a: "Ja. {pro} per maand dekt elke internationale en binnenlandse aanvraag op elke corridor, zonder plafond en zonder meerkosten. De enige grens zijn uw eigen capaciteitsinstellingen.",
+      },
+      {
+        q: "Waarom zou ik dan per aanvraag betalen?",
+        a: "Sluit u minder dan {breakEven} aanvragen per maand af, dan is betalen per aanvraag goedkoper. De meeste partners beginnen daar en stappen binnen twee maanden over op Pro.",
+      },
+      {
+        q: "Kan een aanvraag meer kosten dan de bovengrens?",
+        a: "Nooit. {cap} is een harde grens, ongeacht corridor, volume of opdrachtwaarde, en de exacte prijs wordt vóór het vrijgeven getoond.",
+      },
+      {
+        q: "Verschijnen partners die per aanvraag betalen in de zoekresultaten?",
+        a: "U verschijnt in het resultatenoverzicht, maar met de aanduiding dat u later reageert in plaats van direct. Plaatsing met directe match is een functie van Pro Onbeperkt.",
+      },
+      {
+        q: "Wat als de contactgegevens onjuist zijn?",
+        a: "Meld het binnen 24 uur en het aanvraagkrediet wordt automatisch terugbetaald. Pro-partners hebben hier geen last van, omdat er geen kosten per aanvraag zijn.",
+      },
+    ],
+  },
+
+  planChooser: {
+    label: "Aanvragen die u per maand zou aannemen",
+    ariaLeads: "Aanvragen per maand",
+    proNote: "vast, bij elk volume",
+    pplNote: "≈ {fee} per stuk · met bovengrens {cap}",
+    cheaperFor: "{plan} is voordeliger voor u",
+    proWins:
+      "met {saving} per maand — en alleen Pro zet u in de directe zoekresultaten.",
+    pplWins: "met {saving} per maand. Vanaf {breakEven} aanvragen wint Pro.",
+    proCta: "Start de Pro-proefperiode",
+    pplCta: "Maak een gratis account",
+  },
+
+  leadFee: {
+    eyebrow: "Wat een aanvraag kost",
+    body: "De prijs per aanvraag volgt de verwachte opdrachtwaarde, niet een vast tarief — en stopt hard bij {cap}. Pas de opdracht hieronder aan en zie de vergoeding meebewegen.",
+    destination: "Bestemming vanuit Istanbul",
+    volume: "Ladingvolume",
+    daysOut: "Dagen tot het ophalen",
+    fullService: "Full service",
+    fullServiceHint: "In- en uitpakken inbegrepen",
+    storage: "Opslag nodig",
+    storageHint: "4 weken douaneopslag",
+    youPay: "U zou betalen",
+    once: "eenmalig",
+    floor: "{amount} minimum",
+    cap: "{amount} maximum",
+    atCap:
+      "Deze opdracht is voor de winnaar veel meer dan {cap} waard — de bovengrens geldt toch.",
+    quality: "Kwaliteitsscore van de aanvraag",
+    qualityValue: "{score} / 100",
+    moveType: "Soort lading",
+    refundWindow: "Terugbetalingstermijn",
+    refundValue: "24 uur",
+    costOnPro: "Kosten bij Pro Onbeperkt",
+    costOnProValue: "{amount} — inbegrepen",
+    footnote:
+      "Partners met Pro Onbeperkt betalen niets per aanvraag, wat hier ook staat. Dat is precies de afweging: {pro} per maand koopt het recht er niet meer over na te hoeven denken.",
+  },
+
+  search: {
+    fromLabel: "Van",
+    toLabel: "Naar",
+    fromPlaceholder: "Waarvandaan?",
+    toPlaceholder: "Waarnaartoe?",
+    swap: "Vertrek en bestemming omwisselen",
+    popular: "Populair",
+    noMatch: "Geen resultaat voor “{query}”",
+  },
+
+  quote: {
+    steps: {
+      home: "Lading",
+      timing: "Datum",
+      services: "Hulp",
+      contact: "Contact",
+    },
+    headings: {
+      home: "Wat vervoeren we?",
+      timing: "Wanneer?",
+      services: "Hoeveel hulp?",
+      contact: "Waar kunnen ze u bereiken?",
+    },
+    swapDirection: "Richting omwisselen",
+    fineTuneVolume: "Volume bijstellen",
+    volumeAria: "Volume in kubieke meter",
+    approxBoxes: "≈ {boxes}",
+    accessPickup: "Toegang bij het ophalen",
+    accessDelivery: "Toegang bij het afleveren",
+    parkAtDoor: "Vrachtwagen kan voor de deur staan",
+    moveDate: "Ophaaldatum",
+    howFlexible: "Hoe flexibel?",
+    peakSeason:
+      "Juni tot september is hoogseizoen. Twee weken schuiven, voor of achteruit, geeft veel meer capaciteit.",
+    addOns: "Extra diensten",
+    storageLegend: "Opslag",
+    storageAria: "Weken opslag",
+    specialistLegend: "Iets bijzonders?",
+    preferredChannel: "Voorkeurskanaal",
+    name: "Naam",
+    namePlaceholder: "Elif Yılmaz",
+    email: "E-mail",
+    emailPlaceholder: "u@voorbeeld.nl",
+    phone: "Telefoon",
+    phonePlaceholder: "+31 6 0000 0000",
+    notes: "Nog iets?",
+    notesPlaceholder: "Smalle straat, geen lift op de bestemming…",
+    consent:
+      "Deel mijn aanvraag met passende vervoerders. Uw gegevens gaan nergens anders naartoe.",
+    matching: "Matchen…",
+    findMovers: "Zoek mijn vervoerders",
+    moversMatch: "{count} passend",
+    sendFailed: "Uw aanvraag kon niet worden verzonden",
+    somethingWrong: "Er ging iets mis",
+    extras: {
+      packing: "Inpakken",
+      unpacking: "Uitpakken",
+      dismantling: "Meubels demonteren en opbouwen",
+      insurance: "Transportverzekering",
+      customsClearance: "Douane voor mij regelen",
+      cleaning: "Eindschoonmaak",
+    },
+  },
+
+  verify: {
+    verifyAction: "Verifiëren",
+    verified: "Geverifieerd",
+    sending: "Verzenden…",
+    checking: "Controleren…",
+    codeSentEmail: "We hebben een 6-cijferige code naar {target} gestuurd.",
+    codeSentPhone: "We hebben een 6-cijferige code per sms naar {target} gestuurd.",
+    codeLabel: "Verificatiecode",
+    digitLabel: "Cijfer {n}",
+    demoHint: "Democode: {code}",
+    resend: "Code opnieuw verzenden",
+    resendIn: "Opnieuw verzenden over {seconds} s",
+    wrongCode: "Deze code klopt niet. {attempts} over.",
+    locked: "Te veel pogingen. Vraag een nieuwe code aan.",
+    emailNeedsVerifying: "Verifieer uw e-mailadres om door te gaan",
+    phoneNeedsVerifying: "Verifieer uw telefoonnummer om door te gaan",
+    demoNote:
+      "De verificatie is in deze demo gesimuleerd — er wordt geen e-mail of sms verstuurd.",
+  },
+
+  results: {
+    expiredTitle: "Deze zoekopdracht is verlopen",
+    expiredBody:
+      "Links blijven 30 dagen actief. Begin opnieuw en we matchen binnen enkele seconden.",
+    unreadableTitle: "We konden deze zoekopdracht niet lezen",
+    unreadableBody: "Begin opnieuw, dan bouwen we uw matches in een paar seconden weer op.",
+    noFiltersTitle: "Geen resultaten met deze filters",
+    noFiltersBody: "Laat een eis vallen — op deze route zijn nog vervoerders beschikbaar.",
+    clearFilters: "Filters wissen",
+    sortAria: "Sorteren",
+    filtersTitle: "Filters",
+    networkError: "We konden het partnernetwerk niet bereiken.",
+    searchFailed: "Zoeken mislukt",
+    openingSearch: "Uw zoekopdracht wordt geopend",
+    oneMoment: "Een moment",
+    canTakeThis: "vervoerders kunnen dit aannemen",
+    matchedIn: "Gematcht in {seconds} s · kies wie contact opneemt",
+    complete: "Zoekopdracht afgerond",
+    rankingNote:
+      "Onafhankelijk gerangschikt. Vervoerders betalen ons een vast bedrag of een kleine, gemaximeerde vergoeding per aanvraag — nooit commissie — dus niemand kan een hogere positie kopen.",
+    sort: {
+      best: "Beste match",
+      fastest: "Snelste",
+      rating: "Best beoordeeld",
+      replies: "Reageren het eerst",
+    },
+    stages: {
+      secure: { label: "Uw aanvraag wordt beveiligd", detail: "Versleuteld en gecontroleerd" },
+      corridor: {
+        label: "Corridor {from} → {to} wordt geopend",
+        detailCore: "{corridor} · gebruikelijk {days}",
+        detailExtended: "Routering via het uitgebreide netwerk langs {corridor}",
+      },
+      partners: {
+        label: "{count} partnervervoerders worden bevraagd",
+        detail: "Vergunninghouders in {from} en {to}",
+      },
+      capacity: {
+        label: "Voertuigcapaciteit wordt bevestigd",
+        detail: "Vrije ploegen rond {date} worden gecontroleerd",
+      },
+      route: {
+        label: "Routecapaciteit wordt gecontroleerd",
+        detail: "Veerbootplaatsen, grensovergangen en ploegen",
+      },
+      ranking: {
+        label: "Uw matches worden gerangschikt",
+        detail: "Dekking, snelheid, betrouwbaarheid en beoordelingen",
+      },
+    },
+  },
+
+  filters: {
+    searching: "Zoeken…",
+    ofTotal: "{shown} van {total}",
+    instantOnly: "Alleen directe match",
+    mode: "Modaliteit",
+    rating: "Beoordeling",
+    mustOffer: "Moet aanbieden",
+    ratingPlus: "{rating}+",
+    services: {
+      packing: "Inpakken",
+      storage: "Opslag",
+      customs: "Douane",
+      vehicle: "Voertuigen",
+      piano: "Piano",
+      cleaning: "Schoonmaak",
+    },
+  },
+
+  moverCard: {
+    bestMatch: "Beste match",
+    fastest: "Snelste",
+    instantMatch: "Directe match",
+    since: "sinds {year}",
+    transit: "Transit",
+    collection: "Ophalen",
+    delivery: "Afleveren",
+    onTime: "{pct} op tijd",
+    repliesIn: "Reageert binnen {time}",
+    co2: "{amount} kg CO₂e",
+    channelAria: "Hoe kunnen ze u bereiken?",
+    requestSent: "Aanvraag verzonden.",
+    willReply: "{promise} — binnen {time}.",
+    sentToast: "Aanvraag verzonden naar {name}",
+    manualPickup: "Pakt aanvragen handmatig op — reageert meestal dezelfde dag.",
+    channels: {
+      whatsapp: {
+        label: "WhatsApp",
+        cta: "Bericht via WhatsApp",
+        done: "Ze sturen u een WhatsApp-bericht",
+      },
+      phone: { label: "Telefoon", cta: "Vraag een telefoontje aan", done: "Ze bellen u" },
+      email: { label: "E-mail", cta: "Vraag per e-mail", done: "Ze mailen u" },
+    },
+  },
+
+  moverProfile: {
+    notFound: "Vervoerder niet gevonden",
+    metaTitle: "{name} — beoordelingen en corridors",
+    established: "Opgericht in {year}",
+    completedMoves: "{count} afgeronde ladingen",
+    instantMatch: "Directe match",
+    sameDay: "Reageert dezelfde dag",
+    instantBody: "Bevestigt de beschikbaarheid zodra uw zoekopdracht loopt.",
+    manualBody: "Pakt aanvragen met de hand op en neemt daarna contact op.",
+    repliesIn: "reageert binnen {time}",
+    blurbNote: "Partnerbeschrijving weergegeven zoals aangeleverd.",
+    statOnTime: "Op tijd geleverd",
+    statClaims: "Schadepercentage",
+    statTrucks: "Eigen vrachtwagens",
+    statCrew: "Personeel",
+    statCover: "Dekking",
+    statCoverValue: "Volledige vervangingswaarde",
+    statCancellation: "Gratis annuleren",
+    corridorsTitle: "Corridors die ze rijden",
+    corridorTypical: "gebruikelijk {days}",
+    extendedNetwork: "Dekt {regions} via het uitgebreide netwerk.",
+    reviewsTitle: "Beoordelingen",
+    servicesTitle: "Diensten",
+    languagesTitle: "Talen en regio’s",
+    billingTitle: "Hoe deze partner wordt afgerekend",
+    billingPro:
+      "{name} zit op Pro Onbeperkt — een vast bedrag van {pro} per maand voor elke aanvraag in het netwerk. Ze betalen hetzelfde, of u ze kiest of niet.",
+    billingPpl:
+      "{name} zit op Betalen per aanvraag — tot {cap} om een gewenste aanvraag vrij te geven. In beide gevallen zonder commissie.",
+    services: {
+      packing: "Professioneel inpakken",
+      storage: "Douaneopslag",
+      customs: "Douaneafhandeling in eigen huis",
+      vehicle: "Auto- en motortransport",
+      piano: "Piano- en kunsttransport",
+      cleaning: "Eindschoonmaak",
+    },
+  },
+
+  notFound: {
+    eyebrow: "404 · route bestaat niet",
+    title: "Deze corridor staat niet op het overzicht.",
+    body: "De pagina is verplaatst of heeft nooit bestaan.",
+  },
+
+  enums: {
+    propertySize: {
+      few_items: { label: "Een paar spullen", hint: "Dozen, een bed, geen meubelset" },
+      studio: { label: "Studio / 1 kamer", hint: "Woning van circa 45 m²" },
+      one_bed: { label: "1 slaapkamer", hint: "Woning van circa 65 m²" },
+      two_bed: { label: "2 slaapkamers", hint: "Woning van circa 95 m²" },
+      three_bed: { label: "3 slaapkamers", hint: "Woning van circa 130 m²" },
+      four_bed: { label: "4 of meer slaapkamers", hint: "Woning van circa 170 m²" },
+      villa: { label: "Villa / vrijstaand", hint: "Vanaf 220 m²" },
+      office: { label: "Kantoor / commerciële vracht", hint: "Bureaus, ICT, archief, pallets" },
+    },
+    access: {
+      ground: { label: "Begane grond", hint: "Helemaal geen trappen" },
+      lift: { label: "Lift aanwezig", hint: "Goederenlift of personenlift" },
+      stairs_1_2: { label: "Trap, 1–2 verdiepingen", hint: "Geen lift" },
+      stairs_3_plus: { label: "Trap, 3 of meer verdiepingen", hint: "Geen lift, hoge verdieping" },
+    },
+    flexibility: {
+      exact: "Precies die datum",
+      plus_minus_3: "Binnen 3 dagen",
+      within_2_weeks: "Binnen 2 weken",
+      flexible: "Volledig flexibel",
+    },
+    serviceLevel: {
+      full_service: {
+        label: "Full service",
+        hint: "Zij pakken in, laden, vervoeren en pakken uit.",
+      },
+      door_to_door: { label: "Van deur tot deur", hint: "U pakt de dozen, zij doen de rest." },
+      transport_only: { label: "Alleen transport", hint: "Alles staat klaar om op te halen." },
+    },
+    specialItems: {
+      piano: "Piano",
+      vehicle: "Auto of motor",
+      artwork: "Kunst of antiek",
+      safe: "Kluis boven 100 kg",
+      gym: "Fitnessapparatuur",
+      plants: "Grote planten",
+    },
+    moveType: {
+      international: "Internationaal",
+      domestic: "Binnenlands",
+    },
+    modes: {
+      road: { label: "Weg", hint: "Vrachtwagen van deur tot deur, geen overslag" },
+      sea: { label: "Zee", hint: "LCL-container — het goedkoopst over lange afstand" },
+      air: { label: "Lucht", hint: "Het snelst, ideaal voor kleine zendingen" },
+      rail: { label: "Spoor", hint: "Bloktrein — lage uitstoot, vaste tijden" },
+    },
+    badges: {
+      instant_quote: {
+        label: "Directe match",
+        hint: "Partner met Pro Onbeperkt — bevestigt de beschikbaarheid direct.",
+      },
+      top_rated: {
+        label: "Best beoordeeld",
+        hint: "4,6 of hoger over minstens 500 gecontroleerde beoordelingen.",
+      },
+      fast_responder: {
+        label: "Reageert snel",
+        hint: "Mediane eerste reactie binnen 20 minuten.",
+      },
+      best_value: {
+        label: "Beste prijs-kwaliteit",
+        hint: "Prijst consequent onder de mediaan van de corridor.",
+      },
+      eco_fleet: { label: "Lage uitstoot", hint: "HVO, elektrisch of spoor eerst." },
+      customs_expert: { label: "Douane-expert", hint: "Eigen douaneafhandeling op deze corridor." },
+      fragile_specialist: {
+        label: "Specialist in breekbaar",
+        hint: "Kisten op maat voor kunst, antiek en instrumenten.",
+      },
+    },
+    regions: {
+      TR: "Turkije",
+      EU_WEST: "West-Europa",
+      EU_SOUTH: "Zuid-Europa",
+      BALKANS: "Balkan",
+      NORDICS: "Scandinavië en Noord-Europa",
+      CIS: "GOS en Kaukasus",
+      CENTRAL_ASIA: "Centraal-Azië",
+      MIDDLE_EAST: "Midden-Oosten",
+    },
+    corridors: {
+      "tr-eu-west": "Turkije → Duitsland, Benelux en Frankrijk",
+      "eu-west-tr": "West-Europa → Turkije",
+      "tr-eu-south": "Turkije → Italië, Spanje en Griekenland",
+      "eu-south-tr": "Zuid-Europa → Turkije",
+      "tr-nordics": "Turkije → Scandinavië",
+      "nordics-tr": "Scandinavië → Turkije",
+      "tr-balkans": "Turkije → Balkan",
+      "balkans-tr": "Balkan → Turkije",
+      "tr-middle-east": "Turkije → Golfregio en Levant",
+      "middle-east-tr": "Midden-Oosten → Turkije",
+      "tr-cis": "Turkije → Rusland en Kaukasus",
+      "cis-tr": "Rusland en Kaukasus → Turkije",
+      "tr-central-asia": "Turkije → Centraal-Azië",
+      "central-asia-tr": "Centraal-Azië → Turkije",
+      "eu-central-asia": "Europa → Centraal-Azië (via de Middencorridor)",
+      "central-asia-eu": "Centraal-Azië → Europa",
+      "me-eu": "Golfregio → Europa",
+      "eu-me": "Europa → Golfregio",
+      "tr-domestic": "Binnenland Turkije",
+    },
+    corridorFallback: {
+      domestic: "Binnenland {region}",
+      extended: "{from} → {to}",
+    },
+  },
+
+  meta: {
+    titleDefault: "Rotamove — de juiste vervoerder voor elke lading",
+    titleTemplate: "%s · Rotamove",
+    description:
+      "Één zoekopdracht. Gecontroleerde vervoerders voor verhuizingen en commerciële vracht in Turkije, Europa, de Balkan, Scandinavië, het GOS, Centraal-Azië en het Midden-Oosten.",
+    ogTitle: "Vergelijk gecontroleerde vervoerders in 53 landen",
+    ogDescription:
+      "Vertel ons waar uw lading naartoe gaat. Wij matchen u met gecontroleerde transporteurs die naar u toe komen.",
+    keywords: [
+      "vervoerder vracht",
+      "internationale verhuizing",
+      "transport Turkije Europa",
+      "uluslararası nakliyat",
+      "commerciële vracht prijsopgave",
+      "logistiek Centraal-Azië",
+    ],
+    quoteTitle: "Vertel ons over uw lading",
+    quoteDescription:
+      "Beschrijf uw lading één keer. Gecontroleerde vervoerders nemen contact op via het kanaal dat u kiest.",
+    resultsTitle: "Uw gematchte vervoerders",
+    resultsDescription: "Gecontroleerde vervoerders voor een lading van {volume}.",
+    coverageTitle: "Corridordekking — 53 landen, 19 actieve verbindingen",
+    coverageDescription:
+      "Elke corridor die Rotamove aanbiedt: Turkije van en naar West- en Zuid-Europa, de Balkan, Scandinavië, het GOS, Centraal-Azië en het Midden-Oosten.",
+    howItWorksTitle: "Hoe het werkt",
+    howItWorksDescription:
+      "Hoe Rotamove u aan vervoerders koppelt, hoe de rangschikking is gewogen en wat elke partner moet aantonen.",
+    partnersTitle: "Voor vervoerders — $100/maand onbeperkt, of tot $7 per aanvraag",
+    partnersDescription:
+      "Sluit u aan bij het partnernetwerk van Rotamove. Onbeperkt aanvragen voor een vast maandbedrag, of betalen per aanvraag met een harde bovengrens van $7.",
+  },
+} satisfies Dictionary;
+
+export default nl;

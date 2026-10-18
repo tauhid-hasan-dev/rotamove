@@ -8,12 +8,12 @@ import {
   CITIES,
   CORRIDORS,
   COUNTRIES,
-  REGIONS,
   REGION_ORDER,
   type RegionId,
 } from "@/lib/geo";
 import { MOVERS } from "@/lib/movers";
-import { formatDays } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
+import { corridorLabel, regionName } from "@/i18n/geo-labels";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
  * Tashkent before they will type anything.
  */
 export function CoverageGrid({ heading = true }: { heading?: boolean }) {
+  const { dict, locale, t, href } = useI18n();
   const [active, setActive] = useState<RegionId>("TR");
 
   const data = useMemo(() => {
@@ -39,13 +40,13 @@ export function CoverageGrid({ heading = true }: { heading?: boolean }) {
       <Shell>
         {heading && (
           <h2 className="mx-auto max-w-2xl text-center text-[clamp(2rem,4vw,3rem)] leading-[1.02]">
-            Built for the routes nobody else runs properly.
+            {dict.coverageGrid.title}
           </h2>
         )}
 
         <div
           role="tablist"
-          aria-label="Regions"
+          aria-label={dict.coverageGrid.regions}
           className="mx-auto mt-12 flex max-w-5xl flex-wrap justify-center gap-2"
         >
           {REGION_ORDER.map((id) => {
@@ -68,7 +69,7 @@ export function CoverageGrid({ heading = true }: { heading?: boolean }) {
                     transition={{ type: "spring", stiffness: 440, damping: 36 }}
                   />
                 )}
-                <span className="relative">{REGIONS[id].name}</span>
+                <span className="relative">{regionName(dict, id)}</span>
               </button>
             );
           })}
@@ -76,7 +77,7 @@ export function CoverageGrid({ heading = true }: { heading?: boolean }) {
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={active}
+            key={`${active}-${locale}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
@@ -85,10 +86,11 @@ export function CoverageGrid({ heading = true }: { heading?: boolean }) {
           >
             <div className="min-w-0 rounded-3xl border bg-card p-7">
               <p className="eyebrow">
-                {data.countries.length} countries · {data.cities.length} cities ·{" "}
-                {data.partners} movers
+                {t.count(dict.units.countries, data.countries.length)} ·{" "}
+                {t.count(dict.units.cities, data.cities.length)} ·{" "}
+                {t.count(dict.units.movers, data.partners)}
               </p>
-              <h3 className="mt-3 text-[24px] tracking-[-0.03em]">{REGIONS[active].name}</h3>
+              <h3 className="mt-3 text-[24px] tracking-[-0.03em]">{regionName(dict, active)}</h3>
 
               <ul className="mt-6 flex flex-wrap gap-1.5">
                 {data.countries.map((country) => (
@@ -97,7 +99,9 @@ export function CoverageGrid({ heading = true }: { heading?: boolean }) {
                     className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[13px]"
                   >
                     <span aria-hidden>{country.flag}</span>
-                    {country.name}
+                    {/* Country names come from ICU, so they arrive already
+                        translated — no dictionary entry per country. */}
+                    {t.country(country.iso, country.name)}
                   </li>
                 ))}
               </ul>
@@ -119,17 +123,19 @@ export function CoverageGrid({ heading = true }: { heading?: boolean }) {
                   key={corridor.id}
                   className="flex items-center gap-4 rounded-2xl border bg-card px-5 py-4"
                 >
-                  <p className="min-w-0 flex-1 truncate text-[15px]">{corridor.label}</p>
+                  <p className="min-w-0 flex-1 truncate text-[15px]">
+                    {corridorLabel(dict, corridor)}
+                  </p>
                   <p className="shrink-0 text-[13px] text-muted-foreground tnum">
-                    {formatDays(corridor.transitDays)}
+                    {t.days(corridor.transitDays)}
                   </p>
                 </div>
               ))}
               <Link
-                href="/coverage"
+                href={href("/coverage")}
                 className="inline-block px-5 pt-3 text-[14px] underline underline-offset-4 decoration-brand decoration-2 transition-colors hover:text-muted-foreground"
               >
-                All corridors
+                {dict.common.allCorridors}
               </Link>
             </div>
           </motion.div>

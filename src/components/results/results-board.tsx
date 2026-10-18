@@ -15,17 +15,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { getCity, type TransportMode } from "@/lib/geo";
 import { applyFilters, sortQuotes, DEFAULT_FILTERS } from "@/lib/matching";
 import { getMover } from "@/lib/movers";
-import { formatDateShort } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
 import type { ContactChannel, QuoteFilters, SortKey } from "@/lib/types";
 import type { DecodedMoveSpec } from "@/lib/lead-codec";
 import { cn } from "@/lib/utils";
 
-const SORTS: Array<{ id: SortKey; label: string }> = [
-  { id: "best", label: "Best match" },
-  { id: "fastest", label: "Fastest" },
-  { id: "rating", label: "Top rated" },
-  { id: "replies", label: "Replies first" },
-];
+const SORT_ORDER: SortKey[] = ["best", "fastest", "rating", "replies"];
 
 export function ResultsBoard({
   leadId,
@@ -38,6 +33,7 @@ export function ResultsBoard({
   spec: DecodedMoveSpec;
   channel?: ContactChannel;
 }) {
+  const { dict, t, href, rtl } = useI18n();
   const stream = useSearchStream(leadId, token);
   const [sort, setSort] = useState<SortKey>("best");
   const [filters, setFilters] = useState<QuoteFilters>(DEFAULT_FILTERS);
@@ -76,10 +72,7 @@ export function ResultsBoard({
   if (!from || !to) {
     return (
       <Shell className="py-28">
-        <Empty
-          title="We couldn't read that search"
-          body="Start again and we'll rebuild your matches in a few seconds."
-        />
+        <Empty title={dict.results.unreadableTitle} body={dict.results.unreadableBody} />
       </Shell>
     );
   }
@@ -104,17 +97,21 @@ export function ResultsBoard({
             <span className="font-medium">{to.name}</span>
           </p>
           <p className="text-[13px] text-muted-foreground tnum">
-            {spec.volumeM3} m³ · {formatDateShort(spec.moveDate)}
+            {t.volume(spec.volumeM3)} · {t.dateShort(spec.moveDate)}
           </p>
           <Button
             asChild
             variant="ghost"
             size="sm"
-            className="ml-auto rounded-full text-[13px]"
+            className="ms-auto rounded-full text-[13px]"
           >
-            <Link href={`/quote?from=${from.code}&to=${to.code}&size=${spec.propertySize}`}>
+            <Link
+              href={href(
+                `/quote?from=${from.code}&to=${to.code}&size=${spec.propertySize}`,
+              )}
+            >
               <PencilLine className="size-3.5" />
-              Edit
+              {dict.common.edit}
             </Link>
           </Button>
         </Shell>
@@ -137,7 +134,7 @@ export function ResultsBoard({
             <p className="min-w-0 flex-1 text-[14.5px] text-muted-foreground">{stream.error}</p>
             <Button onClick={stream.retry} variant="outline" className="rounded-full">
               <RefreshCw className="size-4" />
-              Try again
+              {dict.common.tryAgain}
             </Button>
           </div>
         )}
@@ -153,17 +150,17 @@ export function ResultsBoard({
             <div className="flex flex-wrap items-center gap-3">
               <div
                 role="tablist"
-                aria-label="Sort"
+                aria-label={dict.results.sortAria}
                 className="flex min-w-0 flex-1 gap-1 overflow-x-auto rounded-full border p-1 scrollbar-slim"
               >
-                {SORTS.map((option) => {
-                  const on = sort === option.id;
+                {SORT_ORDER.map((id) => {
+                  const on = sort === id;
                   return (
                     <button
-                      key={option.id}
+                      key={id}
                       role="tab"
                       aria-selected={on}
-                      onClick={() => setSort(option.id)}
+                      onClick={() => setSort(id)}
                       className={cn(
                         "relative shrink-0 rounded-full px-4 py-2 text-[13.5px] transition-colors",
                         on ? "text-ink" : "text-muted-foreground hover:text-foreground",
@@ -176,7 +173,7 @@ export function ResultsBoard({
                           transition={{ type: "spring", stiffness: 440, damping: 36 }}
                         />
                       )}
-                      <span className="relative">{option.label}</span>
+                      <span className="relative">{dict.results.sort[id]}</span>
                     </button>
                   );
                 })}
@@ -186,12 +183,12 @@ export function ResultsBoard({
                 <SheetTrigger asChild>
                   <Button variant="outline" className="rounded-full lg:hidden">
                     <SlidersHorizontal className="size-4" />
-                    Filters
+                    {dict.results.filtersTitle}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[310px] overflow-y-auto">
+                <SheetContent side={rtl ? "right" : "left"} className="w-[310px] overflow-y-auto">
                   <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
+                    <SheetTitle>{dict.results.filtersTitle}</SheetTitle>
                   </SheetHeader>
                   <div className="px-4 pb-8">{filterPanel}</div>
                 </SheetContent>
@@ -225,15 +222,15 @@ export function ResultsBoard({
 
               {stream.status === "done" && visible.length === 0 && (
                 <Empty
-                  title="Nothing matches those filters"
-                  body="Clear a requirement — there are still movers on this route."
+                  title={dict.results.noFiltersTitle}
+                  body={dict.results.noFiltersBody}
                   action={
                     <Button
                       variant="outline"
                       className="rounded-full"
                       onClick={() => setFilters(DEFAULT_FILTERS)}
                     >
-                      Clear filters
+                      {dict.results.clearFilters}
                     </Button>
                   }
                 />
@@ -242,8 +239,7 @@ export function ResultsBoard({
 
             {stream.status === "done" && visible.length > 0 && (
               <p className="mt-8 text-[13px] leading-relaxed text-muted-foreground">
-                Ranked independently. Movers pay us a flat fee or a small capped fee per lead —
-                never a commission — so nobody can buy a higher position.
+                {dict.results.rankingNote}
               </p>
             )}
           </div>
@@ -262,13 +258,14 @@ function Empty({
   body: string;
   action?: React.ReactNode;
 }) {
+  const { dict, href } = useI18n();
   return (
     <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed px-6 py-16 text-center">
       <h3 className="text-[20px]">{title}</h3>
       <p className="max-w-md text-[14.5px] text-muted-foreground">{body}</p>
       {action ?? (
         <Button asChild className="rounded-full">
-          <Link href="/">Start again</Link>
+          <Link href={href("/")}>{dict.common.startAgain}</Link>
         </Button>
       )}
     </div>

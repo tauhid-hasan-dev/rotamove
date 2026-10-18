@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CITY_BY_CODE } from "@/lib/geo";
+import { LOCALES } from "@/i18n/config";
 
 /**
  * One schema, used by the wizard (per-step validation), the API route and the
@@ -52,7 +53,16 @@ export const contactSchema = z.object({
   email: z.string().trim().email("Enter a valid email address"),
   phone: phoneSchema,
   channel: z.enum(["phone", "whatsapp", "email"]),
-  locale: z.enum(["en", "tr"]),
+  locale: z.enum(LOCALES),
+  /**
+   * Plain booleans here, `true` in `contactStepSchema` below.
+   *
+   * The API has to accept an unverified contact — a future channel (an import,
+   * a partner-side entry) may legitimately have no code exchange — while the
+   * wizard refuses to submit one. Two schemas, one source.
+   */
+  emailVerified: z.boolean(),
+  phoneVerified: z.boolean(),
 });
 
 export const leadDraftSchema = z
@@ -99,5 +109,7 @@ export const routeStepSchema = z
   });
 
 export const contactStepSchema = contactSchema.extend({
+  emailVerified: z.literal(true, { message: "Verify your email address to continue" }),
+  phoneVerified: z.literal(true, { message: "Verify your phone number to continue" }),
   consent: z.literal(true, { message: "Please accept to continue" }),
 });

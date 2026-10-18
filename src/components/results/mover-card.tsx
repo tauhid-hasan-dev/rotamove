@@ -16,33 +16,24 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { MoverLogo } from "@/components/common/mover-logo";
-import { MODE_META } from "@/components/common/route-line";
+import { MODE_ICONS } from "@/components/common/route-line";
 import { Stars } from "@/components/common/stars";
-import { BADGE_LABELS } from "@/lib/movers";
-import { cityLabel } from "@/lib/geo";
-import { formatDays, formatNumber, formatResponseTime } from "@/lib/format";
+import { getCity } from "@/lib/geo";
+import { useI18n } from "@/i18n/provider";
 import type { ContactChannel, Mover, PublicQuote } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export type MoverTag = "best" | "fastest" | null;
 
-const CHANNELS: Array<{
-  id: ContactChannel;
-  label: string;
-  icon: typeof Phone;
-  cta: string;
-  done: string;
-}> = [
-  {
-    id: "whatsapp",
-    label: "WhatsApp",
-    icon: MessageCircle,
-    cta: "Message on WhatsApp",
-    done: "They'll message you on WhatsApp",
-  },
-  { id: "phone", label: "Call", icon: Phone, cta: "Request a call", done: "They'll call you" },
-  { id: "email", label: "Email", icon: Mail, cta: "Ask by email", done: "They'll email you" },
-];
+/** Icon per channel; every word comes from `dict.moverCard.channels`. */
+const CHANNEL_ICONS: Record<ContactChannel, typeof Phone> = {
+  whatsapp: MessageCircle,
+  phone: Phone,
+  email: Mail,
+};
+
+const CHANNEL_ORDER: ContactChannel[] = ["whatsapp", "phone", "email"];
+
 
 export function MoverCard({
   quote,
@@ -61,15 +52,21 @@ export function MoverCard({
   originCode: string;
   destCode: string;
 }) {
+  const { dict, t } = useI18n();
   const [channel, setChannel] = useState<ContactChannel>(defaultChannel);
   const [sent, setSent] = useState(false);
   const instant = quote.kind === "instant";
-  const { Icon: ModeIcon, label: modeLabel } = MODE_META[quote.mode];
-  const active = CHANNELS.find((c) => c.id === channel)!;
+  const ModeIcon = MODE_ICONS[quote.mode];
+  const modeLabel = dict.enums.modes[quote.mode].label;
+  const active = dict.moverCard.channels[channel];
+
+  const hq = getCity(mover.hqCity);
 
   const connect = () => {
     setSent(true);
-    toast.success(`Request sent to ${mover.name}`, { description: active.done });
+    toast.success(t.fill(dict.moverCard.sentToast, { name: mover.name }), {
+      description: active.done,
+    });
   };
 
   return (
@@ -100,12 +97,12 @@ export function MoverCard({
               >
                 {mover.name}
               </Link>
-              {tag === "best" && <Tag tone="brand">Best match</Tag>}
-              {tag === "fastest" && <Tag>Fastest</Tag>}
+              {tag === "best" && <Tag tone="brand">{dict.moverCard.bestMatch}</Tag>}
+              {tag === "fastest" && <Tag>{dict.moverCard.fastest}</Tag>}
               {instant && (
                 <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] text-muted-foreground">
                   <Zap className="size-3" strokeWidth={2.5} />
-                  Instant match
+                  {dict.moverCard.instantMatch}
                 </span>
               )}
             </div>
@@ -113,7 +110,8 @@ export function MoverCard({
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
               <Stars rating={mover.rating} count={mover.reviewCount} />
               <span className="text-[13.5px] text-muted-foreground">
-                {cityLabel(mover.hqCity).split(",")[0]} · since {mover.since}
+                {hq?.name ?? mover.hqCity} ·{" "}
+                {t.fill(dict.moverCard.since, { year: t.number(mover.since) })}
               </span>
             </div>
           </div>
@@ -136,16 +134,16 @@ export function MoverCard({
 
           <dl className="flex flex-wrap items-center gap-x-8 gap-y-2 text-[13px]">
             <div>
-              <dt className="text-muted-foreground">Transit</dt>
-              <dd className="mt-0.5 font-medium tnum">{formatDays(quote.transitDays)}</dd>
+              <dt className="text-muted-foreground">{dict.moverCard.transit}</dt>
+              <dd className="mt-0.5 font-medium tnum">{t.days(quote.transitDays)}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Collection</dt>
-              <dd className="mt-0.5 font-medium tnum">{quote.pickupWindow}</dd>
+              <dt className="text-muted-foreground">{dict.moverCard.collection}</dt>
+              <dd className="mt-0.5 font-medium tnum">{t.dateRange(quote.pickupWindow)}</dd>
             </div>
             <div className="hidden lg:block">
-              <dt className="text-muted-foreground">Delivery</dt>
-              <dd className="mt-0.5 font-medium tnum">{quote.deliveryWindow}</dd>
+              <dt className="text-muted-foreground">{dict.moverCard.delivery}</dt>
+              <dd className="mt-0.5 font-medium tnum">{t.dateRange(quote.deliveryWindow)}</dd>
             </div>
           </dl>
         </div>
@@ -154,15 +152,15 @@ export function MoverCard({
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <BadgeCheck className="size-3.5 text-verify" />
-            {Math.round(mover.onTimeRate * 100)}% on time
+            {t.fill(dict.moverCard.onTime, { pct: t.percent(mover.onTimeRate) })}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Clock className="size-3.5" />
-            Replies in {formatResponseTime(mover.responseMins)}
+            {t.fill(dict.moverCard.repliesIn, { time: t.responseTime(mover.responseMins) })}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Leaf className="size-3.5" />
-            {formatNumber(quote.co2Kg)} kg CO₂e
+            {t.fill(dict.moverCard.co2, { amount: t.number(quote.co2Kg) })}
           </span>
           {mover.certifications.slice(0, 2).map((cert) => (
             <span key={cert} className="rounded-full bg-muted px-2 py-0.5 text-[12px]">
@@ -174,7 +172,7 @@ export function MoverCard({
             .slice(0, 1)
             .map((badge) => (
               <span key={badge} className="rounded-full bg-muted px-2 py-0.5 text-[12px]">
-                {BADGE_LABELS[badge].label}
+                {dict.enums.badges[badge].label}
               </span>
             ))}
         </div>
@@ -196,9 +194,12 @@ export function MoverCard({
                 <Check className="size-3.5" strokeWidth={3} />
               </span>
               <p className="min-w-0 flex-1 text-[14.5px]">
-                <span className="font-medium">Request sent.</span>{" "}
+                <span className="font-medium">{dict.moverCard.requestSent}</span>{" "}
                 <span className="text-muted-foreground">
-                  {active.done} within {formatResponseTime(mover.responseMins)}.
+                  {t.fill(dict.moverCard.willReply, {
+                    promise: active.done,
+                    time: t.responseTime(mover.responseMins),
+                  })}
                 </span>
               </p>
               <button
@@ -206,7 +207,7 @@ export function MoverCard({
                 onClick={() => setSent(false)}
                 className="text-[13px] text-muted-foreground underline underline-offset-4 hover:text-foreground"
               >
-                Undo
+                {dict.common.undo}
               </button>
             </motion.div>
           ) : (
@@ -220,17 +221,18 @@ export function MoverCard({
             >
               <div
                 role="radiogroup"
-                aria-label="How should they reach you?"
+                aria-label={dict.moverCard.channelAria}
                 className="flex rounded-full border bg-card p-1"
               >
-                {CHANNELS.map((option) => {
-                  const on = option.id === channel;
+                {CHANNEL_ORDER.map((id) => {
+                  const on = id === channel;
+                  const Icon = CHANNEL_ICONS[id];
                   return (
                     <button
-                      key={option.id}
+                      key={id}
                       role="radio"
                       aria-checked={on}
-                      onClick={() => setChannel(option.id)}
+                      onClick={() => setChannel(id)}
                       className={cn(
                         "relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] transition-colors",
                         on ? "text-ink" : "text-muted-foreground hover:text-foreground",
@@ -243,8 +245,8 @@ export function MoverCard({
                           transition={{ type: "spring", stiffness: 480, damping: 36 }}
                         />
                       )}
-                      <option.icon className="relative size-3.5" strokeWidth={2} />
-                      <span className="relative">{option.label}</span>
+                      <Icon className="relative size-3.5" strokeWidth={2} />
+                      <span className="relative">{dict.moverCard.channels[id].label}</span>
                     </button>
                   );
                 })}
@@ -254,14 +256,14 @@ export function MoverCard({
                 type="button"
                 onClick={connect}
                 className={cn(
-                  "group/cta ml-auto inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-medium transition-all duration-200 active:scale-[0.985]",
+                  "group/cta ms-auto inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-medium transition-all duration-200 active:scale-[0.985]",
                   instant
                     ? "bg-ink text-background hover:opacity-90"
                     : "border hover:border-foreground/25 hover:bg-muted",
                 )}
               >
                 {active.cta}
-                <ArrowRight className="size-4 transition-transform duration-200 group-hover/cta:translate-x-0.5" />
+                <ArrowRight className="size-4 transition-transform duration-200 group-hover/cta:translate-x-0.5 rtl:-scale-x-100" />
               </button>
             </motion.div>
           )}
@@ -269,7 +271,7 @@ export function MoverCard({
 
         {!sent && !instant && (
           <p className="mt-2.5 text-[12.5px] text-muted-foreground">
-            Picks up enquiries manually — usually replies the same day.
+            {dict.moverCard.manualPickup}
           </p>
         )}
       </div>

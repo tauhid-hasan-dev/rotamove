@@ -1,34 +1,40 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
-
-const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
-  {
-    title: "Move",
-    links: [
-      { label: "Start a search", href: "/" },
-      { label: "How it works", href: "/how-it-works" },
-      { label: "Coverage", href: "/coverage" },
-    ],
-  },
-  {
-    title: "Movers",
-    links: [
-      { label: "Partner pricing", href: "/partners#plans" },
-      { label: "Dashboard demo", href: "/partners/dashboard" },
-      { label: "Partner FAQ", href: "/partners#faq" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "About", href: "/how-it-works#about" },
-      { label: "Trust & verification", href: "/how-it-works#trust" },
-      { label: "Contact", href: "/partners#contact" },
-    ],
-  },
-];
+import { LanguageSwitcher } from "@/components/site/language-switcher";
+import { useI18n } from "@/i18n/provider";
 
 export function SiteFooter() {
+  const { dict, href } = useI18n();
+
+  const columns = [
+    {
+      title: dict.footer.move,
+      links: [
+        { label: dict.common.startSearch, path: "/" },
+        { label: dict.nav.howItWorks, path: "/how-it-works" },
+        { label: dict.nav.coverage, path: "/coverage" },
+      ],
+    },
+    {
+      title: dict.footer.movers,
+      links: [
+        { label: dict.footer.partnerPricing, path: "/partners#plans" },
+        { label: dict.footer.dashboardDemo, path: "/partners/dashboard" },
+        { label: dict.footer.partnerFaq, path: "/partners#faq" },
+      ],
+    },
+    {
+      title: dict.footer.company,
+      links: [
+        { label: dict.footer.about, path: "/how-it-works#about" },
+        { label: dict.footer.trust, path: "/how-it-works#trust" },
+        { label: dict.footer.contact, path: "/partners#contact" },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t bg-surface">
       <div className="mx-auto w-full max-w-[1240px] px-4 py-16 sm:px-6 lg:px-8">
@@ -36,20 +42,25 @@ export function SiteFooter() {
           <div>
             <Logo />
             <p className="mt-5 max-w-xs text-[15px] leading-relaxed text-muted-foreground">
-              Verified movers across Türkiye, Europe, the Balkans, Scandinavia, the CIS, Central
-              Asia and the Middle East.
+              {dict.footer.blurb}
             </p>
+            {/* A second, more discoverable switcher. Someone who scrolls to the
+                bottom looking for the language picker is following a very old
+                and very reliable convention. */}
+            <div className="mt-6 inline-flex items-center rounded-full border bg-background">
+              <LanguageSwitcher align="start" />
+            </div>
           </div>
 
           <div className="grid gap-10 sm:grid-cols-3">
-            {COLUMNS.map((col) => (
+            {columns.map((col) => (
               <div key={col.title}>
                 <h3 className="eyebrow">{col.title}</h3>
                 <ul className="mt-4 space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link.label}>
                       <Link
-                        href={link.href}
+                        href={href(link.path)}
                         className="text-[14.5px] text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {link.label}
@@ -63,15 +74,15 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-14 flex flex-col gap-4 border-t pt-8 text-[13px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Rotamove · Demo product</p>
+          <p>© {new Date().getFullYear()} {dict.footer.rights}</p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <Link href="#" className="hover:text-foreground">
-              KVKK &amp; GDPR
+              {dict.footer.privacy}
             </Link>
             <Link href="#" className="hover:text-foreground">
-              Terms
+              {dict.footer.terms}
             </Link>
-            <span>Istanbul · Berlin · Tashkent</span>
+            <span>{dict.footer.offices}</span>
           </div>
         </div>
       </div>

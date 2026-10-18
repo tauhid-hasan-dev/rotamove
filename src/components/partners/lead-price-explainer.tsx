@@ -4,9 +4,17 @@ import { useMemo, useState } from "react";
 import { Receipt, ShieldAlert } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { SwitchRow } from "@/components/quote/fields";
-import { REGIONS, type RegionId } from "@/lib/geo";
-import { LEAD_FEE_CAP_USD, leadFeeUsd, leadQualityScore } from "@/lib/plans";
-import { addDays, formatUsdPrecise, todayIso } from "@/lib/format";
+import { type RegionId } from "@/lib/geo";
+import {
+  LEAD_FEE_CAP_USD,
+  LEAD_FEE_FLOOR_USD,
+  PRO_MONTHLY_USD,
+  leadFeeUsd,
+  leadQualityScore,
+} from "@/lib/plans";
+import { addDays, todayIso } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
+import { regionName } from "@/i18n/geo-labels";
 import type { Lead } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +37,7 @@ const DESTINATIONS: Array<{ region: RegionId; city: string }> = [
  * later.
  */
 export function LeadPriceExplainer() {
+  const { dict, t } = useI18n();
   const [destIndex, setDestIndex] = useState(0);
   const [volume, setVolume] = useState(38);
   const [daysOut, setDaysOut] = useState(45);
@@ -72,6 +81,8 @@ export function LeadPriceExplainer() {
         phone: "+90 532 000 00 00",
         channel: "phone",
         locale: "en",
+        emailVerified: true,
+        phoneVerified: true,
       },
       consent: true,
     }),
@@ -88,17 +99,16 @@ export function LeadPriceExplainer() {
         <div className="flex items-center gap-2.5">
           <Receipt className="size-4 text-brand" />
           <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-            What a lead costs
+            {dict.leadFee.eyebrow}
           </h3>
         </div>
         <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-          Pay-per-lead pricing follows expected job value, not a flat tariff — and it stops dead at
-          ${LEAD_FEE_CAP_USD}. Change the job below and watch the fee move.
+          {t.fill(dict.leadFee.body, { cap: t.usd(LEAD_FEE_CAP_USD) })}
         </p>
 
         <div className="mt-7 space-y-6">
           <div>
-            <p className="eyebrow">Destination from Istanbul</p>
+            <p className="eyebrow">{dict.leadFee.destination}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {DESTINATIONS.map((option, i) => (
                 <button
@@ -113,7 +123,7 @@ export function LeadPriceExplainer() {
                       : "bg-background hover:border-foreground/25",
                   )}
                 >
-                  {REGIONS[option.region].name}
+                  {regionName(dict, option.region)}
                 </button>
               ))}
             </div>
@@ -121,8 +131,8 @@ export function LeadPriceExplainer() {
 
           <div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[13.5px] font-medium">Load volume</span>
-              <span className="text-[15px] font-medium tnum">{volume} m³</span>
+              <span className="text-[13.5px] font-medium">{dict.leadFee.volume}</span>
+              <span className="text-[15px] font-medium tnum">{t.volume(volume)}</span>
             </div>
             <Slider
               className="mt-3"
@@ -131,14 +141,16 @@ export function LeadPriceExplainer() {
               max={120}
               step={1}
               onValueChange={([v]) => setVolume(v)}
-              aria-label="Load volume"
+              aria-label={dict.leadFee.volume}
             />
           </div>
 
           <div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[13.5px] font-medium">Days until the move</span>
-              <span className="text-[15px] font-medium tnum">{daysOut} days</span>
+              <span className="text-[13.5px] font-medium">{dict.leadFee.daysOut}</span>
+              <span className="text-[15px] font-medium tnum">
+                {t.count(dict.units.days, daysOut)}
+              </span>
             </div>
             <Slider
               className="mt-3"
@@ -147,7 +159,7 @@ export function LeadPriceExplainer() {
               max={200}
               step={1}
               onValueChange={([v]) => setDaysOut(v)}
-              aria-label="Days until the move"
+              aria-label={dict.leadFee.daysOut}
             />
           </div>
 
@@ -155,14 +167,14 @@ export function LeadPriceExplainer() {
             <SwitchRow
               checked={fullService}
               onChange={setFullService}
-              title="Full service"
-              hint="Packing and unpacking included"
+              title={dict.leadFee.fullService}
+              hint={dict.leadFee.fullServiceHint}
             />
             <SwitchRow
               checked={storage}
               onChange={setStorage}
-              title="Storage needed"
-              hint="4 weeks bonded"
+              title={dict.leadFee.storage}
+              hint={dict.leadFee.storageHint}
             />
           </div>
         </div>
@@ -175,12 +187,12 @@ export function LeadPriceExplainer() {
             atCap ? "border-brand bg-brand-soft" : "border-brand bg-brand-soft dark:bg-accent/50",
           )}
         >
-          <p className="eyebrow">You would pay</p>
+          <p className="eyebrow">{dict.leadFee.youPay}</p>
           <p className="mt-2 flex items-baseline gap-2">
             <span className="text-[52px] font-extrabold leading-none tracking-[-0.05em] tnum">
-              {formatUsdPrecise(fee)}
+              {t.usd(fee)}
             </span>
-            <span className="text-[12px] text-muted-foreground">once</span>
+            <span className="text-[12px] text-muted-foreground">{dict.leadFee.once}</span>
           </p>
 
           <div className="mt-5">
@@ -194,33 +206,38 @@ export function LeadPriceExplainer() {
               />
             </div>
             <div className="mt-1.5 flex justify-between text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground tnum">
-              <span>$2 floor</span>
-              <span>${LEAD_FEE_CAP_USD} cap</span>
+              <span>{t.fill(dict.leadFee.floor, { amount: t.usd(LEAD_FEE_FLOOR_USD) })}</span>
+              <span>{t.fill(dict.leadFee.cap, { amount: t.usd(LEAD_FEE_CAP_USD) })}</span>
             </div>
           </div>
 
           {atCap && (
             <p className="mt-4 flex items-start gap-2 text-[12.5px] leading-relaxed text-muted-foreground">
               <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-foreground" />
-              This job is worth far more than ${LEAD_FEE_CAP_USD} to whoever wins it — the cap
-              holds anyway.
+              {t.fill(dict.leadFee.atCap, { cap: t.usd(LEAD_FEE_CAP_USD) })}
             </p>
           )}
         </div>
 
         <dl className="mt-6 space-y-3 border-t pt-6">
-          <Row label="Lead quality score" value={`${quality} / 100`} />
           <Row
-            label="Move type"
-            value={lead.moveType === "international" ? "International" : "Domestic"}
+            label={dict.leadFee.quality}
+            value={t.fill(dict.leadFee.qualityValue, { score: t.number(quality) })}
           />
-          <Row label="Refund window" value="24 hours" />
-          <Row label="Cost on Pro Unlimited" value="$0 — included" accent />
+          <Row
+            label={dict.leadFee.moveType}
+            value={dict.enums.moveType[lead.moveType]}
+          />
+          <Row label={dict.leadFee.refundWindow} value={dict.leadFee.refundValue} />
+          <Row
+            label={dict.leadFee.costOnPro}
+            value={t.fill(dict.leadFee.costOnProValue, { amount: t.usd(0) })}
+            accent
+          />
         </dl>
 
         <p className="mt-6 text-[12.5px] leading-relaxed text-muted-foreground">
-          Pro Unlimited partners pay nothing per lead, whatever this number says. That is the whole
-          trade-off: $100 a month buys the right to stop thinking about it.
+          {t.fill(dict.leadFee.footnote, { pro: t.usd(PRO_MONTHLY_USD) })}
         </p>
       </div>
     </div>

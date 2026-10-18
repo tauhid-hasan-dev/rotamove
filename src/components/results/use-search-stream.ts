@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { translateStage } from "@/components/results/stage-labels";
+import { useI18n } from "@/i18n/provider";
 import type { PublicQuote, SearchEvent } from "@/lib/types";
 
 export interface StageView {
@@ -46,8 +48,21 @@ const INITIAL: SearchStreamState = {
  * theatrical.
  */
 export function useSearchStream(leadId: string, token: string | null) {
+  const { dict, locale } = useI18n();
   const [state, setState] = useState<SearchStreamState>(INITIAL);
   const abortRef = useRef<AbortController | null>(null);
+
+  /**
+   * The stream carries an English label per stage because the route handler
+   * runs without a locale. It also carries a stable `id` and the values the
+   * label was built from, so the narration is rebuilt here in the reader's
+   * language and the API payload stays language-free. An id we do not know
+   * falls back to the server text rather than rendering blank.
+   */
+  const dictRef = useRef(dict);
+  dictRef.current = dict;
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
 
   const run = useCallback(async () => {
     abortRef.current?.abort();
@@ -70,7 +85,7 @@ export function useSearchStream(leadId: string, token: string | null) {
         setState((s) => ({
           ...s,
           status: "error",
-          error: data?.error ?? "We could not reach the partner network.",
+          error: data?.error ?? dictRef.current.results.networkError,
         }));
         return;
       }
@@ -89,21 +104,23 @@ export function useSearchStream(leadId: string, token: string | null) {
                 corridor: event.corridor,
                 partnersScanned: event.partnersScanned,
               };
-            case "stage":
+            case "stage": {
+              const text = translateStage(localeRef.current, dictRef.current, event);
               return {
                 ...prev,
                 stages: [
                   ...prev.stages,
                   {
                     id: event.id,
-                    label: event.label,
-                    detail: event.detail,
+                    label: text.label,
+                    detail: text.detail,
                     progress: event.progress,
                     at: performance.now() - startedAt,
                   },
                 ],
                 progress: Math.max(prev.progress, event.progress),
               };
+            }
             case "quote": {
               const quotes = [...prev.quotes, event.quote];
               const landed = (quotes.length / event.total) * 100;
@@ -152,7 +169,7 @@ export function useSearchStream(leadId: string, token: string | null) {
       setState((s) => ({
         ...s,
         status: "error",
-        error: error instanceof Error ? error.message : "Search failed",
+        error: error instanceof Error ? error.message : dictRef.current.results.searchFailed,
       }));
     }
   }, [leadId, token]);

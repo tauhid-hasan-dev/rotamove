@@ -162,6 +162,10 @@ export function generateLeadBoard(now: number, count = 18): BoardLead[] {
         phone: phoneFor(from.country, rng),
         channel: rng.pick(["phone", "whatsapp", "email"] as const),
         locale: from.country === "TR" ? "tr" : "en",
+        // Seed leads represent enquiries that already came through the wizard,
+        // which cannot submit without both codes confirmed.
+        emailVerified: true,
+        phoneVerified: true,
       },
       // Indexed rather than sampled: a pure draw clusters, and two adjacent
       // leads carrying the identical note reads as broken data.

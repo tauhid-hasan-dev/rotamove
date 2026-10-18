@@ -22,99 +22,31 @@ export const LEAD_FEE_CAP_USD = 7;
 export const LEAD_FEE_FLOOR_USD = 2;
 export const PRO_MONTHLY_USD = 100;
 
-export interface PlanFeature {
-  label: string;
-  detail?: string;
-  included: boolean;
-  highlight?: boolean;
-}
+/** The blended fee a pay-per-lead partner pays, used for break-even maths. */
+export const AVG_LEAD_FEE_USD = 5.2;
 
-export interface Plan {
-  id: PlanId;
-  name: string;
-  tagline: string;
-  priceLabel: string;
-  priceSuffix: string;
-  priceNote: string;
-  badge?: string;
-  recommended?: boolean;
-  bestFor: string;
-  features: PlanFeature[];
-  cta: string;
-}
+/** Leads a partner must close before Pro Unlimited is the cheaper option. */
+export const BREAK_EVEN_LEADS = Math.ceil(PRO_MONTHLY_USD / AVG_LEAD_FEE_USD);
 
-export const PLANS: Plan[] = [
-  {
-    id: "pro_unlimited",
-    name: "Pro Unlimited",
-    tagline: "Every lead on the network, one flat fee.",
-    priceLabel: "$100",
-    priceSuffix: "/month",
-    priceNote: "Billed monthly in USD. Cancel any time, no notice period.",
-    badge: "Most partners choose this",
-    recommended: true,
-    bestFor: "Movers running regular groupage on Türkiye ↔ Europe, CIS, Gulf or Central Asia lanes.",
-    cta: "Start 14-day free trial",
-    features: [
-      {
-        label: "Unlimited international leads",
-        detail: "Every corridor — Türkiye, EU, Balkans, Nordics, CIS, Central Asia, Middle East.",
-        included: true,
-        highlight: true,
-      },
-      {
-        label: "Unlimited domestic leads",
-        detail: "Türkiye-internal and in-country moves across all 53 partner countries.",
-        included: true,
-        highlight: true,
-      },
-      {
-        label: "Instant-match placement in search",
-        detail: "You appear as available the moment a customer searches — before anyone who has to call back.",
-        included: true,
-        highlight: true,
-      },
-      { label: "One-tap contact from the results board", included: true },
-      { label: "Full customer contact details, unmasked", included: true },
-      { label: "Capacity & seasonality rules engine", included: true },
-      { label: "Corridor demand analytics & win-rate reporting", included: true },
-      { label: "Lead API and webhooks", included: true },
-      { label: "Priority dispute handling", included: true },
-      { label: "Up to 8 operator seats", included: true },
-    ],
-  },
-  {
-    id: "pay_per_lead",
-    name: "Pay Per Lead",
-    tagline: "No subscription. Buy only the jobs you want.",
-    priceLabel: "$2–$7",
-    priceSuffix: "/lead",
-    priceNote: `Hard cap of $${LEAD_FEE_CAP_USD} per lead. You see the exact price before you unlock.`,
-    bestFor: "New partners, seasonal operators, or movers testing a new corridor.",
-    cta: "Create free partner account",
-    features: [
-      { label: "No monthly fee, no minimum spend", included: true, highlight: true },
-      {
-        label: "Browse the full lead board",
-        detail: "Route, volume, dates and quality score are visible before you pay.",
-        included: true,
-      },
-      { label: "Unlock a lead to reveal contact details", included: true },
-      { label: "Refund within 24 h on invalid contact details", included: true },
-      { label: "Corridor and volume filters", included: true },
-      { label: "Instant-match placement in search", included: false },
-      { label: "One-tap contact from the results board", included: false },
-      { label: "Lead API and webhooks", included: false },
-      { label: "Corridor demand analytics", included: false },
-      { label: "1 operator seat", included: true },
-    ],
-  },
+/**
+ * Which Pay Per Lead features are actually included.
+ *
+ * Positionally aligned with `dict.plans.pplFeatures` — the words are
+ * translated, the entitlements are not. Pro Unlimited includes everything, so
+ * it needs no equivalent list.
+ */
+export const PPL_FEATURE_INCLUDED: readonly boolean[] = [
+  true, // no monthly fee
+  true, // browse the board
+  true, // unlock to reveal contacts
+  true, // 24h refund
+  true, // corridor and volume filters
+  false, // instant-match placement — Pro only
+  false, // one-tap contact — Pro only
+  false, // lead API and webhooks — Pro only
+  false, // corridor analytics — Pro only
+  true, // 1 operator seat
 ];
-
-export const PLAN_BY_ID: Record<PlanId, Plan> = {
-  pro_unlimited: PLANS[0],
-  pay_per_lead: PLANS[1],
-};
 
 /**
  * What a pay-per-lead partner is charged to unlock this lead.
@@ -203,7 +135,7 @@ export interface RoiResult {
 /** Drives the partner-side plan comparison calculator. */
 export function computeRoi(
   input: RoiInput,
-  avgLeadFeeUsd = 5.2,
+  avgLeadFeeUsd = AVG_LEAD_FEE_USD,
   usdPerEur = 1.08,
 ): RoiResult {
   const jobsWon = input.leadsPerMonth * input.winRate;
@@ -225,29 +157,3 @@ export function computeRoi(
   };
 }
 
-export const PARTNER_FAQ = [
-  {
-    q: "What exactly counts as a lead?",
-    a: "A completed enquiry with a verified route, move date, volume and reachable contact details. Enquiries that fail our validation never reach the board, and you are never charged for them.",
-  },
-  {
-    q: "Is Pro Unlimited really unlimited?",
-    a: `Yes. $${PRO_MONTHLY_USD} a month covers every international and domestic lead on every corridor, with no cap and no overage. The only limit is your own capacity settings.`,
-  },
-  {
-    q: "Why would I pay per lead instead?",
-    a: `If you close fewer than ${Math.ceil(PRO_MONTHLY_USD / 5.2)} leads a month, pay-per-lead is cheaper. Most partners start there and switch to Pro inside two months.`,
-  },
-  {
-    q: "Can a lead cost more than $7?",
-    a: `Never. $${LEAD_FEE_CAP_USD} is a hard ceiling regardless of corridor, volume or job value, and the exact price is shown before you unlock.`,
-  },
-  {
-    q: "Do pay-per-lead partners appear in search results?",
-    a: "You appear on the results board, but marked as replying later rather than instantly. Instant-match placement is a Pro Unlimited feature.",
-  },
-  {
-    q: "What if the contact details are wrong?",
-    a: "Report it within 24 hours and the lead credit is refunded automatically. Pro partners are unaffected since there is no per-lead charge.",
-  },
-];

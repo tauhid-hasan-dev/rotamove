@@ -14,10 +14,12 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-instrument-sans), sans-serif;
-  --font-heading: var(--font-instrument-sans), sans-serif;
-  --font-mono: var(--font-instrument-sans), ui-monospace, monospace;
+  /* One variable, three possible families — see app/[locale]/layout.tsx. The
+     active locale supplies --font-rotamove; nothing else here changes. */
+  --font-sans: var(--font-rotamove), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-rotamove), sans-serif;
+  --font-heading: var(--font-rotamove), sans-serif;
+  --font-mono: var(--font-rotamove), ui-monospace, monospace;
 
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
@@ -73,6 +75,9 @@
   --shadow-float: 0 2px 4px rgb(16 20 14 / 0.05), 0 20px 52px -22px rgb(16 20 14 / 0.2);
 
   --animate-rise: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-haul: haul 19s linear infinite;
+  --animate-tarmac: tarmac 1.1s linear infinite;
+  --animate-jiggle: jiggle 1.6s ease-in-out infinite;
   --animate-shimmer: shimmer 1.9s ease-in-out infinite;
   --animate-drift: drift 14s ease-in-out infinite;
 }
@@ -205,6 +210,24 @@
     text-wrap: balance;
     font-weight: 600;
   }
+
+  /* Arabic is set without the tight optical tracking the Latin display sizes
+     want, and with a little more leading: the script carries taller marks and
+     negative tracking collides them. */
+  html[lang="ar"] h1,
+  html[lang="ar"] h2,
+  html[lang="ar"] h3,
+  html[lang="ar"] h4 {
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  html[lang="ar"] .tracking-\[-0\.04em\],
+  html[lang="ar"] .tracking-\[-0\.042em\],
+  html[lang="ar"] .tracking-\[-0\.045em\],
+  html[lang="ar"] .tracking-\[-0\.05em\] {
+    letter-spacing: 0;
+  }
   p {
     text-wrap: pretty;
   }
@@ -263,6 +286,16 @@
     mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
   }
 
+  /* Gradients take a physical direction, so RTL needs them mirrored by hand —
+     logical properties do not reach inside background-image. */
+  [dir="rtl"] .dotted-route {
+    background-image: linear-gradient(
+      to left,
+      color-mix(in oklab, var(--muted-foreground) 45%, transparent) 0 3px,
+      transparent 3px 9px
+    );
+  }
+
   .scrollbar-slim {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--muted-foreground) 30%, transparent) transparent;
@@ -304,6 +337,49 @@
   }
 }
 
+/* --- hero journey scene ------------------------------------------------- *
+ * The convoy crosses the full band, starting and ending fully off-stage.
+ *
+ * This animates a *rail* stretched to the band's full width, not the vehicle
+ * itself. `translateX` percentages resolve against the element's own width,
+ * so on the vehicle a 124px lorry would shuffle 124px and stop; on the rail
+ * 100% is exactly the distance to be travelled, at any viewport, with no
+ * container-query units involved.
+ *
+ * Each vehicle hangs off the rail's left edge (`right: 100%`), so at 0% it is
+ * fully off-stage left. The extra 140px — wider than the widest vehicle —
+ * carries it fully off-stage right before the loop restarts.                 */
+@keyframes haul {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(100% + 140px));
+  }
+}
+
+/* Road markings sliding the other way — the cheap trick that sells motion
+   without needing the vehicles themselves to move very far. */
+@keyframes tarmac {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+/* A sub-pixel bob. Any more reads as a cartoon. */
+@keyframes jiggle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.6px);
+  }
+}
+
 @keyframes drift {
   0%,
   100% {
@@ -333,5 +409,14 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The hero convoy is positioned by its animation, so simply suppressing the
+     animation would stack all three vehicles on the left kerb. Park each one
+     at its own point along the road instead — a still photo of the journey
+     rather than a traffic jam. */
+  .journey-vehicle {
+    animation: none !important;
+    transform: translateX(var(--rest, 50%));
   }
 }

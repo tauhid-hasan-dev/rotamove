@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check } from "lucide-react";
 import { Counter } from "@/components/common/counter";
 import type { StageView } from "@/components/results/use-search-stream";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,6 +30,7 @@ export function SearchHud({
   status: "connecting" | "searching" | "done" | "error";
   elapsedMs: number;
 }) {
+  const { dict, t } = useI18n();
   const current = stages[stages.length - 1];
   const done = status === "done";
 
@@ -49,17 +51,19 @@ export function SearchHud({
                 <h1 className="truncate text-[clamp(1.6rem,3.4vw,2.4rem)] leading-[1.08]">
                   {done ? (
                     <>
-                      <Counter value={found} duration={0.7} startOnView={false} /> movers can take
-                      this
+                      <Counter value={found} duration={0.7} startOnView={false} />{" "}
+                      {dict.results.canTakeThis}
                     </>
                   ) : (
-                    (current?.label ?? "Opening your search")
+                    (current?.label ?? dict.results.openingSearch)
                   )}
                 </h1>
                 <p className="mt-1.5 truncate text-[14.5px] text-muted-foreground">
                   {done
-                    ? `Matched in ${(elapsedMs / 1000).toFixed(1)}s · pick who gets in touch`
-                    : (current?.detail ?? "One moment")}
+                    ? t.fill(dict.results.matchedIn, {
+                        seconds: t.decimal(elapsedMs / 1000, 1),
+                      })
+                    : (current?.detail ?? dict.results.oneMoment)}
                 </p>
               </motion.div>
             </AnimatePresence>
@@ -73,7 +77,7 @@ export function SearchHud({
             className="inline-flex items-center gap-2 rounded-full bg-brand px-3.5 py-1.5 text-[13px] font-medium text-ink"
           >
             <Check className="size-3.5" strokeWidth={3} />
-            Search complete
+            {dict.results.complete}
           </motion.span>
         )}
       </div>
@@ -100,7 +104,7 @@ function ScanLine({
 
       <div className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-border">
         <motion.span
-          className="absolute inset-y-0 left-0 rounded-full bg-brand"
+          className="absolute inset-y-0 start-0 rounded-full bg-brand"
           initial={{ width: "2%" }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}

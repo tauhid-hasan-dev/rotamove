@@ -5,18 +5,27 @@ import { cityCountry, getCity, resolveCorridor, roadKm } from "@/lib/geo";
 import { matchLead } from "@/lib/matching";
 import { estimateVolume } from "@/lib/pricing";
 import { addDays, todayIso } from "@/lib/format";
+import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import type { Lead, LeadDraft, MoveType } from "@/lib/types";
 
-export const STEPS = [
-  { id: "home", title: "Home" },
-  { id: "timing", title: "Date" },
-  { id: "services", title: "Help" },
-  { id: "contact", title: "Contact" },
-] as const;
+/**
+ * Step order. Titles live in the dictionary keyed by these ids — the wizard
+ * reads `dict.quote.steps[step.id]` — so adding a language never touches the
+ * flow and renaming a step is caught by the compiler.
+ */
+export const STEPS = [{ id: "home" }, { id: "timing" }, { id: "services" }, { id: "contact" }] as const;
 
 export type StepId = (typeof STEPS)[number]["id"];
 
-export function createDefaultDraft(overrides?: Partial<LeadDraft>): LeadDraft {
+/**
+ * `locale` is stored on the lead, not just used to render it: a partner needs
+ * to know which language to answer in, and that is the language the enquiry
+ * was filled out in — not whatever the partner happens to be browsing.
+ */
+export function createDefaultDraft(
+  overrides?: Partial<LeadDraft>,
+  locale: Locale = DEFAULT_LOCALE,
+): LeadDraft {
   return {
     moveType: "international",
     origin: { cityCode: "", area: "", access: "lift", easyParking: true },
@@ -43,7 +52,15 @@ export function createDefaultDraft(overrides?: Partial<LeadDraft>): LeadDraft {
       customsClearance: false,
       cleaning: false,
     },
-    contact: { fullName: "", email: "", phone: "", channel: "whatsapp", locale: "en" },
+    contact: {
+      fullName: "",
+      email: "",
+      phone: "",
+      channel: "whatsapp",
+      locale,
+      emailVerified: false,
+      phoneVerified: false,
+    },
     notes: "",
     consent: false,
     ...overrides,
@@ -113,8 +130,8 @@ export function deriveMoveType(originCode: string, destCode: string): MoveType {
 
 type Updater = (draft: LeadDraft) => LeadDraft;
 
-export function useQuoteDraft(initial?: Partial<LeadDraft>) {
-  const [draft, setDraft] = useState<LeadDraft>(() => createDefaultDraft(initial));
+export function useQuoteDraft(initial?: Partial<LeadDraft>, locale: Locale = DEFAULT_LOCALE) {
+  const [draft, setDraft] = useState<LeadDraft>(() => createDefaultDraft(initial, locale));
 
   const update = useCallback((patch: Partial<LeadDraft> | Updater) => {
     setDraft((current) => {
@@ -152,6 +169,10 @@ export function isStepValid(step: StepId, draft: LeadDraft): boolean {
         draft.contact.fullName.trim().length >= 2 &&
         /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(draft.contact.email.trim()) &&
         draft.contact.phone.replace(/\D/g, "").length >= 7 &&
+        // Both one-time codes must have been confirmed. Mirrors
+        // `contactStepSchema`, which refuses an unverified submission.
+        draft.contact.emailVerified &&
+        draft.contact.phoneVerified &&
         draft.consent
       );
     default:

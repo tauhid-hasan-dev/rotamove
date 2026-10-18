@@ -6,7 +6,7 @@ import { matchLead } from "@/lib/matching";
 import { getMover, NETWORK_PARTNER_CLAIM } from "@/lib/movers";
 import { createRng } from "@/lib/rand";
 import { toPublicQuote } from "@/lib/types";
-import type { PublicQuote, SearchEvent } from "@/lib/types";
+import type { PublicQuote, SearchEvent, StageParams } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -95,7 +95,16 @@ export async function POST(request: NextRequest) {
           startedAt: started,
         });
 
-        const stages: Array<{ id: string; label: string; detail: string; progress: number; wait: number }> = [
+        const core = isCoreCorridor(corridor);
+
+        const stages: Array<{
+          id: string;
+          label: string;
+          detail: string;
+          progress: number;
+          wait: number;
+          params?: StageParams;
+        }> = [
           {
             id: "secure",
             label: "Securing your enquiry",
@@ -106,18 +115,33 @@ export async function POST(request: NextRequest) {
           {
             id: "corridor",
             label: `Opening corridor ${from?.code ?? "???"} → ${to?.code ?? "???"}`,
-            detail: isCoreCorridor(corridor)
+            detail: core
               ? `${corridor.label} · ${corridor.transitDays[0]}–${corridor.transitDays[1]} days typical`
               : `Extended network routing via ${corridor.label}`,
             progress: 20,
             wait: 520,
+            params: {
+              fromCode: from?.code,
+              toCode: to?.code,
+              corridorId: corridor.id,
+              corridorLabel: corridor.label,
+              coreCorridor: core,
+              transitDays: corridor.transitDays,
+            },
           },
           {
-            id: "scan",
-            label: `Polling ${NETWORK_PARTNER_CLAIM} partner movers`,
+            id: "partners",
+            label: `Polling ${NETWORK_PARTNER_CLAIM} partner carriers`,
             detail: `${cityCountry(from!).name} and ${cityCountry(to!).name} licensed operators`,
             progress: 34,
             wait: 480,
+            // ISO codes, not names: the client turns these into country names
+            // through ICU, so we are not shipping English place names either.
+            params: {
+              count: NETWORK_PARTNER_CLAIM,
+              fromCountry: cityCountry(from!).iso,
+              toCountry: cityCountry(to!).iso,
+            },
           },
         ];
 
@@ -145,12 +169,13 @@ export async function POST(request: NextRequest) {
               label: "Confirming vehicle capacity",
               detail: `Checking crews free around ${lead.moveDate}`,
               progress: 58,
+              params: { date: lead.moveDate },
             });
           }
           if (i === lateStage) {
             send({
               type: "stage",
-              id: "rates",
+              id: "route",
               label: "Checking route capacity",
               detail: "Ferry slots, border crossings and crews",
               progress: 82,
@@ -163,7 +188,7 @@ export async function POST(request: NextRequest) {
 
         send({
           type: "stage",
-          id: "rank",
+          id: "ranking",
           label: "Ranking your matches",
           detail: "Coverage, speed, reliability and reviews",
           progress: 100,

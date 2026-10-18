@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { RouteLine } from "@/components/common/route-line";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { en } from "@/i18n/dictionaries/en";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
 import { formatDateShort, formatRelative, formatUsdPrecise } from "@/lib/format";
 import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
@@ -54,6 +55,7 @@ export function LeadRow({
   const from = getCity(lead.origin.cityCode);
   const to = getCity(lead.destination.cityCode);
   const corridor = from && to ? resolveCorridor(from, to) : null;
+  const mode = corridor?.modes[0] ?? "road";
   // A lead you already bought stays bought — only "new" leads are still locked
   // on the pay-per-lead plan.
   const alreadyBought = item.status !== "new";
@@ -122,7 +124,13 @@ export function LeadRow({
           </div>
 
           <div className="mt-2.5 max-w-md">
-            <RouteLine from={from.code} to={to.code} mode={corridor?.modes[0] ?? "road"} size="sm" />
+            <RouteLine
+              from={from.code}
+              to={to.code}
+              mode={mode}
+              modeLabel={en.enums.modes[mode].label}
+              size="sm"
+            />
           </div>
 
           <p className="mt-1.5 truncate text-[13px] text-muted-foreground">

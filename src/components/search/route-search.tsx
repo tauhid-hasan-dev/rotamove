@@ -5,6 +5,7 @@ import { useCallback, useState, useTransition } from "react";
 import { ArrowRight, ArrowLeftRight, Loader2, Search } from "lucide-react";
 import { CityField } from "@/components/search/city-field";
 import { getCity } from "@/lib/geo";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,6 +32,7 @@ export function RouteSearch({
   className?: string;
 }) {
   const router = useRouter();
+  const { dict, href } = useI18n();
 
   const [from, setFrom] = useState<string | null>(null);
   const [to, setTo] = useState<string | null>(null);
@@ -44,8 +46,8 @@ export function RouteSearch({
       setActive(from ? "to" : "from");
       return;
     }
-    startTransition(() => router.push(`/quote?from=${from}&to=${to}`));
-  }, [complete, from, to, router]);
+    startTransition(() => router.push(href(`/quote?from=${from}&to=${to}`)));
+  }, [complete, from, to, router, href]);
 
   const swap = () => {
     setFrom(to);
@@ -63,8 +65,8 @@ export function RouteSearch({
         )}
       >
         <CityField
-          label="From"
-          placeholder="Where from?"
+          label={dict.search.fromLabel}
+          placeholder={dict.search.fromPlaceholder}
           value={from}
           exclude={to}
           onChange={setFrom}
@@ -80,16 +82,16 @@ export function RouteSearch({
             type="button"
             onClick={swap}
             disabled={!from && !to}
-            aria-label="Swap origin and destination"
-            className="absolute right-0 top-1/2 z-10 grid size-8 -translate-y-1/2 place-items-center rounded-full border bg-card text-muted-foreground transition-all duration-300 hover:rotate-180 hover:text-foreground disabled:opacity-40 disabled:hover:rotate-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
+            aria-label={dict.search.swap}
+            className="absolute end-0 top-1/2 z-10 grid size-8 -translate-y-1/2 place-items-center rounded-full border bg-card text-muted-foreground transition-all duration-300 hover:rotate-180 hover:text-foreground disabled:opacity-40 disabled:hover:rotate-0 sm:start-1/2 sm:end-auto sm:-translate-x-1/2 rtl:sm:translate-x-1/2"
           >
             <ArrowLeftRight className="size-3.5 sm:rotate-0 max-sm:rotate-90" />
           </button>
         </div>
 
         <CityField
-          label="To"
-          placeholder="Where to?"
+          label={dict.search.toLabel}
+          placeholder={dict.search.toPlaceholder}
           value={to}
           exclude={from}
           onChange={setTo}
@@ -115,8 +117,8 @@ export function RouteSearch({
           ) : (
             <>
               <Search className="size-4 sm:hidden" />
-              Search
-              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              {dict.common.search}
+              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 rtl:-scale-x-100" />
             </>
           )}
         </button>

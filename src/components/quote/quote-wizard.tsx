@@ -5,7 +5,6 @@ import { useCallback, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { Counter } from "@/components/common/counter";
 import { RouteEditor } from "@/components/quote/route-editor";
 import { StepContact, StepHome, StepServices, StepTiming } from "@/components/quote/steps";
 import {
@@ -13,23 +12,18 @@ import {
   isStepValid,
   useLivePreview,
   useQuoteDraft,
-  type StepId,
 } from "@/components/quote/use-quote-form";
 import { getCity, resolveCorridor } from "@/lib/geo";
-import { formatDateLong, formatDays } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
+import { corridorLabel } from "@/i18n/geo-labels";
+import type { Dictionary } from "@/i18n/dictionaries";
 import type { LeadDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const HEADINGS: Record<StepId, string> = {
-  home: "What are we moving?",
-  timing: "When?",
-  services: "How much help?",
-  contact: "Where should they reach you?",
-};
-
 export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
   const router = useRouter();
-  const { draft, update, swapRoute } = useQuoteDraft(initial);
+  const { dict, locale, t, href, rtl } = useI18n();
+  const { draft, update, swapRoute } = useQuoteDraft(initial, locale);
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [touched, setTouched] = useState(false);
@@ -40,6 +34,9 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
   const preview = useLivePreview(draft);
   const valid = isStepValid(step.id, draft);
   const last = index === STEPS.length - 1;
+  // Steps slide towards the reading direction, so "next" never animates
+  // backwards in Arabic.
+  const slide = rtl ? -1 : 1;
 
   const go = useCallback((next: number) => {
     setDirection(next > index ? 1 : -1);
@@ -62,17 +59,17 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
         const data = (await res.json().catch(() => null)) as
           | { error?: string; issues?: Array<{ message: string }> }
           | null;
-        throw new Error(data?.issues?.[0]?.message ?? data?.error ?? "Could not send your enquiry");
+        throw new Error(data?.issues?.[0]?.message ?? data?.error ?? dict.quote.sendFailed);
       }
       const data = (await res.json()) as { id: string; token: string };
       startTransition(() =>
-        router.push(`/results/${data.id}?d=${data.token}&c=${draft.contact.channel}`),
+        router.push(href(`/results/${data.id}?d=${data.token}&c=${draft.contact.channel}`)),
       );
     } catch (error) {
       setSubmitting(false);
-      toast.error(error instanceof Error ? error.message : "Something went wrong");
+      toast.error(error instanceof Error ? error.message : dict.quote.somethingWrong);
     }
-  }, [draft, router]);
+  }, [draft, router, href, dict]);
 
   const onNext = () => {
     if (last) return void submit();
@@ -93,7 +90,7 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
             disabled={i > index}
             onClick={() => i <= index && go(i)}
             className="group flex flex-1 flex-col gap-2"
-            aria-label={s.title}
+            aria-label={dict.quote.steps[s.id]}
           >
             <span className="h-[3px] w-full overflow-hidden rounded-full bg-border">
               <motion.span
@@ -105,27 +102,27 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
             </span>
             <span
               className={cn(
-                "text-left text-[12px] transition-colors",
+                "text-start text-[12px] transition-colors",
                 i <= index ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              {s.title}
+              {dict.quote.steps[s.id]}
             </span>
           </button>
         ))}
       </div>
 
       <h1 className="mt-10 text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.05]">
-        {HEADINGS[step.id]}
+        {dict.quote.headings[step.id]}
       </h1>
 
       <div className="relative mt-8 overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={step.id}
-            initial={{ opacity: 0, x: direction * 24 }}
+            initial={{ opacity: 0, x: direction * slide * 24 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * -24 }}
+            exit={{ opacity: 0, x: direction * slide * -24 }}
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
           >
             {step.id === "home" && <StepHome draft={draft} update={update} />}
@@ -147,8 +144,8 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
             disabled={submitting}
             className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[14.5px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="size-4" />
-            Back
+            <ArrowLeft className="size-4 rtl:-scale-x-100" />
+            {dict.common.back}
           </button>
         )}
 
@@ -165,12 +162,12 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
           {submitting ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Matching…
+              {dict.quote.matching}
             </>
           ) : (
             <>
-              {last ? "Find my movers" : "Continue"}
-              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              {last ? dict.quote.findMovers : dict.common.continue}
+              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 rtl:-scale-x-100" />
             </>
           )}
         </button>
@@ -180,34 +177,35 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
       <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 text-[13px] text-muted-foreground">
         <span className="inline-flex items-center gap-2">
           <Lock className="size-3.5" />
-          Free · no account · no cold calls
+          {dict.common.free}
         </span>
         {preview.ready && (
           <span className="inline-flex items-center gap-2">
             <Check className="size-3.5 text-verify" />
-            <Counter
-              value={preview.matchCount}
-              duration={0.5}
-              startOnView={false}
-              className="font-medium text-foreground"
-            />{" "}
-            movers match · {formatDays(preview.transitDays)}
+            <span className="font-medium text-foreground">
+              {t.fill(dict.quote.moversMatch, {
+                count: t.count(dict.units.movers, preview.matchCount),
+              })}
+            </span>
+            <span aria-hidden>·</span>
+            {t.days(preview.transitDays)}
           </span>
         )}
       </div>
 
       {preview.ready && (
         <p className="mt-2 text-[12.5px] text-muted-foreground">
-          {resolveCorridorLabel(draft)} · {formatDateLong(draft.moveDate)} · {draft.volumeM3} m³
+          {resolveCorridorLabel(dict, draft)} · {t.dateLong(draft.moveDate)} ·{" "}
+          {t.volume(draft.volumeM3)}
         </p>
       )}
     </div>
   );
 }
 
-function resolveCorridorLabel(draft: LeadDraft) {
+function resolveCorridorLabel(dict: Dictionary, draft: LeadDraft) {
   const from = getCity(draft.origin.cityCode);
   const to = getCity(draft.destination.cityCode);
   if (!from || !to) return "";
-  return resolveCorridor(from, to).label;
+  return corridorLabel(dict, resolveCorridor(from, to));
 }

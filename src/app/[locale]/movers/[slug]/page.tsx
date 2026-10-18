@@ -6,41 +6,61 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Shell } from "@/components/common/section";
 import { MoverLogo } from "@/components/common/mover-logo";
-import { MODE_META } from "@/components/common/route-line";
+import { MODE_ICONS } from "@/components/common/route-line";
 import { Stars } from "@/components/common/stars";
 import { Button } from "@/components/ui/button";
-import { CORRIDORS, REGIONS, cityLabel, getCity } from "@/lib/geo";
-import { BADGE_LABELS, MOVERS, getMoverBySlug } from "@/lib/movers";
+import { CORRIDORS, getCity } from "@/lib/geo";
+import { MOVERS, getMoverBySlug } from "@/lib/movers";
+import { LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
 import { createRng } from "@/lib/rand";
-import { formatNumber, formatResponseTime, pct } from "@/lib/format";
+import { LOCALES, quote as quoteMarks } from "@/i18n/config";
+import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
+import { corridorLabel, regionName } from "@/i18n/geo-labels";
+import {
+  cityLabel,
+  fill,
+  formatDays,
+  formatNumber,
+  formatPercent,
+  formatResponseTime,
+  formatUsd,
+  formatVolume,
+} from "@/i18n/format";
+import { plural } from "@/i18n/plural";
+import { localePath } from "@/i18n/paths";
+import type { Dictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/i18n/config";
 import type { Mover } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+/** 28 partners × 8 locales, all prerendered. */
 export function generateStaticParams() {
-  return MOVERS.map((m) => ({ slug: m.slug }));
+  return LOCALES.flatMap((locale) => MOVERS.map((m) => ({ locale, slug: m.slug })));
 }
 
 export async function generateMetadata({
   params,
-}: PageProps<"/movers/[slug]">): Promise<Metadata> {
-  const { slug } = await params;
+}: PageProps<"/[locale]/movers/[slug]">): Promise<Metadata> {
+  const { locale: rawLocale, slug } = await params;
+  const locale = resolveLocale(rawLocale);
+  const dict = getDictionary(locale);
   const mover = getMoverBySlug(slug);
-  if (!mover) return { title: "Mover not found" };
+  if (!mover) return { title: dict.moverProfile.notFound };
+
   return {
-    title: `${mover.name} — reviews and corridors`,
+    title: fill(dict.moverProfile.metaTitle, { name: mover.name }),
+    // The partner's own description, as supplied.
     description: mover.blurb,
+    alternates: {
+      canonical: localePath(locale, `/movers/${slug}`),
+      languages: Object.fromEntries(
+        LOCALES.map((l) => [l, localePath(l, `/movers/${slug}`)]),
+      ),
+    },
   };
 }
 
-const SERVICE_LABELS: Record<keyof Mover["services"], string> = {
-  packing: "Professional packing",
-  storage: "Bonded storage",
-  customs: "In-house customs brokerage",
-  vehicle: "Car & motorbike shipping",
-  piano: "Piano and fine-art handling",
-  cleaning: "End-of-tenancy cleaning",
-};
-
+/** Review bodies are seed content; they stay in English like the blurbs. */
 const REVIEW_BODIES = [
   "Crew arrived fifteen minutes early, wrapped everything properly and the delivery landed on the first day of the window. The final invoice matched the quote exactly.",
   "Good communication throughout — I had a named contact who answered on WhatsApp within minutes. One small scuff on a wardrobe door, sorted without argument.",
@@ -55,37 +75,70 @@ const REVIEW_NAMES = [
   "Hanna B.", "Kerem Ö.", "Ingrid S.", "Omar H.",
 ];
 
-function buildReviews(mover: Mover, count = 5) {
+const SERVICE_KEYS = [
+  "packing",
+  "storage",
+  "customs",
+  "vehicle",
+  "piano",
+  "cleaning",
+] as const satisfies ReadonlyArray<keyof Mover["services"]>;
+
+function buildReviews(mover: Mover, dict: Dictionary, count = 5) {
   const rng = createRng("reviews", mover.id);
   const lanes = CORRIDORS.filter(
     (c) => mover.regions.includes(c.from) && mover.regions.includes(c.to),
   );
   return Array.from({ length: count }, (_, i) => {
     const lane = lanes.length ? lanes[i % lanes.length] : CORRIDORS[0];
-    const rating = Math.min(5, Math.max(3, Math.round((mover.rating + rng.range(-0.6, 0.4)) * 2) / 2));
+    const rating = Math.min(
+      5,
+      Math.max(3, Math.round((mover.rating + rng.range(-0.6, 0.4)) * 2) / 2),
+    );
     return {
       id: `${mover.id}-r${i}`,
       name: rng.pick(REVIEW_NAMES),
       body: rng.pick(REVIEW_BODIES),
       rating,
-      lane: lane.label,
+      lane: corridorLabel(dict, lane),
       volume: rng.int(14, 82),
       monthsAgo: rng.int(1, 16),
     };
   });
 }
 
-export default async function MoverPage({ params }: PageProps<"/movers/[slug]">) {
-  const { slug } = await params;
+export default async function MoverPage({ params }: PageProps<"/[locale]/movers/[slug]">) {
+  const { locale: rawLocale, slug } = await params;
+  const locale: Locale = resolveLocale(rawLocale);
+  const dict = getDictionary(locale);
+  const profile = dict.moverProfile;
+
   const mover = getMoverBySlug(slug);
   if (!mover) notFound();
 
   const hq = getCity(mover.hqCity);
-  const reviews = buildReviews(mover);
+  const reviews = buildReviews(mover, dict);
   const lanes = CORRIDORS.filter(
     (c) => mover.regions.includes(c.from) && mover.regions.includes(c.to),
   );
   const isPro = mover.plan === "pro_unlimited";
+
+  const stats: Array<[string, string]> = [
+    [profile.statOnTime, formatPercent(locale, mover.onTimeRate)],
+    [profile.statClaims, formatPercent(locale, mover.claimRate, 1)],
+    [profile.statTrucks, formatNumber(locale, mover.fleetTrucks)],
+    [profile.statCrew, formatNumber(locale, mover.crewSize)],
+    [profile.statCover, profile.statCoverValue],
+    [
+      profile.statCancellation,
+      plural(
+        locale,
+        dict.units.days,
+        mover.freeCancellationDays,
+        formatNumber(locale, mover.freeCancellationDays),
+      ),
+    ],
+  ];
 
   return (
     <>
@@ -93,7 +146,10 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
       <main id="main" className="pb-20">
         {/* header ----------------------------------------------- */}
         <section className="relative overflow-hidden border-b">
-          <div className="pointer-events-none absolute inset-x-0 -top-28 -z-10 h-[520px] opacity-75 glow-brand" aria-hidden />
+          <div
+            className="pointer-events-none absolute inset-x-0 -top-28 -z-10 h-[520px] opacity-75 glow-brand"
+            aria-hidden
+          />
           <Shell className="py-10 sm:py-14">
             <div className="flex flex-col gap-7 lg:flex-row lg:items-start">
               <MoverLogo mover={mover} size="xl" />
@@ -106,18 +162,21 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                   {isPro && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[11.5px] font-medium text-ink">
                       <Zap className="size-3" />
-                      Instant match
+                      {profile.instantMatch}
                     </span>
                   )}
                 </div>
                 <p className="mt-2 text-[14px] text-muted-foreground">
-                  {mover.legalName} · {hq ? cityLabel(hq.code) : mover.hqCity} · Established{" "}
-                  {mover.since}
+                  {mover.legalName} ·{" "}
+                  {hq ? cityLabel(locale, hq, hq.country) : mover.hqCity} ·{" "}
+                  {fill(profile.established, { year: formatNumber(locale, mover.since) })}
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
                   <Stars rating={mover.rating} count={mover.reviewCount} />
                   <span className="text-[13.5px] text-muted-foreground">
-                    {formatNumber(mover.completedMoves)} completed moves
+                    {fill(profile.completedMoves, {
+                      count: formatNumber(locale, mover.completedMoves),
+                    })}
                   </span>
                 </div>
 
@@ -125,10 +184,10 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                   {mover.badges.map((badge) => (
                     <span
                       key={badge}
-                      title={BADGE_LABELS[badge].hint}
+                      title={dict.enums.badges[badge].hint}
                       className="rounded-md border bg-background px-2 py-1 text-[11.5px] font-medium text-muted-foreground"
                     >
-                      {BADGE_LABELS[badge].label}
+                      {dict.enums.badges[badge].label}
                     </span>
                   ))}
                   {mover.certifications.map((cert) => (
@@ -145,26 +204,28 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                 <p className="mt-6 max-w-3xl text-[15.5px] leading-relaxed text-muted-foreground">
                   {mover.blurb}
                 </p>
+                {/* Partner-authored copy is shown as supplied rather than
+                    machine-translated, and labelled so that is not mistaken
+                    for a gap in the localisation. */}
+                <p className="mt-2 text-[12px] text-muted-foreground/80">{profile.blurbNote}</p>
               </div>
 
               <div className="shrink-0 lg:w-[250px]">
                 <div className="rounded-2xl border bg-card p-5">
-                  <p className="eyebrow">
-                    {isPro ? "Instant match" : "Replies the same day"}
-                  </p>
+                  <p className="eyebrow">{isPro ? profile.instantMatch : profile.sameDay}</p>
                   <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted-foreground">
-                    {isPro
-                      ? "Confirms availability as soon as your search runs."
-                      : "Picks up enquiries by hand, then gets in touch."}
+                    {isPro ? profile.instantBody : profile.manualBody}
                   </p>
                   <Button asChild className="mt-4 w-full rounded-full">
-                    <Link href="/">
-                      Start a search
-                      <ArrowRight className="size-4" />
+                    <Link href={localePath(locale, "/")}>
+                      {dict.common.startSearch}
+                      <ArrowRight className="size-4 rtl:-scale-x-100" />
                     </Link>
                   </Button>
                   <p className="mt-3 text-center text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground">
-                    replies in {formatResponseTime(mover.responseMins)}
+                    {fill(profile.repliesIn, {
+                      time: formatResponseTime(locale, dict, mover.responseMins),
+                    })}
                   </p>
                 </div>
               </div>
@@ -175,14 +236,7 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
         {/* stats ------------------------------------------------ */}
         <Shell className="py-10">
           <dl className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 lg:grid-cols-6">
-            {[
-              ["On-time delivery", pct(mover.onTimeRate)],
-              ["Claim rate", `${(mover.claimRate * 100).toFixed(1)}%`],
-              ["Own trucks", String(mover.fleetTrucks)],
-              ["Crew", String(mover.crewSize)],
-              ["Cover", "Full replacement value"],
-              ["Free cancellation", `${mover.freeCancellationDays} days`],
-            ].map(([label, value]) => (
+            {stats.map(([label, value]) => (
               <div key={label} className="border-t pt-4">
                 <dd className="text-[clamp(1.2rem,2.2vw,1.6rem)] font-medium leading-none tnum">
                   {value}
@@ -197,9 +251,7 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
         <Shell className="grid gap-10 py-6 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
           <div className="space-y-10">
             <section>
-              <h2 className="text-[21px] tracking-[-0.03em]">
-                Corridors they run
-              </h2>
+              <h2 className="text-[21px] tracking-[-0.03em]">{profile.corridorsTitle}</h2>
               <ul className="mt-5 space-y-2.5">
                 {lanes.map((lane) => (
                   <li
@@ -207,20 +259,24 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                     className="flex items-center gap-4 rounded-xl border bg-card p-4"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[14px] font-medium">{lane.label}</p>
+                      <p className="truncate text-[14px] font-medium">
+                        {corridorLabel(dict, lane)}
+                      </p>
                       <p className="mt-0.5 text-[11.5px] text-muted-foreground tnum">
-                        {lane.transitDays[0]}–{lane.transitDays[1]} days typical
+                        {fill(profile.corridorTypical, {
+                          days: formatDays(locale, dict, lane.transitDays),
+                        })}
                       </p>
                     </div>
                     <span className="flex shrink-0 gap-1">
                       {lane.modes
                         .filter((m) => mover.modes.includes(m))
                         .map((mode) => {
-                          const { Icon, label } = MODE_META[mode];
+                          const Icon = MODE_ICONS[mode];
                           return (
                             <span
                               key={mode}
-                              title={label}
+                              title={dict.enums.modes[mode].label}
                               className="grid size-7 place-items-center rounded-md border bg-background"
                             >
                               <Icon className="size-3.5 text-muted-foreground" />
@@ -232,17 +288,16 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                 ))}
                 {lanes.length === 0 && (
                   <li className="rounded-xl border border-dashed p-5 text-[13.5px] text-muted-foreground">
-                    Covers {mover.regions.map((r) => REGIONS[r].name).join(", ")} through the
-                    extended network.
+                    {fill(profile.extendedNetwork, {
+                      regions: mover.regions.map((r) => regionName(dict, r)).join(", "),
+                    })}
                   </li>
                 )}
               </ul>
             </section>
 
             <section>
-              <h2 className="text-[21px] tracking-[-0.03em]">
-                Reviews
-              </h2>
+              <h2 className="text-[21px] tracking-[-0.03em]">{profile.reviewsTitle}</h2>
               <ul className="mt-5 space-y-3">
                 {reviews.map((review) => (
                   <li key={review.id} className="rounded-xl border bg-card p-5">
@@ -250,12 +305,20 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                       <QuoteIcon className="size-4 shrink-0 text-brand" />
                       <Stars rating={review.rating} compact />
                       <span className="text-[11.5px] text-muted-foreground tnum">
-                        {review.lane} · {review.volume} m³ · {review.monthsAgo} months ago
+                        {review.lane} · {formatVolume(locale, dict, review.volume)} ·{" "}
+                        {plural(
+                          locale,
+                          dict.units.monthsAgo,
+                          review.monthsAgo,
+                          formatNumber(locale, review.monthsAgo),
+                        )}
                       </span>
                     </div>
-                    <p className="mt-3 text-[14.5px] leading-relaxed">{review.body}</p>
+                    <p className="mt-3 text-[14.5px] leading-relaxed">
+                      {quoteMarks(locale, review.body)}
+                    </p>
                     <p className="mt-3 text-[12.5px] font-medium text-muted-foreground">
-                      {review.name} · verified booking
+                      {review.name} · {dict.common.verifiedBooking}
                     </p>
                   </li>
                 ))}
@@ -265,11 +328,9 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
 
           <div className="space-y-10">
             <section>
-              <h2 className="text-[21px] tracking-[-0.03em]">
-                Services
-              </h2>
+              <h2 className="text-[21px] tracking-[-0.03em]">{profile.servicesTitle}</h2>
               <ul className="mt-5 space-y-2">
-                {(Object.keys(SERVICE_LABELS) as Array<keyof Mover["services"]>).map((key) => {
+                {SERVICE_KEYS.map((key) => {
                   const on = mover.services[key];
                   return (
                     <li
@@ -291,7 +352,7 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                           <Minus className="size-2.5" strokeWidth={3} />
                         )}
                       </span>
-                      {SERVICE_LABELS[key]}
+                      {profile.services[key]}
                     </li>
                   );
                 })}
@@ -299,9 +360,9 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
             </section>
 
             <section>
-              <h2 className="text-[21px] tracking-[-0.03em]">
-                Languages & regions
-              </h2>
+              <h2 className="text-[21px] tracking-[-0.03em]">{profile.languagesTitle}</h2>
+              {/* Language names are endonyms in the seed data ("Türkçe"), which
+                  is how a partner lists what their crew actually speaks. */}
               <div className="mt-5 flex flex-wrap gap-1.5">
                 {mover.languages.map((lang) => (
                   <span key={lang} className="rounded-full border bg-card px-3 py-1.5 text-[13px]">
@@ -315,27 +376,24 @@ export default async function MoverPage({ params }: PageProps<"/movers/[slug]">)
                     key={region}
                     className="rounded-full border border-brand bg-brand-soft px-3 py-1.5 text-[13px] text-foreground dark:bg-accent dark:text-foreground"
                   >
-                    {REGIONS[region].name}
+                    {regionName(dict, region)}
                   </span>
                 ))}
               </div>
             </section>
 
             <section className="rounded-2xl border border-dashed bg-surface/60 p-5">
-              <h3 className="eyebrow">How this partner is billed</h3>
+              <h3 className="eyebrow">{profile.billingTitle}</h3>
               <p className="mt-3 text-[13.5px] leading-relaxed text-muted-foreground">
-                {isPro ? (
-                  <>
-                    {mover.name} is on <span className="font-medium text-foreground">Pro Unlimited</span>{" "}
-                    — a flat $100 a month for every lead on the network. They pay the same whether
-                    you choose them or not.
-                  </>
-                ) : (
-                  <>
-                    {mover.name} is on <span className="font-medium text-foreground">Pay Per Lead</span>{" "}
-                    — they pay up to $7 to unlock an enquiry they want. No commission either way.
-                  </>
-                )}
+                {isPro
+                  ? fill(profile.billingPro, {
+                      name: mover.name,
+                      pro: formatUsd(locale, PRO_MONTHLY_USD),
+                    })
+                  : fill(profile.billingPpl, {
+                      name: mover.name,
+                      cap: formatUsd(locale, LEAD_FEE_CAP_USD),
+                    })}
               </p>
             </section>
           </div>

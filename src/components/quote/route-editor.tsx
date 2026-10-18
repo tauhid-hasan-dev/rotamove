@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeftRight, ArrowRight } from "lucide-react";
 import { CityField } from "@/components/search/city-field";
 import { cityCountry, getCity } from "@/lib/geo";
+import { useI18n } from "@/i18n/provider";
 import type { LeadDraft } from "@/lib/types";
 
 type Field = "from" | "to" | null;
@@ -23,6 +24,7 @@ export function RouteEditor({
   update: (patch: Partial<LeadDraft> | ((d: LeadDraft) => LeadDraft)) => void;
   swapRoute: () => void;
 }) {
+  const { dict } = useI18n();
   const from = getCity(draft.origin.cityCode);
   const to = getCity(draft.destination.cityCode);
   const [editing, setEditing] = useState(!from || !to);
@@ -41,8 +43,8 @@ export function RouteEditor({
             className="flex flex-col gap-1 sm:flex-row sm:items-center"
           >
             <CityField
-              label="From"
-              placeholder="Where from?"
+              label={dict.search.fromLabel}
+              placeholder={dict.search.fromPlaceholder}
               value={draft.origin.cityCode || null}
               exclude={draft.destination.cityCode || null}
               onChange={(code) =>
@@ -58,16 +60,16 @@ export function RouteEditor({
               <button
                 type="button"
                 onClick={swapRoute}
-                aria-label="Swap direction"
-                className="absolute right-0 top-1/2 z-10 grid size-8 -translate-y-1/2 place-items-center rounded-full border bg-card text-muted-foreground transition-all duration-300 hover:rotate-180 hover:text-foreground sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
+                aria-label={dict.quote.swapDirection}
+                className="absolute end-0 top-1/2 z-10 grid size-8 -translate-y-1/2 place-items-center rounded-full border bg-card text-muted-foreground transition-all duration-300 hover:rotate-180 hover:text-foreground sm:start-1/2 sm:end-auto sm:-translate-x-1/2 rtl:sm:translate-x-1/2"
               >
                 <ArrowLeftRight className="size-3.5 sm:rotate-0 max-sm:rotate-90" />
               </button>
             </div>
 
             <CityField
-              label="To"
-              placeholder="Where to?"
+              label={dict.search.toLabel}
+              placeholder={dict.search.toPlaceholder}
               value={draft.destination.cityCode || null}
               exclude={draft.origin.cityCode || null}
               onChange={(code) => {
@@ -94,7 +96,7 @@ export function RouteEditor({
               <span className="text-[12.5px] text-muted-foreground">
                 {from && cityCountry(from).iso}
               </span>
-              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" />
               <span className="text-[16.5px] font-medium">{to?.name}</span>
               <span className="text-[12.5px] text-muted-foreground">
                 {to && cityCountry(to).iso}
@@ -105,7 +107,7 @@ export function RouteEditor({
               onClick={() => setEditing(true)}
               className="shrink-0 rounded-full px-3.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              Change
+              {dict.common.change}
             </button>
           </motion.div>
         )}

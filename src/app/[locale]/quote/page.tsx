@@ -5,13 +5,24 @@ import { Shell } from "@/components/common/section";
 import { QuoteWizard } from "@/components/quote/quote-wizard";
 import { CITY_BY_CODE } from "@/lib/geo";
 import { estimateVolume } from "@/lib/pricing";
+import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
+import { alternateLanguages, localePath } from "@/i18n/paths";
 import type { LeadDraft, PropertySize } from "@/lib/types";
 
-export const metadata: Metadata = {
-  title: "Tell us about your move",
-  description:
-    "Tell us about your move once. Verified movers get in touch on the channel you choose.",
-};
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/quote">): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const dict = getDictionary(locale);
+  return {
+    title: dict.meta.quoteTitle,
+    description: dict.meta.quoteDescription,
+    alternates: {
+      canonical: localePath(locale, "/quote"),
+      languages: alternateLanguages("/quote"),
+    },
+  };
+}
 
 const SIZES: PropertySize[] = [
   "few_items",
@@ -24,10 +35,11 @@ const SIZES: PropertySize[] = [
   "office",
 ];
 
-export default async function QuotePage({ searchParams }: PageProps<"/quote">) {
-  const params = await searchParams;
+export default async function QuotePage({ params, searchParams }: PageProps<"/[locale]/quote">) {
+  await params;
+  const query = await searchParams;
   const read = (key: string) => {
-    const v = params[key];
+    const v = query[key];
     return Array.isArray(v) ? v[0] : v;
   };
 

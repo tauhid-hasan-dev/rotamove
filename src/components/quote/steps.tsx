@@ -12,18 +12,16 @@ import {
   Truck,
 } from "lucide-react";
 import { FieldSet, OptionCard, SwitchRow, ToggleChip } from "@/components/quote/fields";
+import { VerifyField } from "@/components/quote/verify-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  ACCESS_OPTIONS,
-  PROPERTY_SIZES,
-  SPECIAL_ITEM_LABELS,
-  estimateVolume,
-} from "@/lib/pricing";
+import { ACCESS_OPTIONS, PROPERTY_SIZES, estimateVolume } from "@/lib/pricing";
 import { todayIso } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
+import type { Dictionary } from "@/i18n/dictionaries";
 import type {
   AccessType,
   ContactChannel,
@@ -42,19 +40,24 @@ type StepProps = {
 /* --------------------------------------------------------------- Home -- */
 
 export function StepHome({ draft, update }: StepProps) {
+  const { dict, t } = useI18n();
+
   const setSize = (size: PropertySize) =>
     update({ propertySize: size, volumeM3: estimateVolume(size) });
 
   return (
     <div className="space-y-9">
       <div className="grid gap-2.5 sm:grid-cols-2">
+        {/* Ids and volumes come from the pricing model; the words come from the
+            dictionary. Adding a size is a one-line change in two places, not a
+            copy hunt across eight files. */}
         {PROPERTY_SIZES.map((option) => (
           <OptionCard
             key={option.id}
             selected={draft.propertySize === option.id}
             onSelect={() => setSize(option.id)}
-            title={option.label}
-            meta={`${option.volume} m³`}
+            title={dict.enums.propertySize[option.id].label}
+            meta={t.volume(option.volume)}
             icon={
               option.id === "office" ? (
                 <Building2 className="size-4" />
@@ -66,15 +69,17 @@ export function StepHome({ draft, update }: StepProps) {
         ))}
       </div>
 
-      <FieldSet legend="Fine-tune the volume">
+      <FieldSet legend={dict.quote.fineTuneVolume}>
         <div className="rounded-3xl border bg-surface p-6">
           <div className="flex items-end justify-between gap-4">
             <p className="text-[38px] font-medium leading-none tracking-[-0.04em] tnum">
-              {draft.volumeM3}
-              <span className="ml-1 text-[17px] text-muted-foreground">m³</span>
+              {t.number(draft.volumeM3)}
+              <span className="ms-1 text-[17px] text-muted-foreground">m³</span>
             </p>
             <p className="text-[13px] text-muted-foreground">
-              ≈ {Math.round(draft.volumeM3 * 4.2)} boxes
+              {t.fill(dict.quote.approxBoxes, {
+                boxes: t.count(dict.units.boxes, Math.round(draft.volumeM3 * 4.2)),
+              })}
             </p>
           </div>
           <Slider
@@ -84,14 +89,17 @@ export function StepHome({ draft, update }: StepProps) {
             max={140}
             step={1}
             onValueChange={([v]) => update({ volumeM3: v })}
-            aria-label="Volume in cubic metres"
+            aria-label={dict.quote.volumeAria}
           />
         </div>
       </FieldSet>
 
       <div className="grid gap-6 sm:grid-cols-2">
         {(["origin", "destination"] as const).map((end) => (
-          <FieldSet key={end} legend={end === "origin" ? "Access at pickup" : "Access at delivery"}>
+          <FieldSet
+            key={end}
+            legend={end === "origin" ? dict.quote.accessPickup : dict.quote.accessDelivery}
+          >
             <div className="space-y-2">
               {ACCESS_OPTIONS.map((option) => (
                 <OptionCard
@@ -104,13 +112,13 @@ export function StepHome({ draft, update }: StepProps) {
                       [end]: { ...d[end], access: option.id as AccessType },
                     }))
                   }
-                  title={option.label}
+                  title={dict.enums.access[option.id].label}
                 />
               ))}
               <SwitchRow
                 checked={draft[end].easyParking}
                 onChange={(v) => update((d) => ({ ...d, [end]: { ...d[end], easyParking: v } }))}
-                title="Truck can park at the door"
+                title={dict.quote.parkAtDoor}
               />
             </div>
           </FieldSet>
@@ -122,40 +130,36 @@ export function StepHome({ draft, update }: StepProps) {
 
 /* ------------------------------------------------------------- Timing -- */
 
-const FLEX_OPTIONS = [
-  { id: "exact", label: "That exact date" },
-  { id: "plus_minus_3", label: "Within 3 days" },
-  { id: "within_2_weeks", label: "Within 2 weeks" },
-  { id: "flexible", label: "Fully flexible" },
-] as const;
+const FLEX_ORDER = ["exact", "plus_minus_3", "within_2_weeks", "flexible"] as const;
 
 export function StepTiming({ draft, update }: StepProps) {
+  const { dict } = useI18n();
   const month = new Date(draft.moveDate).getMonth();
   const peak = month >= 5 && month <= 8;
 
   return (
     <div className="space-y-9">
       <div className="relative max-w-sm">
-        <CalendarDays className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2" />
+        <CalendarDays className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2" />
         <Input
           type="date"
           value={draft.moveDate}
           min={todayIso()}
           onChange={(e) => update({ moveDate: e.target.value })}
-          className="h-14 rounded-2xl pl-11 text-[16px] tnum"
-          aria-label="Move date"
+          className="h-14 rounded-2xl ps-11 text-[16px] tnum"
+          aria-label={dict.quote.moveDate}
         />
       </div>
 
-      <FieldSet legend="How flexible?">
+      <FieldSet legend={dict.quote.howFlexible}>
         <div className="grid gap-2.5 sm:grid-cols-2">
-          {FLEX_OPTIONS.map((option) => (
+          {FLEX_ORDER.map((id) => (
             <OptionCard
-              key={option.id}
+              key={id}
               compact
-              selected={draft.flexibility === option.id}
-              onSelect={() => update({ flexibility: option.id })}
-              title={option.label}
+              selected={draft.flexibility === id}
+              onSelect={() => update({ flexibility: id })}
+              title={dict.enums.flexibility[id]}
             />
           ))}
         </div>
@@ -164,8 +168,7 @@ export function StepTiming({ draft, update }: StepProps) {
       {peak && (
         <p className="flex items-start gap-2.5 rounded-2xl bg-brand-soft p-4 text-[13.5px] leading-relaxed dark:bg-accent">
           <Sparkles className="mt-0.5 size-4 shrink-0" />
-          June to September is peak season. Shifting a fortnight either way opens up a lot more
-          capacity.
+          {dict.quote.peakSeason}
         </p>
       )}
     </div>
@@ -174,89 +177,61 @@ export function StepTiming({ draft, update }: StepProps) {
 
 /* ----------------------------------------------------------- Services -- */
 
-const SERVICE_LEVELS: Array<{ id: ServiceLevel; label: string; hint: string; icon: React.ReactNode }> = [
-  {
-    id: "full_service",
-    label: "Full service",
-    hint: "They pack, load, ship and unpack.",
-    icon: <Sparkles className="size-4" />,
-  },
-  {
-    id: "door_to_door",
-    label: "Door to door",
-    hint: "You pack boxes, they do the rest.",
-    icon: <Truck className="size-4" />,
-  },
-  {
-    id: "transport_only",
-    label: "Transport only",
-    hint: "Everything is ready to collect.",
-    icon: <PackageOpen className="size-4" />,
-  },
-];
+const SERVICE_ICONS: Record<ServiceLevel, React.ReactNode> = {
+  full_service: <Sparkles className="size-4" />,
+  door_to_door: <Truck className="size-4" />,
+  transport_only: <PackageOpen className="size-4" />,
+};
+
+const SERVICE_ORDER: ServiceLevel[] = ["full_service", "door_to_door", "transport_only"];
+
+const EXTRA_TOGGLES = [
+  "packing",
+  "unpacking",
+  "dismantling",
+  "insurance",
+  "customsClearance",
+  "cleaning",
+] as const satisfies ReadonlyArray<keyof Dictionary["quote"]["extras"]>;
 
 export function StepServices({ draft, update }: StepProps) {
-  const setExtra = <K extends keyof LeadDraft["extras"]>(
-    key: K,
-    value: LeadDraft["extras"][K],
-  ) => update((d) => ({ ...d, extras: { ...d.extras, [key]: value } }));
+  const { dict, t } = useI18n();
+
+  const setExtra = <K extends keyof LeadDraft["extras"]>(key: K, value: LeadDraft["extras"][K]) =>
+    update((d) => ({ ...d, extras: { ...d.extras, [key]: value } }));
 
   return (
     <div className="space-y-9">
       <div className="grid gap-2.5">
-        {SERVICE_LEVELS.map((level) => (
+        {SERVICE_ORDER.map((id) => (
           <OptionCard
-            key={level.id}
-            selected={draft.serviceLevel === level.id}
-            onSelect={() => update({ serviceLevel: level.id })}
-            title={level.label}
-            hint={level.hint}
-            icon={level.icon}
+            key={id}
+            selected={draft.serviceLevel === id}
+            onSelect={() => update({ serviceLevel: id })}
+            title={dict.enums.serviceLevel[id].label}
+            hint={dict.enums.serviceLevel[id].hint}
+            icon={SERVICE_ICONS[id]}
           />
         ))}
       </div>
 
-      <FieldSet legend="Add-ons">
+      <FieldSet legend={dict.quote.addOns}>
         <div className="grid gap-2.5 sm:grid-cols-2">
-          <SwitchRow
-            checked={draft.extras.packing}
-            onChange={(v) => setExtra("packing", v)}
-            title="Packing"
-          />
-          <SwitchRow
-            checked={draft.extras.unpacking}
-            onChange={(v) => setExtra("unpacking", v)}
-            title="Unpacking"
-          />
-          <SwitchRow
-            checked={draft.extras.dismantling}
-            onChange={(v) => setExtra("dismantling", v)}
-            title="Dismantle & rebuild furniture"
-          />
-          <SwitchRow
-            checked={draft.extras.insurance}
-            onChange={(v) => setExtra("insurance", v)}
-            title="Transit insurance"
-          />
-          <SwitchRow
-            checked={draft.extras.customsClearance}
-            onChange={(v) => setExtra("customsClearance", v)}
-            title="Customs handled for me"
-          />
-          <SwitchRow
-            checked={draft.extras.cleaning}
-            onChange={(v) => setExtra("cleaning", v)}
-            title="End-of-tenancy cleaning"
-          />
+          {EXTRA_TOGGLES.map((key) => (
+            <SwitchRow
+              key={key}
+              checked={draft.extras[key]}
+              onChange={(v) => setExtra(key, v)}
+              title={dict.quote.extras[key]}
+            />
+          ))}
         </div>
       </FieldSet>
 
-      <FieldSet legend="Storage">
+      <FieldSet legend={dict.quote.storageLegend}>
         <div className="rounded-3xl border bg-surface p-6">
           <p className="text-[26px] font-medium leading-none tnum">
-            {draft.extras.storageWeeks === 0
-              ? "None"
-              : `${draft.extras.storageWeeks} week${draft.extras.storageWeeks > 1 ? "s" : ""}`}
+            {t.weeks(draft.extras.storageWeeks)}
           </p>
           <Slider
             className="mt-6"
@@ -265,14 +240,14 @@ export function StepServices({ draft, update }: StepProps) {
             max={26}
             step={1}
             onValueChange={([v]) => setExtra("storageWeeks", v)}
-            aria-label="Weeks of storage"
+            aria-label={dict.quote.storageAria}
           />
         </div>
       </FieldSet>
 
-      <FieldSet legend="Anything specialist?">
+      <FieldSet legend={dict.quote.specialistLegend}>
         <div className="flex flex-wrap gap-2">
-          {(Object.keys(SPECIAL_ITEM_LABELS) as Array<keyof SpecialItems>).map((key) => (
+          {(Object.keys(dict.enums.specialItems) as Array<keyof SpecialItems>).map((key) => (
             <ToggleChip
               key={key}
               active={draft.specialItems[key]}
@@ -283,7 +258,7 @@ export function StepServices({ draft, update }: StepProps) {
                 }))
               }
             >
-              {SPECIAL_ITEM_LABELS[key]}
+              {dict.enums.specialItems[key]}
             </ToggleChip>
           ))}
         </div>
@@ -294,13 +269,17 @@ export function StepServices({ draft, update }: StepProps) {
 
 /* ------------------------------------------------------------ Contact -- */
 
-const CHANNELS: Array<{ id: ContactChannel; label: string; icon: React.ReactNode }> = [
-  { id: "whatsapp", label: "WhatsApp", icon: <MessageCircle className="size-4" /> },
-  { id: "phone", label: "Call", icon: <Phone className="size-4" /> },
-  { id: "email", label: "Email", icon: <Mail className="size-4" /> },
-];
+const CHANNEL_ICONS: Record<ContactChannel, React.ReactNode> = {
+  whatsapp: <MessageCircle className="size-4" />,
+  phone: <Phone className="size-4" />,
+  email: <Mail className="size-4" />,
+};
+
+const CHANNEL_ORDER: ContactChannel[] = ["whatsapp", "phone", "email"];
 
 export function StepContact({ draft, update, touched }: StepProps & { touched: boolean }) {
+  const { dict } = useI18n();
+
   const setContact = <K extends keyof LeadDraft["contact"]>(
     key: K,
     value: LeadDraft["contact"][K],
@@ -312,79 +291,92 @@ export function StepContact({ draft, update, touched }: StepProps & { touched: b
 
   return (
     <div className="space-y-8">
-      <FieldSet legend="Preferred channel">
+      <FieldSet legend={dict.quote.preferredChannel}>
         <div className="grid gap-2.5 sm:grid-cols-3">
-          {CHANNELS.map((channel) => (
+          {CHANNEL_ORDER.map((id) => (
             <OptionCard
-              key={channel.id}
+              key={id}
               compact
-              selected={draft.contact.channel === channel.id}
-              onSelect={() => setContact("channel", channel.id)}
-              title={channel.label}
-              icon={channel.icon}
+              selected={draft.contact.channel === id}
+              onSelect={() => setContact("channel", id)}
+              title={dict.moverCard.channels[id].label}
+              icon={CHANNEL_ICONS[id]}
             />
           ))}
         </div>
       </FieldSet>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="fullName" className="mb-2 block text-[13.5px]">
-            Name
+            {dict.quote.name}
           </Label>
           <Input
             id="fullName"
             value={draft.contact.fullName}
             onChange={(e) => setContact("fullName", e.target.value)}
-            placeholder="Elif Yılmaz"
+            placeholder={dict.quote.namePlaceholder}
             autoComplete="name"
             className={cn("h-12 rounded-2xl", touched && !nameOk && "border-destructive")}
           />
         </div>
 
-        <div>
-          <Label htmlFor="email" className="mb-2 block text-[13.5px]">
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            inputMode="email"
-            value={draft.contact.email}
-            onChange={(e) => setContact("email", e.target.value)}
-            placeholder="you@example.com"
-            autoComplete="email"
-            className={cn("h-12 rounded-2xl", touched && !emailOk && "border-destructive")}
-          />
-        </div>
+        <VerifyField
+          id="email"
+          kind="email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          label={dict.quote.email}
+          placeholder={dict.quote.emailPlaceholder}
+          value={draft.contact.email}
+          onChange={(v) => setContact("email", v)}
+          verified={draft.contact.emailVerified}
+          onVerifiedChange={(v) => setContact("emailVerified", v)}
+          valid={emailOk}
+          invalid={touched && !emailOk}
+        />
 
-        <div>
-          <Label htmlFor="phone" className="mb-2 block text-[13.5px]">
-            Phone
-          </Label>
-          <Input
-            id="phone"
-            type="tel"
-            inputMode="tel"
-            value={draft.contact.phone}
-            onChange={(e) => setContact("phone", e.target.value)}
-            placeholder="+90 532 000 00 00"
-            autoComplete="tel"
-            className={cn("h-12 rounded-2xl tnum", touched && !phoneOk && "border-destructive")}
-          />
-        </div>
+        <VerifyField
+          id="phone"
+          kind="phone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          label={dict.quote.phone}
+          placeholder={dict.quote.phonePlaceholder}
+          value={draft.contact.phone}
+          onChange={(v) => setContact("phone", v)}
+          verified={draft.contact.phoneVerified}
+          onVerifiedChange={(v) => setContact("phoneVerified", v)}
+          valid={phoneOk}
+          invalid={touched && !phoneOk}
+        />
       </div>
+
+      <p className="text-[12.5px] leading-relaxed text-muted-foreground">
+        {dict.verify.demoNote}
+      </p>
+
+      {/* Only nag once the user has actually tried to continue. */}
+      {touched && emailOk && !draft.contact.emailVerified && (
+        <p className="text-[13px] text-destructive">{dict.verify.emailNeedsVerifying}</p>
+      )}
+      {touched && phoneOk && !draft.contact.phoneVerified && (
+        <p className="text-[13px] text-destructive">{dict.verify.phoneNeedsVerifying}</p>
+      )}
 
       <div>
         <Label htmlFor="notes" className="mb-2 block text-[13.5px]">
-          Anything else? <span className="text-muted-foreground">(optional)</span>
+          {dict.quote.notes}{" "}
+          <span className="text-muted-foreground">{dict.common.optional}</span>
         </Label>
         <Textarea
           id="notes"
           value={draft.notes}
           onChange={(e) => update({ notes: e.target.value })}
           rows={3}
-          placeholder="Narrow street, no lift at the destination…"
+          placeholder={dict.quote.notesPlaceholder}
           className="resize-none rounded-2xl"
         />
       </div>
@@ -402,7 +394,7 @@ export function StepContact({ draft, update, touched }: StepProps & { touched: b
           className="mt-0.5"
         />
         <span className="text-[13px] leading-relaxed text-muted-foreground">
-          Share my enquiry with matching movers. Your details never go anywhere else.
+          {dict.quote.consent}
         </span>
       </label>
     </div>
