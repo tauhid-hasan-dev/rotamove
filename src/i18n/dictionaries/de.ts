@@ -395,13 +395,11 @@ export const de = {
   quote: {
     steps: {
       home: "Ladung",
-      timing: "Datum",
       services: "Hilfe",
       contact: "Kontakt",
     },
     headings: {
       home: "Was transportieren wir?",
-      timing: "Wann?",
       services: "Wie viel Hilfe?",
       contact: "Wie sollen sie Sie erreichen?",
     },

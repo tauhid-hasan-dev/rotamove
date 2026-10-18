@@ -24,9 +24,11 @@ npm run lint
 becomes a chip, the field keeps going for the destination. Backspace removes the
 last one. No form, no dropdown pair.
 
-**Four short steps.** Load size, date, how much help, contact. Minimal copy, one
-question per screen. Email and phone are confirmed by a one-time code before the
-enquiry can be sent.
+**Three short steps.** Load size, how much help, contact. Minimal copy, one
+question per screen. The collection date is not a step — it comes from the
+search bar and sits as an editable summary above the wizard, because asking the
+same question twice is how a four-step form becomes a three-step one. Email and
+phone are confirmed by a one-time code before the enquiry can be sent.
 
 **One search box, three segments.** Where from, where to, when. The date field
 is a two-month range picker built on `Intl` — month names, weekday initials and

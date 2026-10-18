@@ -6,7 +6,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { RouteEditor } from "@/components/quote/route-editor";
-import { StepContact, StepHome, StepServices, StepTiming } from "@/components/quote/steps";
+import { CollectionWindow } from "@/components/quote/collection-window";
+import { StepContact, StepHome, StepServices } from "@/components/quote/steps";
 import {
   STEPS,
   isStepValid,
@@ -85,6 +86,7 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
   return (
     <div className="mx-auto max-w-2xl">
       <RouteEditor draft={draft} update={update} swapRoute={swapRoute} />
+      <CollectionWindow draft={draft} update={update} />
 
       {/* progress ------------------------------------------------- */}
       <div className="mt-10 flex items-center gap-2">
@@ -131,7 +133,6 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
             transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
           >
             {step.id === "home" && <StepHome draft={draft} update={update} />}
-            {step.id === "timing" && <StepTiming draft={draft} update={update} />}
             {step.id === "services" && <StepServices draft={draft} update={update} />}
             {step.id === "contact" && (
               <StepContact draft={draft} update={update} touched={touched} />

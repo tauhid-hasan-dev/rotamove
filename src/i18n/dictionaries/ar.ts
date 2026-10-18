@@ -457,13 +457,11 @@ export const ar = {
   quote: {
     steps: {
       home: "الحمولة",
-      timing: "التاريخ",
       services: "المساعدة",
       contact: "الاتصال",
     },
     headings: {
       home: "ما الذي سننقله؟",
-      timing: "متى؟",
       services: "ما مقدار المساعدة؟",
       contact: "كيف يتواصلون معك؟",
     },

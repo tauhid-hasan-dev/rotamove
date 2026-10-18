@@ -13,7 +13,7 @@ import type { Lead, LeadDraft, MoveType } from "@/lib/types";
  * reads `dict.quote.steps[step.id]` — so adding a language never touches the
  * flow and renaming a step is caught by the compiler.
  */
-export const STEPS = [{ id: "home" }, { id: "timing" }, { id: "services" }, { id: "contact" }] as const;
+export const STEPS = [{ id: "home" }, { id: "services" }, { id: "contact" }] as const;
 
 export type StepId = (typeof STEPS)[number]["id"];
 
@@ -163,8 +163,6 @@ export function isStepValid(step: StepId, draft: LeadDraft): boolean {
   switch (step) {
     case "home":
       return draft.volumeM3 >= 2 && draft.volumeM3 <= 400;
-    case "timing":
-      return /^\d{4}-\d{2}-\d{2}$/.test(draft.moveDate) && draft.moveDate >= todayIso();
     case "services":
       return true;
     case "contact":

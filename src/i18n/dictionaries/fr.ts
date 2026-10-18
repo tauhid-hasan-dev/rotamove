@@ -396,13 +396,11 @@ export const fr = {
   quote: {
     steps: {
       home: "Chargement",
-      timing: "Date",
       services: "Aide",
       contact: "Contact",
     },
     headings: {
       home: "Que transportons-nous ?",
-      timing: "Quand ?",
       services: "Quel niveau d’aide ?",
       contact: "Où doivent-ils vous joindre ?",
     },

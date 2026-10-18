@@ -394,13 +394,11 @@ export const nl = {
   quote: {
     steps: {
       home: "Lading",
-      timing: "Datum",
       services: "Hulp",
       contact: "Contact",
     },
     headings: {
       home: "Wat vervoeren we?",
-      timing: "Wanneer?",
       services: "Hoeveel hulp?",
       contact: "Waar kunnen ze u bereiken?",
     },

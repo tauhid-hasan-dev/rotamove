@@ -396,13 +396,11 @@ export const tr = {
   quote: {
     steps: {
       home: "Yük",
-      timing: "Tarih",
       services: "Yardım",
       contact: "İletişim",
     },
     headings: {
       home: "Ne taşıyoruz?",
-      timing: "Ne zaman?",
       services: "Ne kadar yardım?",
       contact: "Size nereden ulaşsınlar?",
     },

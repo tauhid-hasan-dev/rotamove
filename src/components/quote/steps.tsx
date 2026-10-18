@@ -2,7 +2,6 @@
 
 import {
   Building2,
-  CalendarDays,
   Check,
   Mail,
   MessageCircle,
@@ -21,7 +20,6 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ACCESS_OPTIONS, PROPERTY_SIZES, estimateVolume } from "@/lib/pricing";
-import { todayIso } from "@/lib/format";
 import { useI18n } from "@/i18n/provider";
 import type { Dictionary } from "@/i18n/dictionaries";
 import type {
@@ -127,53 +125,6 @@ export function StepHome({ draft, update }: StepProps) {
           </FieldSet>
         ))}
       </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------- Timing -- */
-
-const FLEX_ORDER = ["exact", "plus_minus_3", "within_2_weeks", "flexible"] as const;
-
-export function StepTiming({ draft, update }: StepProps) {
-  const { dict } = useI18n();
-  const month = new Date(draft.moveDate).getMonth();
-  const peak = month >= 5 && month <= 8;
-
-  return (
-    <div className="space-y-9">
-      <div className="relative max-w-sm">
-        <CalendarDays className="pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2" />
-        <Input
-          type="date"
-          value={draft.moveDate}
-          min={todayIso()}
-          onChange={(e) => update({ moveDate: e.target.value })}
-          className="h-14 rounded-2xl ps-11 text-[16px] tnum"
-          aria-label={dict.quote.moveDate}
-        />
-      </div>
-
-      <FieldSet legend={dict.quote.howFlexible}>
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          {FLEX_ORDER.map((id) => (
-            <OptionCard
-              key={id}
-              compact
-              selected={draft.flexibility === id}
-              onSelect={() => update({ flexibility: id })}
-              title={dict.enums.flexibility[id]}
-            />
-          ))}
-        </div>
-      </FieldSet>
-
-      {peak && (
-        <p className="flex items-start gap-2.5 rounded-2xl bg-brand-soft p-4 text-[13.5px] leading-relaxed dark:bg-accent">
-          <Sparkles className="mt-0.5 size-4 shrink-0" />
-          {dict.quote.peakSeason}
-        </p>
-      )}
     </div>
   );
 }

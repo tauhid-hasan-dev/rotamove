@@ -415,13 +415,11 @@ export const ru = {
   quote: {
     steps: {
       home: "Груз",
-      timing: "Дата",
       services: "Помощь",
       contact: "Контакты",
     },
     headings: {
       home: "Что перевозим?",
-      timing: "Когда?",
       services: "Сколько помощи нужно?",
       contact: "Куда с вами связаться?",
     },

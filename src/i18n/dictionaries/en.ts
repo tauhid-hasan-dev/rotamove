@@ -418,13 +418,11 @@ export const en = {
   quote: {
     steps: {
       home: "Load",
-      timing: "Date",
       services: "Help",
       contact: "Contact",
     },
     headings: {
       home: "What are we moving?",
-      timing: "When?",
       services: "How much help?",
       contact: "Where should they reach you?",
     },
