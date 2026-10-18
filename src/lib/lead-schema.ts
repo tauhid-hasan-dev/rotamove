@@ -52,7 +52,7 @@ export const contactSchema = z.object({
   fullName: z.string().trim().min(2, "Tell us who to address the quotes to").max(80),
   email: z.string().trim().email("Enter a valid email address"),
   phone: phoneSchema,
-  channel: z.enum(["phone", "whatsapp", "email"]),
+  channel: z.enum(["phone", "whatsapp", "email", "all"]),
   locale: z.enum(LOCALES),
   /**
    * Plain booleans here, `true` in `contactStepSchema` below.

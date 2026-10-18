@@ -1,12 +1,22 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * The page gutter — 10% of the viewport on either side from `lg` up.
+ *
+ * Every band on the page goes through this: header, last-call strip, content
+ * and footer. They used to hand-roll their own container with different caps
+ * (1240px for the chrome, 1400px for content), so the navigation visibly did
+ * not line up with the page under it. One component means that cannot drift
+ * again.
+ *
+ * Below `lg` the gutter is a fixed size instead: 10% of a 390px phone is 39px
+ * a side, which would throw away a fifth of the usable width.
+ */
+export const PAGE_GUTTER = "mx-auto w-full px-5 sm:px-8 lg:px-[10%]";
+
 export function Shell({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div className={cn("mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn(PAGE_GUTTER, className)}>{children}</div>;
 }
 
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {

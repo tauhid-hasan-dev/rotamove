@@ -10,6 +10,7 @@ import { en } from "@/i18n/dictionaries/en";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
 import { formatDateShort, formatRelative, formatUsdPrecise } from "@/lib/format";
 import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
+import type { ContactChannel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<BoardStatus, { label: string; className: string }> = {
@@ -17,11 +18,20 @@ const STATUS_META: Record<BoardStatus, { label: string; className: string }> = {
   unlocked: { label: "Unlocked", className: "bg-verify/12 text-verify" },
 };
 
-const CHANNEL_ICON = {
+const CHANNEL_ICON: Record<ContactChannel, typeof Phone> = {
   phone: Phone,
   whatsapp: MessageCircle,
   email: Mail,
-} as const;
+  all: MessageCircle,
+};
+
+/** "prefers whatsapp" reads wrong when the customer said any of them. */
+const CHANNEL_NOTE: Record<ContactChannel, string> = {
+  phone: "prefers phone",
+  whatsapp: "prefers whatsapp",
+  email: "prefers email",
+  all: "any channel",
+};
 
 /**
  * One enquiry on the partner board.
@@ -176,7 +186,7 @@ export function LeadRow({
                 </p>
                 <p className="mt-2 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.12em] text-brand">
                   <ChannelIcon className="size-3" />
-                  prefers {lead.contact.channel}
+                  {CHANNEL_NOTE[lead.contact.channel]}
                 </p>
               </>
             ) : (

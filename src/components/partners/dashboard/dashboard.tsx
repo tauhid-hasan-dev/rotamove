@@ -16,6 +16,7 @@ import {
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { MoverLogo } from "@/components/common/mover-logo";
+import { PAGE_GUTTER } from "@/components/common/section";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +97,7 @@ export function PartnerDashboard({ board, now }: { board: BoardLead[]; now: numb
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:gap-10 lg:px-8">
+    <div className={cn(PAGE_GUTTER, "flex flex-col gap-8 py-8 lg:flex-row lg:gap-10")}>
       {/* sidebar ------------------------------------------------- */}
       <aside className="lg:w-[228px] lg:shrink-0">
         <div className="lg:sticky lg:top-24">

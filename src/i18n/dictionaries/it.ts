@@ -562,6 +562,10 @@ export const it = {
       },
       phone: { label: "Chiamata", done: "Ti chiameranno" },
       email: { label: "E-mail", done: "Ti scriveranno un’e-mail" },
+      all: {
+        label: "Qualsiasi",
+        done: "Ti contatteranno su WhatsApp, per telefono o via e-mail",
+      },
     },
   },
 

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
+import { PAGE_GUTTER } from "@/components/common/section";
+import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { useI18n } from "@/i18n/provider";
 
@@ -37,7 +39,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t bg-surface">
-      <div className="mx-auto w-full max-w-[1240px] px-4 py-16 sm:px-6 lg:px-8">
+      <div className={cn(PAGE_GUTTER, "py-16")}>
         <div className="grid gap-12 lg:grid-cols-[1.2fr_2fr]">
           <div>
             <Logo />

@@ -227,9 +227,18 @@ const CHANNEL_ICONS: Record<ContactChannel, React.ReactNode> = {
   whatsapp: <MessageCircle className="size-4" />,
   phone: <Phone className="size-4" />,
   email: <Mail className="size-4" />,
+  // Three overlapping marks rather than a fourth symbol: "any of these" is
+  // easier to read as the set than as an abstract icon for it.
+  all: (
+    <span className="flex items-center -space-x-1">
+      <MessageCircle className="size-4" />
+      <Phone className="size-3.5" />
+      <Mail className="size-3.5" />
+    </span>
+  ),
 };
 
-const CHANNEL_ORDER: ContactChannel[] = ["whatsapp", "phone", "email"];
+const CHANNEL_ORDER: ContactChannel[] = ["whatsapp", "phone", "email", "all"];
 
 export function StepContact({ draft, update, touched }: StepProps & { touched: boolean }) {
   const { dict } = useI18n();
@@ -246,7 +255,7 @@ export function StepContact({ draft, update, touched }: StepProps & { touched: b
   return (
     <div className="space-y-8">
       <FieldSet legend={dict.quote.preferredChannel}>
-        <div className="grid gap-2.5 sm:grid-cols-3">
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {CHANNEL_ORDER.map((id) => (
             <OptionCard
               key={id}

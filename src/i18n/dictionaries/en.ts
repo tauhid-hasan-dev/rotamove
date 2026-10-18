@@ -586,6 +586,10 @@ export const en = {
       },
       phone: { label: "Call", done: "They'll call you" },
       email: { label: "Email", done: "They'll email you" },
+      all: {
+        label: "Any channel",
+        done: "They'll reach you on WhatsApp, by phone or by email",
+      },
     },
   },
 

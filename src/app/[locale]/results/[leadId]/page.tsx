@@ -11,6 +11,7 @@ import { getCity } from "@/lib/geo";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
 import { cityLabel, fill, formatVolume } from "@/i18n/format";
 import { localePath } from "@/i18n/paths";
+import type { ContactChannel } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -54,8 +55,11 @@ export default async function ResultsPage({
   const query = await searchParams;
   const token = typeof query.d === "string" ? query.d : null;
   const channelParam = typeof query.c === "string" ? query.c : null;
-  const channel =
-    channelParam === "phone" || channelParam === "email" || channelParam === "whatsapp"
+  const channel: ContactChannel =
+    channelParam === "phone" ||
+    channelParam === "email" ||
+    channelParam === "whatsapp" ||
+    channelParam === "all"
       ? channelParam
       : "whatsapp";
 

@@ -18,6 +18,9 @@ const CHANNEL_ICONS: Record<ContactChannel, typeof Phone> = {
   whatsapp: MessageCircle,
   phone: Phone,
   email: Mail,
+  // The card has room for one mark; WhatsApp is the channel a carrier reaches
+  // for first when every option is open.
+  all: MessageCircle,
 };
 
 /**

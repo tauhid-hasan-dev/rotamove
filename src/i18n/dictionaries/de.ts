@@ -565,6 +565,10 @@ export const de = {
       },
       phone: { label: "Anruf", done: "Sie rufen Sie an" },
       email: { label: "E-Mail", done: "Sie schreiben Ihnen eine E-Mail" },
+      all: {
+        label: "Alle drei",
+        done: "Sie melden sich per WhatsApp, telefonisch oder per E-Mail",
+      },
     },
   },
 

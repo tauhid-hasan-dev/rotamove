@@ -564,6 +564,10 @@ export const tr = {
       },
       phone: { label: "Telefon", done: "Sizi arayacaklar" },
       email: { label: "E-posta", done: "Size e-posta gönderecekler" },
+      all: {
+        label: "Hepsi olur",
+        done: "Size WhatsApp, telefon veya e-posta ile ulaşacaklar",
+      },
     },
   },
 

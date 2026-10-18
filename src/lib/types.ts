@@ -23,7 +23,14 @@ export type DateFlexibility = "exact" | "plus_minus_3" | "within_2_weeks" | "fle
 
 export type AccessType = "ground" | "lift" | "stairs_1_2" | "stairs_3_plus";
 
-export type ContactChannel = "phone" | "whatsapp" | "email";
+/**
+ * How a carrier may make contact.
+ *
+ * `all` is not a fourth channel — it means the customer is happy on any of
+ * the three. Modelling it as a value rather than a separate boolean keeps one
+ * field to validate, store and display.
+ */
+export type ContactChannel = "phone" | "whatsapp" | "email" | "all";
 
 /**
  * How many carriers the enquiry goes to.

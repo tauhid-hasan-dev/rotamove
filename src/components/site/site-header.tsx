@@ -14,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { PAGE_GUTTER } from "@/components/common/section";
 import { useI18n } from "@/i18n/provider";
 import { stripLocale } from "@/i18n/paths";
 import { cn } from "@/lib/utils";
@@ -56,7 +57,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
           : "border-b border-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[1240px] items-center gap-8 px-4 sm:px-6 lg:px-8">
+      <div className={cn(PAGE_GUTTER, "flex h-16 items-center gap-8")}>
         <Logo />
 
         <nav className="hidden items-center gap-7 md:flex" aria-label={dict.nav.main}>

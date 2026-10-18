@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Clock3, X } from "lucide-react";
+import { PAGE_GUTTER } from "@/components/common/section";
 import { useI18n } from "@/i18n/provider";
+import { cn } from "@/lib/utils";
 import { LAST_CALL_DISMISSED, LAST_CALL_FLAG } from "@/lib/last-call";
 
 /**
@@ -36,7 +38,7 @@ export function LastCallBar({ count }: { count: number }) {
 
   return (
     <div className="last-call-bar bg-lastcall text-lastcall-foreground">
-      <div className="mx-auto flex w-full max-w-[1240px] items-center gap-x-3 gap-y-1 px-4 py-2 sm:px-6 lg:px-8">
+      <div className={cn(PAGE_GUTTER, "flex items-center gap-x-3 gap-y-1 py-2")}>
         <Clock3 className="size-3.5 shrink-0 opacity-70" strokeWidth={2.2} aria-hidden />
 
         <p className="flex min-w-0 flex-wrap items-center gap-x-2 text-[13px]">

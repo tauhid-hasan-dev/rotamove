@@ -562,6 +562,10 @@ export const nl = {
       },
       phone: { label: "Telefoon", done: "Ze bellen u" },
       email: { label: "E-mail", done: "Ze mailen u" },
+      all: {
+        label: "Alle drie",
+        done: "Ze nemen contact op via WhatsApp, telefoon of e-mail",
+      },
     },
   },
 
