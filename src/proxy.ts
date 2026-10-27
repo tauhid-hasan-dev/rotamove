@@ -138,8 +138,11 @@ function acceptLanguageLocale(request: NextRequest): Locale | null {
 
 export const config = {
   /**
-   * Everything except API routes, Next internals and static assets. Without
-   * the negative match this would redirect stylesheets and the favicon too.
+   * Everything except API routes, the admin console, Next internals and
+   * static assets. Without the negative match this would redirect
+   * stylesheets and the favicon too. `/admin` is excluded because the admin
+   * is an internal English-only tool with its own root layout — prefixing it
+   * with a locale would 404 it.
    */
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.[\\w]+$).*)"],
+  matcher: ["/((?!api|admin|_next/static|_next/image|favicon.ico|.*\\.[\\w]+$).*)"],
 };
