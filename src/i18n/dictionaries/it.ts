@@ -323,6 +323,10 @@ export const it = {
         a: "Sì. {pro} al mese coprono ogni richiesta internazionale e nazionale su ogni corridoio, senza tetti né eccedenze. L’unico limite sono le tue impostazioni di capacità.",
       },
       {
+        q: "Qual è la differenza tra Pagamento per contatto e Pagamento per visione?",
+        a: "Il Pagamento per contatto ti addebita ogni richiesta che prendi. Il Pagamento per visione ti mostra gratis il volume del carico, l’accesso a entrambi i capi e la tratta, e addebita solo quando sblocchi il resto. Se sei selettivo su quali carichi si adattano alla tua flotta, è il più conveniente dei due.",
+      },
+      {
         q: "Perché dovrei pagare per contatto?",
         a: "Se chiudi meno di {breakEven} richieste al mese, il pagamento per contatto costa meno. La maggior parte dei partner inizia così e passa a Pro entro due mesi.",
       },
@@ -346,6 +350,8 @@ export const it = {
     ariaLeads: "Richieste al mese",
     proNote: "fisso, a qualsiasi volume",
     pplNote: "≈ {fee} ciascuna · con tetto a {cap}",
+    ppsNote: "≈ {fee} sul {percent} che sblocchi",
+    ppsWins: "di {saving} al mese — paghi solo i carichi che sblocchi davvero.",
     cheaperFor: "{plan} ti conviene di più",
     proWins:
       "di {saving} al mese — e solo Pro ti mette nei risultati di ricerca immediati.",

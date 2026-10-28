@@ -325,6 +325,10 @@ export const fr = {
         a: "Oui. {pro} par mois couvrent toutes les demandes internationales et nationales sur tous les corridors, sans plafond ni dépassement. La seule limite, ce sont vos propres réglages de capacité.",
       },
       {
+        q: "Quelle est la différence entre Paiement à la demande et Paiement à la consultation ?",
+        a: "Le Paiement à la demande vous facture chaque demande que vous prenez. Le Paiement à la consultation vous montre gratuitement le volume du chargement, l’accès aux deux extrémités et le trajet, et ne facture que lorsque vous débloquez le reste. Si vous êtes sélectif sur les chargements qui conviennent à votre flotte, c’est le moins cher des deux.",
+      },
+      {
         q: "Pourquoi payer à la demande plutôt ?",
         a: "Si vous concluez moins de {breakEven} demandes par mois, le paiement à la demande est moins cher. La plupart des partenaires commencent ainsi et passent à Pro en moins de deux mois.",
       },
@@ -348,6 +352,9 @@ export const fr = {
     ariaLeads: "Demandes par mois",
     proNote: "forfait, quel que soit le volume",
     pplNote: "≈ {fee} chacune · plafonné à {cap}",
+    ppsNote: "≈ {fee} sur les {percent} que vous débloquez",
+    ppsWins:
+      "de {saving} par mois — vous ne payez que les chargements que vous débloquez vraiment.",
     cheaperFor: "{plan} est moins cher pour vous",
     proWins:
       "de {saving} par mois — et seul Pro vous place dans les résultats instantanés.",

@@ -1,6 +1,11 @@
 import { CITIES, cityCountry, cityRegion, getCity, isCoreCorridor, resolveCorridor } from "@/lib/geo";
 import { MOVERS } from "@/lib/movers";
-import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, PRO_MONTHLY_USD } from "@/lib/plans";
+import {
+  LEAD_FEE_CAP_USD,
+  LEAD_FEE_FLOOR_USD,
+  PRO_MONTHLY_USD,
+  paysPerUnlock,
+} from "@/lib/plans";
 import { estimateVolume } from "@/lib/pricing";
 import { createRng, type Rng } from "@/lib/rand";
 import type { Lead, Mover, PropertySize } from "@/lib/types";
@@ -417,7 +422,7 @@ function assignmentsFor(
     return {
       companyId: company.mover.id,
       assignedAt: isoAt(assignedMs),
-      feeUsd: company.mover.plan === "pay_per_lead" ? fee : 0,
+      feeUsd: paysPerUnlock(company.mover.plan) ? fee : 0,
       delivery,
     };
   });
@@ -481,7 +486,7 @@ function generateCompanies(anchorMs: number): AdminCompany[] {
       contactEmail: `${first}.${last}`.toLowerCase().replace(/[^a-z.]/g, "") + `@${mover.slug}.example`,
       contactPhone: phoneFor("TR", rng),
       creditBalanceUsd:
-        mover.plan === "pay_per_lead" && rng.bool(0.4) ? rng.int(2, 12) * 5 : 0,
+        paysPerUnlock(mover.plan) && rng.bool(0.4) ? rng.int(2, 12) * 5 : 0,
       notes:
         status === "suspended"
           ? "Suspended pending verification of insurance documents."

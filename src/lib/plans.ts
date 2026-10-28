@@ -25,6 +25,26 @@ export const PRO_MONTHLY_USD = 100;
 /** The blended fee a pay-per-lead partner pays, used for break-even maths. */
 export const AVG_LEAD_FEE_USD = 5.2;
 
+/**
+ * Share of the board a pay-per-seen partner actually opens.
+ *
+ * They see volume, access and route before paying, so they skip the loads
+ * that do not suit their fleet. That selectivity is the entire pitch of the
+ * plan, and it is why it can be cheaper than pay-per-lead on the same flow
+ * of enquiries.
+ */
+export const PPS_OPEN_RATE = 0.35;
+
+/**
+ * Is this plan charged per unlock?
+ *
+ * Everything that is not Pro Unlimited is. Written once because the three
+ * places that used to ask this each tested `=== "pay_per_lead"`, which
+ * silently billed pay-per-seen partners nothing the moment that plan
+ * existed.
+ */
+export const paysPerUnlock = (plan: PlanId): boolean => plan !== "pro_unlimited";
+
 /** Leads a partner must close before Pro Unlimited is the cheaper option. */
 export const BREAK_EVEN_LEADS = Math.ceil(PRO_MONTHLY_USD / AVG_LEAD_FEE_USD);
 
@@ -142,12 +162,15 @@ export interface RoiInput {
 export interface RoiResult {
   proCostUsd: number;
   pplCostUsd: number;
+  ppsCostUsd: number;
   jobsWon: number;
   grossProfitEur: number;
   proNetEur: number;
   pplNetEur: number;
+  ppsNetEur: number;
   breakEvenLeads: number;
   betterPlan: PlanId;
+  /** Gap between the cheapest plan and the next cheapest. */
   savingUsd: number;
 }
 
@@ -161,18 +184,30 @@ export function computeRoi(
   const grossProfitEur = jobsWon * input.avgJobValueEur * input.grossMargin;
   const proCostUsd = PRO_MONTHLY_USD;
   const pplCostUsd = input.leadsPerMonth * avgLeadFeeUsd;
-  const proNetEur = grossProfitEur - proCostUsd / usdPerEur;
-  const pplNetEur = grossProfitEur - pplCostUsd / usdPerEur;
+  // Pay per seen is pay per lead over the share they choose to open.
+  const ppsCostUsd = input.leadsPerMonth * PPS_OPEN_RATE * avgLeadFeeUsd;
+
+  const costs: Array<[PlanId, number]> = [
+    ["pro_unlimited", proCostUsd],
+    ["pay_per_lead", pplCostUsd],
+    ["pay_per_seen", ppsCostUsd],
+  ];
+  // Cheapest first; ties keep the declared order, so Pro wins a dead heat —
+  // at equal money the unlimited plan is the better deal.
+  const ranked = [...costs].sort((a, b) => a[1] - b[1]);
+
   return {
     proCostUsd,
     pplCostUsd,
+    ppsCostUsd,
     jobsWon,
     grossProfitEur,
-    proNetEur,
-    pplNetEur,
+    proNetEur: grossProfitEur - proCostUsd / usdPerEur,
+    pplNetEur: grossProfitEur - pplCostUsd / usdPerEur,
+    ppsNetEur: grossProfitEur - ppsCostUsd / usdPerEur,
     breakEvenLeads: Math.ceil(PRO_MONTHLY_USD / avgLeadFeeUsd),
-    betterPlan: proCostUsd <= pplCostUsd ? "pro_unlimited" : "pay_per_lead",
-    savingUsd: Math.abs(proCostUsd - pplCostUsd),
+    betterPlan: ranked[0][0],
+    savingUsd: ranked[1][1] - ranked[0][1],
   };
 }
 

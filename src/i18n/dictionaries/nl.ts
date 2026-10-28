@@ -323,6 +323,10 @@ export const nl = {
         a: "Ja. {pro} per maand dekt elke internationale en binnenlandse aanvraag op elke corridor, zonder plafond en zonder meerkosten. De enige grens zijn uw eigen capaciteitsinstellingen.",
       },
       {
+        q: "Wat is het verschil tussen Betalen per aanvraag en Betalen per inzage?",
+        a: "Betalen per aanvraag brengt u elke aanvraag in rekening die u aanneemt. Betalen per inzage toont u gratis het ladingvolume, de toegang aan beide zijden en de route, en rekent pas af wanneer u de rest vrijgeeft. Bent u kieskeurig over welke ladingen bij uw vloot passen, dan is dit van de twee de voordeligste.",
+      },
+      {
         q: "Waarom zou ik dan per aanvraag betalen?",
         a: "Sluit u minder dan {breakEven} aanvragen per maand af, dan is betalen per aanvraag goedkoper. De meeste partners beginnen daar en stappen binnen twee maanden over op Pro.",
       },
@@ -346,6 +350,9 @@ export const nl = {
     ariaLeads: "Aanvragen per maand",
     proNote: "vast, bij elk volume",
     pplNote: "≈ {fee} per stuk · met bovengrens {cap}",
+    ppsNote: "≈ {fee} op de {percent} die u vrijgeeft",
+    ppsWins:
+      "met {saving} per maand — u betaalt alleen voor de ladingen die u echt vrijgeeft.",
     cheaperFor: "{plan} is voordeliger voor u",
     proWins:
       "met {saving} per maand — en alleen Pro zet u in de directe zoekresultaten.",

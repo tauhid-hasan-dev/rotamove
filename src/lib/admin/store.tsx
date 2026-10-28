@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
 import { nanoid } from "nanoid";
 import { generateAdminDataset } from "@/lib/admin/seed";
+import { paysPerUnlock } from "@/lib/plans";
 import type {
   AdminDataset,
   CompanyStatus,
@@ -108,8 +109,10 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
             .map((companyId) => ({
               companyId,
               assignedAt: now,
-              feeUsd:
-                companiesById.get(companyId)?.mover.plan === "pay_per_lead" ? l.feeUsd : 0,
+              feeUsd: (() => {
+                const plan = companiesById.get(companyId)?.mover.plan;
+                return plan && paysPerUnlock(plan) ? l.feeUsd : 0;
+              })(),
               delivery: "sent" as DeliveryStatus,
             }));
           return { ...l, assignments: [...l.assignments, ...added] };

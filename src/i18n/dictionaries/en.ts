@@ -347,6 +347,10 @@ export const en = {
         a: "Yes. {pro} a month covers every international and domestic lead on every corridor, with no cap and no overage. The only limit is your own capacity settings.",
       },
       {
+        q: "What is the difference between Pay Per Lead and Pay Per Seen?",
+        a: "Pay Per Lead charges you for every lead you take. Pay Per Seen shows you the load volume, the access at both ends and the route for free, and charges only when you unlock the rest. If you are selective about which loads suit your fleet, it is the cheaper of the two.",
+      },
+      {
         q: "Why would I pay per lead instead?",
         a: "If you close fewer than {breakEven} leads a month, pay-per-lead is cheaper. Most partners start there and switch to Pro inside two months.",
       },
@@ -370,6 +374,8 @@ export const en = {
     ariaLeads: "Leads per month",
     proNote: "flat, any volume",
     pplNote: "≈ {fee} each · capped at {cap}",
+    ppsNote: "≈ {fee} on the {percent} you open",
+    ppsWins: "by {saving} a month — you only pay for the loads you actually open.",
     cheaperFor: "{plan} is cheaper for you",
     proWins: "by {saving} a month — and only Pro puts you in instant search results.",
     pplWins: "by {saving} a month. Pro wins from {breakEven} leads.",

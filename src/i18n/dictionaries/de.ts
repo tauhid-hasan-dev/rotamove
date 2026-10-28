@@ -324,6 +324,10 @@ export const de = {
         a: "Ja. {pro} pro Monat deckt jede internationale und nationale Anfrage auf jedem Korridor ab, ohne Limit und ohne Mehrkosten. Die einzige Grenze sind Ihre eigenen Kapazitätseinstellungen.",
       },
       {
+        q: "Was ist der Unterschied zwischen Pay per Lead und Pay per Seen?",
+        a: "Pay per Lead berechnet Ihnen jede Anfrage, die Sie annehmen. Pay per Seen zeigt Ihnen das Ladevolumen, den Zugang an beiden Enden und die Route kostenlos und berechnet erst, wenn Sie den Rest freischalten. Wenn Sie wählerisch sind, welche Ladungen zu Ihrer Flotte passen, ist es von beiden das günstigere.",
+      },
+      {
         q: "Warum sollte ich stattdessen pro Anfrage zahlen?",
         a: "Wenn Sie weniger als {breakEven} Anfragen im Monat abschließen, ist Pay per Lead günstiger. Die meisten Partner starten dort und wechseln innerhalb von zwei Monaten zu Pro.",
       },
@@ -347,6 +351,9 @@ export const de = {
     ariaLeads: "Anfragen pro Monat",
     proNote: "pauschal, bei jedem Volumen",
     pplNote: "je ≈ {fee} · gedeckelt bei {cap}",
+    ppsNote: "≈ {fee} auf die {percent}, die Sie freischalten",
+    ppsWins:
+      "um {saving} im Monat — Sie zahlen nur für die Ladungen, die Sie wirklich freischalten.",
     cheaperFor: "{plan} ist für Sie günstiger",
     proWins:
       "um {saving} im Monat — und nur Pro bringt Sie in die Sofort-Suchergebnisse.",

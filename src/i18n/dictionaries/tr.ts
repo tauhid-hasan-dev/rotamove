@@ -327,6 +327,10 @@ export const tr = {
         a: "Evet. Ayda {pro}, her koridordaki her uluslararası ve yurt içi talebi kapsar; üst sınır ve aşım ücreti yok. Tek sınır kendi kapasite ayarlarınız.",
       },
       {
+        q: "Talep Başına Ödeme ile Görüntüleme Başına Ödeme arasındaki fark nedir?",
+        a: "Talep Başına Ödeme, aldığınız her talep için sizden ücret alır. Görüntüleme Başına Ödeme ise yük hacmini, iki uçtaki erişimi ve güzergâhı ücretsiz gösterir; yalnızca geri kalanının kilidini açtığınızda ücretlendirir. Hangi yüklerin filonuza uyduğu konusunda seçiciyseniz, ikisinden daha ucuz olanı budur.",
+      },
+      {
         q: "Neden talep başına ödemeyi seçeyim?",
         a: "Ayda {breakEven} talepten az kapatıyorsanız talep başına ödeme daha ucuz. Partnerlerin çoğu orada başlar ve iki ay içinde Pro'ya geçer.",
       },
@@ -350,6 +354,9 @@ export const tr = {
     ariaLeads: "Ayda talep sayısı",
     proNote: "sabit, hacim ne olursa olsun",
     pplNote: "her biri ≈ {fee} · {cap} ile sınırlı",
+    ppsNote: "açtığınız {percent} için ≈ {fee}",
+    ppsWins:
+      "ayda {saving} daha az — yalnızca gerçekten açtığınız yükler için ödersiniz.",
     cheaperFor: "{plan} sizin için daha ucuz",
     proWins: "ayda {saving} daha az — ve yalnızca Pro sizi anında arama sonuçlarına koyar.",
     pplWins: "ayda {saving} daha az. Pro, {breakEven} talepten sonra kazanır.",
