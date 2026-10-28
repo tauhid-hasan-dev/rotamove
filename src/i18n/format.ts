@@ -99,17 +99,69 @@ export const formatUsd = (locale: Locale, value: number) =>
 
 /* ------------------------------------------------------------------ dates -- */
 
-export function formatDateLong(locale: Locale, iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return dateFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(date);
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Read an ISO string the way its shape says it should be read.
+ *
+ * A bare "yyyy-mm-dd" is a calendar date, not a moment: a move booked for
+ * 28 October is the 28th wherever you are reading from. `new Date("2026-10-28")`
+ * resolves it to UTC midnight, which then renders as the 27th anywhere west
+ * of Greenwich — so date-only strings are built at *local* midnight and stay
+ * on the day they name. Anything carrying a time is a real instant and is
+ * parsed as one.
+ */
+function toDate(iso: string): Date {
+  if (DATE_ONLY.test(iso)) {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(iso);
 }
 
-export function formatDateShort(locale: Locale, iso: string): string {
-  const date = new Date(iso);
+/**
+ * Which clock the dates are rendered against.
+ *
+ * Instants are shown in the reader's own timezone, which the server cannot
+ * know while it renders. Passing "UTC" for the server pass and the first
+ * client render keeps both sides producing the same string, so hydration
+ * matches; the provider then drops the override and React repaints the
+ * handful of affected nodes in local time. See `useViewerTimeZone`.
+ */
+export type TimeZone = string | undefined;
+
+export function formatDateLong(locale: Locale, iso: string, timeZone?: TimeZone): string {
+  const date = toDate(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return dateFormat(locale, { day: "numeric", month: "short" }).format(date);
+  return dateFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone,
+  }).format(date);
 }
+
+export function formatDateShort(locale: Locale, iso: string, timeZone?: TimeZone): string {
+  const date = toDate(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return dateFormat(locale, { day: "numeric", month: "short", timeZone }).format(date);
+}
+
+/**
+ * Thin and narrow no-break spaces, which ICU puts either side of the dash in
+ * a formatted range.
+ *
+ * Which one it picks depends on the ICU build, and Node and the browser do
+ * not ship the same one: Node 24 returns "28 Sept – 27 Oct" where
+ * Chromium returns plain spaces. Same date, same locale, two strings — which
+ * React reports as a hydration mismatch on a node whose two versions look
+ * identical in the diff. Flattening them to an ordinary space costs a
+ * hair of typographic polish and makes the two runtimes agree.
+ *
+ * Written as escapes on purpose — the literal characters are invisible in a
+ * diff, and a reader would have no way to tell what the character class holds.
+ */
+const THIN_SPACES = /[\u2009\u202f]/g;
 
 /**
  * A collection or delivery window.
@@ -119,22 +171,29 @@ export function formatDateShort(locale: Locale, iso: string): string {
  * "29. Nov. – 5. Dez." in German — and picks the right dash and order. A
  * hand-built `a – b` gets all three wrong somewhere.
  */
-export function formatDateRange(locale: Locale, [from, to]: [string, string]): string {
-  const start = new Date(from);
-  const end = new Date(to);
+export function formatDateRange(
+  locale: Locale,
+  [from, to]: [string, string],
+  timeZone?: TimeZone,
+): string {
+  const start = toDate(from);
+  const end = toDate(to);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${from} – ${to}`;
-  if (from === to) return formatDateShort(locale, from);
-  return dateFormat(locale, { day: "numeric", month: "short" }).formatRange(start, end);
+  if (from === to) return formatDateShort(locale, from, timeZone);
+  return dateFormat(locale, { day: "numeric", month: "short", timeZone })
+    .formatRange(start, end)
+    .replace(THIN_SPACES, " ");
 }
 
-export function formatDateTime(locale: Locale, iso: string): string {
-  const date = new Date(iso);
+export function formatDateTime(locale: Locale, iso: string, timeZone?: TimeZone): string {
+  const date = toDate(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return dateFormat(locale, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone,
   }).format(date);
 }
 

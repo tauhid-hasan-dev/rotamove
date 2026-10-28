@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { DEFAULT_LOCALE, dirFor, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { localePath } from "@/i18n/paths";
@@ -52,6 +58,33 @@ interface I18nValue {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
+/** Nothing ever changes a browser's timezone mid-session; no subscription needed. */
+const noSubscribe = () => () => {};
+
+/**
+ * The timezone dates should be rendered in.
+ *
+ * `undefined` means "whatever clock this machine is on", which is exactly
+ * right in the browser and exactly wrong on the server — a timestamp
+ * formatted in Vercel's timezone and then re-formatted in the reader's
+ * produces two different strings for the same node, which is a hydration
+ * mismatch and, worse, a time the reader has to convert in their head.
+ *
+ * So the server pass and the first client render both pin to UTC, which
+ * they can agree on, and every render after mount uses the reader's own
+ * clock. `useSyncExternalStore` is what makes the switch legal: the server
+ * snapshot and the client snapshot are declared separately, so React
+ * hydrates against the former and immediately repaints with the latter —
+ * no state set from an effect, no flash of a date that was never true.
+ */
+function useViewerTimeZone(): fmt.TimeZone {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => undefined,
+    () => "UTC",
+  );
+}
+
 export function I18nProvider({
   locale,
   dict,
@@ -61,6 +94,8 @@ export function I18nProvider({
   dict: Dictionary;
   children: ReactNode;
 }) {
+  const tz = useViewerTimeZone();
+
   const value = useMemo<I18nValue>(
     () => ({
       locale,
@@ -78,10 +113,10 @@ export function I18nProvider({
         decimal: (value, digits) => fmt.formatDecimal(locale, value, digits),
         year: (year) => fmt.formatYear(locale, year),
         usd: (value) => fmt.formatUsd(locale, value),
-        dateLong: (iso) => fmt.formatDateLong(locale, iso),
-        dateShort: (iso) => fmt.formatDateShort(locale, iso),
-        dateRange: (range) => fmt.formatDateRange(locale, range),
-        dateTime: (iso) => fmt.formatDateTime(locale, iso),
+        dateLong: (iso) => fmt.formatDateLong(locale, iso, tz),
+        dateShort: (iso) => fmt.formatDateShort(locale, iso, tz),
+        dateRange: (range) => fmt.formatDateRange(locale, range, tz),
+        dateTime: (iso) => fmt.formatDateTime(locale, iso, tz),
         relative: (timestamp, now) => fmt.formatRelative(locale, timestamp, now),
         volume: (m3) => fmt.formatVolume(locale, dict, m3),
         days: (range) => fmt.formatDays(locale, dict, range),
@@ -92,7 +127,7 @@ export function I18nProvider({
         list: (items) => fmt.formatList(locale, items),
       },
     }),
-    [locale, dict],
+    [locale, dict, tz],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
