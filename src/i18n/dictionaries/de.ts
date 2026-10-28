@@ -135,13 +135,15 @@ export const de = {
   partnerTeaser: {
     eyebrow: "Für Transportunternehmen",
     title: "Kaufen Sie Nachfrage, nicht Telefonnummern.",
-    body: "Monatspauschale oder Zahlung pro Anfrage mit harter Obergrenze. Nichts weiter.",
+    body: "Monatspauschale, Zahlung pro Anfrage oder nur für die Anfragen zahlen, die Sie freischalten. Nichts weiter.",
     pricingCta: "Partner-Preise",
     demoCta: "Demo ansehen",
     proBody: "Alle Anfragen, unbegrenzt. Sofortplatzierung in der Suche.",
     proUnit: "/ Monat",
     pplBody: "Kein Abo. Niemals mehr als {cap}.",
     pplUnit: "/ Anfrage",
+    ppsBody: "Alle Anfragen maskiert durchsuchen. Bis zu {cap} nur für die, die Sie freischalten.",
+    ppsUnit: "/ Freischaltung",
   },
 
   faq: {
@@ -242,7 +244,7 @@ export const de = {
   partnersPage: {
     eyebrow: "Für Transportunternehmen",
     title: "Kaufen Sie Nachfrage, nicht Telefonnummern.",
-    lede: "{leads} geprüfte Anfragen pro Monat auf {corridors} Korridoren. Zwei Wege, sie zu kaufen.",
+    lede: "{leads} geprüfte Anfragen pro Monat auf {corridors} Korridoren. Drei Wege, sie zu kaufen.",
     plansNote:
       "Beide Tarife umfassen Lizenz- und Versicherungsprüfung, Streitschlichtung und den Ausschluss vom Board, wenn die Standards nachlassen.",
     chooserTitle: "Welcher passt zu Ihnen?",
@@ -259,7 +261,7 @@ export const de = {
     ctaTitle: "Kostenlos starten. Upgraden, wenn es sich rechnet.",
     ctaBody: "Die Prüfung dauert etwa zwei Werktage.",
     ctaButton: "Demo-Dashboard öffnen",
-    ctaNote: "{pro}/Monat unbegrenzt · oder max. {cap} pro Anfrage",
+    ctaNote: "{pro}/Monat unbegrenzt · oder max. {cap} pro Anfrage, egal wie Sie kaufen",
   },
 
   plans: {
@@ -336,7 +338,7 @@ export const de = {
         a: "Nie. {cap} ist eine harte Decke, unabhängig von Korridor, Volumen oder Auftragswert — und der genaue Preis wird vor dem Freischalten angezeigt.",
       },
       {
-        q: "Erscheinen Pay-per-Lead-Partner in den Suchergebnissen?",
+        q: "Erscheinen Partner mit einem Tarif pro Anfrage in den Suchergebnissen?",
         a: "Sie erscheinen in der Ergebnisliste, allerdings als später antwortend statt sofort. Die Sofort-Match-Platzierung ist eine Pro-Unlimited-Funktion.",
       },
       {
@@ -684,6 +686,8 @@ export const de = {
       "{name} nutzt Pro Unlimited — pauschal {pro} im Monat für jede Anfrage im Netzwerk. Die Spedition zahlt dasselbe, ob Sie sie wählen oder nicht.",
     billingPpl:
       "{name} nutzt Pay per Lead — bis zu {cap}, um eine gewünschte Anfrage freizuschalten. In beiden Fällen ohne Provision.",
+    billingPps:
+      "{name} nutzt Pay per Seen — Ladungsvolumen und Route sieht die Spedition kostenlos und zahlt bis zu {cap} nur für die Anfragen, die sie freischaltet. In beiden Fällen ohne Provision.",
     services: {
       packing: "Professionelle Verpackung",
       storage: "Zolllager",
@@ -1222,7 +1226,7 @@ export const de = {
       assignToCompanies: "Speditionen zuweisen",
       assignTitle: "Anfrage zuweisen",
       assignDescription:
-        "Aktive Speditionen, die {origin} nach {destination} abdecken. Pay-per-Lead-Partnern werden bei Zuweisung {fee} berechnet.",
+        "Aktive Speditionen, die {origin} nach {destination} abdecken. Partnern mit einem Tarif pro Freischaltung werden bei Zuweisung {fee} berechnet.",
       responseTime: "Antwort ~{mins} Min.",
       cancel: "Abbrechen",
       assign: "Zuweisen",
@@ -1315,7 +1319,7 @@ export const de = {
       kpiRevenueHint: "eingenommen, netto nach Erstattungen",
       ofLeads: "{percent} der Anfragen",
       revenueTrendTitle: "Umsatztrend",
-      revenueTrendDescription: "Pro-Abos und Pay-per-Lead-Gebühren, wie eingenommen.",
+      revenueTrendDescription: "Pro-Abos und Anfragengebühren pro Freischaltung, wie eingenommen.",
       byPeriodTitle: "Nach Periode",
       byPeriodDescription: "Das Diagramm oben, Zeile für Zeile.",
       byCompanyTitle: "Nach Spedition",
@@ -1796,9 +1800,9 @@ export const de = {
     howItWorksTitle: "So funktioniert’s",
     howItWorksDescription:
       "Wie Rotamove Sie mit Speditionen zusammenbringt, wie das Ranking gewichtet ist und was jeder Partner nachweisen muss.",
-    partnersTitle: "Für Speditionen — 100 $/Monat unbegrenzt oder bis zu 7 $ pro Anfrage",
+    partnersTitle: "Für Speditionen — drei Wege, Nachfrage zu kaufen, gedeckelt bei 7 $ pro Anfrage",
     partnersDescription:
-      "Werden Sie Teil des Rotamove-Partnernetzwerks. Unbegrenzt Anfragen für eine Monatspauschale oder Zahlung pro Anfrage mit harter Obergrenze von 7 $.",
+      "Werden Sie Teil des Rotamove-Partnernetzwerks. Unbegrenzt Anfragen für eine Monatspauschale, Zahlung pro Anfrage oder nur für die Anfragen zahlen, die Sie freischalten möchten — immer mit harter Obergrenze von 7 $.",
   },
 } satisfies Dictionary;
 

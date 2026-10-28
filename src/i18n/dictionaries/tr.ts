@@ -139,13 +139,15 @@ export const tr = {
   partnerTeaser: {
     eyebrow: "Nakliye firmaları için",
     title: "Telefon numarası değil, talep satın alın.",
-    body: "Sabit aylık ücret ya da üst sınırı olan müşteri başı ödeme. Başka hiçbir şey.",
+    body: "Sabit aylık ücret, talep başına ödeme ya da yalnızca açtığınız talepler için ödeme. Başka hiçbir şey.",
     pricingCta: "Partner fiyatlandırması",
     demoCta: "Demoyu görün",
     proBody: "Sınırsız müşteri talebi. Aramada anında yerleşim.",
     proUnit: "/ ay",
     pplBody: "Abonelik yok. Asla {cap} üzeri değil.",
     pplUnit: "/ talep",
+    ppsBody: "Tüm taleplere maskeli göz atın. Yalnızca açtıklarınız için en fazla {cap} ödeyin.",
+    ppsUnit: "/ kilit açma",
   },
 
   faq: {
@@ -246,7 +248,7 @@ export const tr = {
   partnersPage: {
     eyebrow: "Nakliye firmaları için",
     title: "Telefon numarası değil, talep satın alın.",
-    lede: "{corridors} koridorda ayda {leads} doğrulanmış talep. Satın almanın iki yolu.",
+    lede: "{corridors} koridorda ayda {leads} doğrulanmış talep. Satın almanın üç yolu.",
     plansNote:
       "Her iki plan da lisans ve sigorta doğrulamasını, uyuşmazlık arabuluculuğunu ve standartlar düşerse panodan çıkarılmayı içerir.",
     chooserTitle: "Hangisi size uygun?",
@@ -263,7 +265,7 @@ export const tr = {
     ctaTitle: "Ücretsiz başlayın. Kazandırdığında yükseltin.",
     ctaBody: "Doğrulama yaklaşık iki iş günü sürer.",
     ctaButton: "Demo panelini açın",
-    ctaNote: "Sınırsız için {pro}/ay · veya talep başına en fazla {cap}",
+    ctaNote: "Sınırsız için {pro}/ay · veya talep başına en fazla {cap}, nasıl satın alırsanız alın",
   },
 
   plans: {
@@ -339,7 +341,7 @@ export const tr = {
         a: "Asla. {cap}, koridor, hacim veya iş değeri ne olursa olsun kesin bir tavandır ve tam fiyat kilidi açmadan önce gösterilir.",
       },
       {
-        q: "Talep başına ödeyen partnerler arama sonuçlarında görünüyor mu?",
+        q: "Talep başına ödeme planındaki partnerler arama sonuçlarında görünüyor mu?",
         a: "Sonuç panosunda görünürsünüz, ancak anında değil daha sonra yanıt verecek olarak işaretlenirsiniz. Anında eşleşme yerleşimi bir Pro Sınırsız özelliğidir.",
       },
       {
@@ -683,6 +685,8 @@ export const tr = {
       "{name}, Pro Sınırsız planında — ağdaki her talep için ayda sabit {pro}. Onları seçseniz de seçmeseniz de aynı ücreti öderler.",
     billingPpl:
       "{name}, Talep Başına Ödeme planında — istedikleri bir talebin kilidini açmak için en fazla {cap} öderler. Her iki durumda da komisyon yok.",
+    billingPps:
+      "{name}, Görüntüleme Başına Ödeme planında — yük hacmini ve güzergâhı ücretsiz görürler ve yalnızca açtıkları talepler için en fazla {cap} öderler. Her iki durumda da komisyon yok.",
     services: {
       packing: "Profesyonel paketleme",
       storage: "Antrepo depolama",
@@ -1218,7 +1222,7 @@ export const tr = {
       assignToCompanies: "Şirketlere ata",
       assignTitle: "Talebi ata",
       assignDescription:
-        "{origin} → {destination} güzergâhını kapsayan aktif şirketler. Talep başına ödeme yapan partnerlerden atama sırasında {fee} tahsil edilir.",
+        "{origin} → {destination} güzergâhını kapsayan aktif şirketler. Kilit açma başına ödeme planındaki partnerlerden atama sırasında {fee} tahsil edilir.",
       responseTime: "yanıt ~{mins} dk",
       cancel: "İptal",
       assign: "Ata",
@@ -1309,7 +1313,7 @@ export const tr = {
       kpiRevenueHint: "tahsil edilen nakit, iadeler düşülmüş",
       ofLeads: "taleplerin {percent} kadarı",
       revenueTrendTitle: "Gelir eğilimi",
-      revenueTrendDescription: "Tahsil edildiği şekliyle Pro abonelikleri ve talep başına ücretler.",
+      revenueTrendDescription: "Tahsil edildiği şekliyle Pro abonelikleri ve kilit açma başına talep ücretleri.",
       byPeriodTitle: "Döneme göre",
       byPeriodDescription: "Yukarıdaki grafik, satır satır.",
       byCompanyTitle: "Şirkete göre",
@@ -1780,9 +1784,9 @@ export const tr = {
     howItWorksTitle: "Nasıl çalışır",
     howItWorksDescription:
       "Rotamove sizi taşıyıcılarla nasıl eşleştirir, sıralama nasıl ağırlıklandırılır ve her partnerin neyi kanıtlaması gerekir.",
-    partnersTitle: "Taşıyıcılar için — sınırsız 100 $/ay veya talep başına 7 $'a kadar",
+    partnersTitle: "Taşıyıcılar için — talep satın almanın üç yolu, talep başına 7 $ üst sınırıyla",
     partnersDescription:
-      "Rotamove partner ağına katılın. Sabit aylık ücretle sınırsız talep ya da kesin 7 $ üst sınırıyla talep başına ödeme.",
+      "Rotamove partner ağına katılın. Sabit aylık ücretle sınırsız talep, talep başına ödeme ya da yalnızca açmayı seçtiğiniz talepler için ödeme — her zaman kesin 7 $ üst sınırıyla.",
   },
 } satisfies Dictionary;
 

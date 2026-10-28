@@ -386,15 +386,23 @@ export default async function MoverPage({ params }: PageProps<"/[locale]/movers/
             <section className="rounded-2xl border border-dashed bg-surface/60 p-5">
               <h3 className="eyebrow">{profile.billingTitle}</h3>
               <p className="mt-3 text-[13.5px] leading-relaxed text-muted-foreground">
-                {isPro
+                {/* One line per plan, chosen by the partner's actual plan —
+                    a binary here quietly told visitors that every
+                    pay-per-seen carrier was on Pay Per Lead. */}
+                {mover.plan === "pro_unlimited"
                   ? fill(profile.billingPro, {
                       name: mover.name,
                       pro: formatUsd(locale, PRO_MONTHLY_USD),
                     })
-                  : fill(profile.billingPpl, {
-                      name: mover.name,
-                      cap: formatUsd(locale, LEAD_FEE_CAP_USD),
-                    })}
+                  : mover.plan === "pay_per_seen"
+                    ? fill(profile.billingPps, {
+                        name: mover.name,
+                        cap: formatUsd(locale, LEAD_FEE_CAP_USD),
+                      })
+                    : fill(profile.billingPpl, {
+                        name: mover.name,
+                        cap: formatUsd(locale, LEAD_FEE_CAP_USD),
+                      })}
               </p>
             </section>
           </div>

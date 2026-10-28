@@ -136,13 +136,15 @@ export const fr = {
   partnerTeaser: {
     eyebrow: "Pour les entreprises de transport",
     title: "Achetez de la demande, pas des numéros de téléphone.",
-    body: "Forfait mensuel, ou paiement à la demande avec un plafond strict. Rien d’autre.",
+    body: "Forfait mensuel, paiement à la demande, ou paiement uniquement pour les demandes que vous débloquez. Rien d’autre.",
     pricingCta: "Tarifs partenaires",
     demoCta: "Voir la démo",
     proBody: "Toutes les demandes, en illimité. Placement instantané dans la recherche.",
     proUnit: "/ mois",
     pplBody: "Sans abonnement. Jamais plus de {cap}.",
     pplUnit: "/ demande",
+    ppsBody: "Parcourez toutes les demandes masquées. Jusqu’à {cap} uniquement pour celles que vous débloquez.",
+    ppsUnit: "/ déblocage",
   },
 
   faq: {
@@ -243,7 +245,7 @@ export const fr = {
   partnersPage: {
     eyebrow: "Pour les entreprises de transport",
     title: "Achetez de la demande, pas des numéros de téléphone.",
-    lede: "{leads} demandes vérifiées par mois sur {corridors} corridors. Deux façons de les acheter.",
+    lede: "{leads} demandes vérifiées par mois sur {corridors} corridors. Trois façons de les acheter.",
     plansNote:
       "Les deux formules incluent la vérification de la licence et de l’assurance, la médiation des litiges et le retrait du tableau si les standards baissent.",
     chooserTitle: "Laquelle vous convient ?",
@@ -260,7 +262,7 @@ export const fr = {
     ctaTitle: "Commencez gratuitement. Passez au niveau supérieur quand ça rapporte.",
     ctaBody: "La vérification prend environ deux jours ouvrés.",
     ctaButton: "Ouvrir le tableau de bord de démo",
-    ctaNote: "{pro}/mois en illimité · ou {cap} maximum par demande",
+    ctaNote: "{pro}/mois en illimité · ou {cap} maximum par demande, quelle que soit la formule",
   },
 
   plans: {
@@ -337,7 +339,7 @@ export const fr = {
         a: "Jamais. {cap} est un plafond strict quel que soit le corridor, le volume ou la valeur de la mission, et le prix exact est affiché avant le déblocage.",
       },
       {
-        q: "Les partenaires au paiement à la demande apparaissent-ils dans les résultats ?",
+        q: "Les partenaires sur une formule au paiement par demande apparaissent-ils dans les résultats ?",
         a: "Vous apparaissez dans la liste de résultats, mais signalé comme répondant plus tard plutôt qu’instantanément. Le placement en correspondance instantanée est une fonction Pro Illimité.",
       },
       {
@@ -684,6 +686,8 @@ export const fr = {
       "{name} est en Pro Illimité — un forfait de {pro} par mois pour toutes les demandes du réseau. Le transporteur paie la même chose, que vous le choisissiez ou non.",
     billingPpl:
       "{name} est en Paiement à la demande — jusqu’à {cap} pour débloquer une demande qui l’intéresse. Sans commission dans les deux cas.",
+    billingPps:
+      "{name} est en Paiement à la consultation — le transporteur voit gratuitement le volume du chargement et le trajet, et ne paie jusqu’à {cap} que pour les demandes qu’il débloque. Sans commission dans les deux cas.",
     services: {
       packing: "Emballage professionnel",
       storage: "Stockage sous douane",
@@ -1222,7 +1226,7 @@ export const fr = {
       assignToCompanies: "Attribuer à des sociétés",
       assignTitle: "Attribuer la demande",
       assignDescription:
-        "Sociétés actives couvrant {origin} vers {destination}. Les partenaires au paiement à la demande sont facturés {fee} à l’attribution.",
+        "Sociétés actives couvrant {origin} vers {destination}. Les partenaires sur une formule au déblocage sont facturés {fee} à l’attribution.",
       responseTime: "réponse ~{mins} min",
       cancel: "Annuler",
       assign: "Attribuer",
@@ -1314,7 +1318,7 @@ export const fr = {
       kpiRevenueHint: "encaissements, nets des remboursements",
       ofLeads: "{percent} des demandes",
       revenueTrendTitle: "Évolution du chiffre d’affaires",
-      revenueTrendDescription: "Abonnements Pro et frais au paiement à la demande, tels qu’encaissés.",
+      revenueTrendDescription: "Abonnements Pro et frais de demande au déblocage, tels qu’encaissés.",
       byPeriodTitle: "Par période",
       byPeriodDescription: "Le graphique ci-dessus, ligne par ligne.",
       byCompanyTitle: "Par société",
@@ -1792,9 +1796,9 @@ export const fr = {
     howItWorksTitle: "Comment ça marche",
     howItWorksDescription:
       "Comment Rotamove vous met en relation avec des transporteurs, comment le classement est pondéré, et ce que chaque partenaire doit prouver.",
-    partnersTitle: "Pour les transporteurs — 100 $/mois en illimité, ou jusqu’à 7 $ par demande",
+    partnersTitle: "Pour les transporteurs — trois façons d’acheter de la demande, plafonnées à 7 $ par demande",
     partnersDescription:
-      "Rejoignez le réseau de partenaires Rotamove. Demandes illimitées pour un forfait mensuel, ou paiement à la demande avec un plafond strict de 7 $.",
+      "Rejoignez le réseau de partenaires Rotamove. Demandes illimitées pour un forfait mensuel, paiement à la demande, ou paiement uniquement pour les demandes que vous choisissez de débloquer — toujours avec un plafond strict de 7 $.",
   },
 } satisfies Dictionary;
 

@@ -135,13 +135,15 @@ export const nl = {
   partnerTeaser: {
     eyebrow: "Voor transportbedrijven",
     title: "Koop vraag, geen telefoonnummers.",
-    body: "Vast maandbedrag, of betalen per aanvraag met een harde bovengrens. Niets anders.",
+    body: "Vast maandbedrag, betalen per aanvraag, of alleen betalen voor de aanvragen die u vrijgeeft. Niets anders.",
     pricingCta: "Partnertarieven",
     demoCta: "Bekijk de demo",
     proBody: "Alle aanvragen, onbeperkt. Directe plaatsing in de zoekresultaten.",
     proUnit: "/ maand",
     pplBody: "Geen abonnement. Nooit meer dan {cap}.",
     pplUnit: "/ aanvraag",
+    ppsBody: "Bekijk elke aanvraag afgeschermd. Tot {cap} alleen voor de aanvragen die u vrijgeeft.",
+    ppsUnit: "/ vrijgave",
   },
 
   faq: {
@@ -242,7 +244,7 @@ export const nl = {
   partnersPage: {
     eyebrow: "Voor transportbedrijven",
     title: "Koop vraag, geen telefoonnummers.",
-    lede: "{leads} gecontroleerde aanvragen per maand op {corridors} corridors. Twee manieren om ze te kopen.",
+    lede: "{leads} gecontroleerde aanvragen per maand op {corridors} corridors. Drie manieren om ze te kopen.",
     plansNote:
       "Beide pakketten omvatten controle van vergunning en verzekering, bemiddeling bij geschillen en verwijdering uit het overzicht als de normen zakken.",
     chooserTitle: "Welke past bij u?",
@@ -259,7 +261,7 @@ export const nl = {
     ctaTitle: "Begin gratis. Stap over wanneer het zich terugbetaalt.",
     ctaBody: "De controle duurt ongeveer twee werkdagen.",
     ctaButton: "Open het demodashboard",
-    ctaNote: "{pro}/maand onbeperkt · of maximaal {cap} per aanvraag",
+    ctaNote: "{pro}/maand onbeperkt · of maximaal {cap} per aanvraag, hoe u ook koopt",
   },
 
   plans: {
@@ -335,7 +337,7 @@ export const nl = {
         a: "Nooit. {cap} is een harde grens, ongeacht corridor, volume of opdrachtwaarde, en de exacte prijs wordt vóór het vrijgeven getoond.",
       },
       {
-        q: "Verschijnen partners die per aanvraag betalen in de zoekresultaten?",
+        q: "Verschijnen partners met een pakket per aanvraag in de zoekresultaten?",
         a: "U verschijnt in het resultatenoverzicht, maar met de aanduiding dat u later reageert in plaats van direct. Plaatsing met directe match is een functie van Pro Onbeperkt.",
       },
       {
@@ -682,6 +684,8 @@ export const nl = {
       "{name} zit op Pro Onbeperkt — een vast bedrag van {pro} per maand voor elke aanvraag in het netwerk. Ze betalen hetzelfde, of u ze kiest of niet.",
     billingPpl:
       "{name} zit op Betalen per aanvraag — tot {cap} om een gewenste aanvraag vrij te geven. In beide gevallen zonder commissie.",
+    billingPps:
+      "{name} zit op Betalen per inzage — ze zien het ladingvolume en de route gratis en betalen tot {cap} alleen voor de aanvragen die ze vrijgeven. In beide gevallen zonder commissie.",
     services: {
       packing: "Professioneel inpakken",
       storage: "Douaneopslag",
@@ -1219,7 +1223,7 @@ export const nl = {
       assignToCompanies: "Toewijzen aan bedrijven",
       assignTitle: "Aanvraag toewijzen",
       assignDescription:
-        "Actieve bedrijven die {origin} naar {destination} dekken. Partners met Betalen per aanvraag betalen {fee} bij toewijzing.",
+        "Actieve bedrijven die {origin} naar {destination} dekken. Partners met een pakket per vrijgave betalen {fee} bij toewijzing.",
       responseTime: "reactie ~{mins} min",
       cancel: "Annuleren",
       assign: "Toewijzen",
@@ -1312,7 +1316,7 @@ export const nl = {
       kpiRevenueHint: "geïnd geld, na aftrek van terugbetalingen",
       ofLeads: "{percent} van de aanvragen",
       revenueTrendTitle: "Omzettrend",
-      revenueTrendDescription: "Pro-abonnementen en vergoedingen per aanvraag, zoals geïnd.",
+      revenueTrendDescription: "Pro-abonnementen en aanvraagkosten per vrijgave, zoals geïnd.",
       byPeriodTitle: "Per periode",
       byPeriodDescription: "De grafiek hierboven, rij voor rij.",
       byCompanyTitle: "Per bedrijf",
@@ -1788,9 +1792,9 @@ export const nl = {
     howItWorksTitle: "Hoe het werkt",
     howItWorksDescription:
       "Hoe Rotamove u aan vervoerders koppelt, hoe de rangschikking is gewogen en wat elke partner moet aantonen.",
-    partnersTitle: "Voor vervoerders — $100/maand onbeperkt, of tot $7 per aanvraag",
+    partnersTitle: "Voor vervoerders — drie manieren om vraag te kopen, met een plafond van $7 per aanvraag",
     partnersDescription:
-      "Sluit u aan bij het partnernetwerk van Rotamove. Onbeperkt aanvragen voor een vast maandbedrag, of betalen per aanvraag met een harde bovengrens van $7.",
+      "Sluit u aan bij het partnernetwerk van Rotamove. Onbeperkt aanvragen voor een vast maandbedrag, betalen per aanvraag, of alleen betalen voor de aanvragen die u wilt vrijgeven — altijd met een harde bovengrens van $7.",
   },
 } satisfies Dictionary;
 

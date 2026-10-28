@@ -14,6 +14,7 @@ import { LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
 import { quote, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { fill, formatUsd } from "@/i18n/format";
+import { cn } from "@/lib/utils";
 import { localePath } from "@/i18n/paths";
 
 type SectionProps = { dict: Dictionary; locale: Locale };
@@ -163,6 +164,8 @@ export function PartnerTeaser({ dict, locale }: SectionProps) {
             </div>
           </div>
 
+          {/* All three plans. The pair that used to sit here contradicted
+              the pricing page the CTA below leads to. */}
           <div className="grid gap-3 sm:grid-cols-2">
             <PlanTile
               price={formatUsd(locale, PRO_MONTHLY_USD)}
@@ -177,6 +180,13 @@ export function PartnerTeaser({ dict, locale }: SectionProps) {
               title={dict.plans.pplName}
               body={fill(dict.partnerTeaser.pplBody, { cap })}
             />
+            <PlanTile
+              className="sm:col-span-2"
+              price={`${formatUsd(locale, 2)}–${cap}`}
+              unit={dict.partnerTeaser.ppsUnit}
+              title={dict.plans.ppsName}
+              body={fill(dict.partnerTeaser.ppsBody, { cap })}
+            />
           </div>
         </div>
       </Shell>
@@ -190,18 +200,21 @@ function PlanTile({
   title,
   body,
   highlight,
+  className,
 }: {
   price: string;
   unit: string;
   title: string;
   body: string;
   highlight?: boolean;
+  className?: string;
 }) {
   return (
     <div
-      className={
-        highlight ? "rounded-3xl bg-brand p-6 text-ink" : "rounded-3xl border bg-card p-6"
-      }
+      className={cn(
+        highlight ? "rounded-3xl bg-brand p-6 text-ink" : "rounded-3xl border bg-card p-6",
+        className,
+      )}
     >
       <p className="text-[12px] font-medium uppercase tracking-[0.12em] opacity-70">{title}</p>
       <p className="mt-5 flex items-baseline gap-1.5">

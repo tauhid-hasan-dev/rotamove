@@ -154,13 +154,15 @@ export const en = {
   partnerTeaser: {
     eyebrow: "For transport companies",
     title: "Buy demand, not phone numbers.",
-    body: "Flat monthly, or pay per lead with a hard ceiling. Nothing else.",
+    body: "Flat monthly, pay per lead, or pay only for the leads you open. Nothing else.",
     pricingCta: "Partner pricing",
     demoCta: "See the demo",
     proBody: "Every lead, unlimited. Instant placement in search.",
     proUnit: "/ month",
     pplBody: "No subscription. Never more than {cap}.",
     pplUnit: "/ lead",
+    ppsBody: "Browse every lead masked. Pay up to {cap} only for the ones you open.",
+    ppsUnit: "/ unlock",
   },
 
   /* -------------------------------------------------------------- faq -- */
@@ -266,7 +268,7 @@ export const en = {
   partnersPage: {
     eyebrow: "For transport companies",
     title: "Buy demand, not phone numbers.",
-    lede: "{leads} verified enquiries a month across {corridors} corridors. Two ways to buy them.",
+    lede: "{leads} verified enquiries a month across {corridors} corridors. Three ways to buy them.",
     plansNote:
       "Both plans include licence and insurance verification, dispute mediation, and removal from the board if standards slip.",
     chooserTitle: "Which one fits you?",
@@ -283,7 +285,7 @@ export const en = {
     ctaTitle: "Start free. Upgrade when it pays.",
     ctaBody: "Verification takes about two working days.",
     ctaButton: "Open the demo dashboard",
-    ctaNote: "{pro}/month unlimited · or {cap} max per lead",
+    ctaNote: "{pro}/month unlimited · or {cap} max per lead, however you buy",
   },
 
   plans: {
@@ -359,7 +361,7 @@ export const en = {
         a: "Never. {cap} is a hard ceiling regardless of corridor, volume or job value, and the exact price is shown before you unlock.",
       },
       {
-        q: "Do pay-per-lead partners appear in search results?",
+        q: "Do partners on a per-lead plan appear in search results?",
         a: "You appear on the results board, but marked as replying later rather than instantly. Instant-match placement is a Pro Unlimited feature.",
       },
       {
@@ -705,6 +707,8 @@ export const en = {
       "{name} is on Pro Unlimited — a flat {pro} a month for every lead on the network. They pay the same whether you choose them or not.",
     billingPpl:
       "{name} is on Pay Per Lead — they pay up to {cap} to unlock an enquiry they want. No commission either way.",
+    billingPps:
+      "{name} is on Pay Per Seen — they see the load size and route for free and pay up to {cap} only for the enquiries they open. No commission either way.",
     services: {
       packing: "Professional packing",
       storage: "Bonded storage",
@@ -1241,7 +1245,7 @@ export const en = {
       assignToCompanies: "Assign to companies",
       assignTitle: "Assign lead",
       assignDescription:
-        "Active companies covering {origin} to {destination}. Pay-per-lead partners are charged {fee} on assignment.",
+        "Active companies covering {origin} to {destination}. Partners on a per-unlock plan are charged {fee} on assignment.",
       responseTime: "response ~{mins} min",
       cancel: "Cancel",
       assign: "Assign",
@@ -1332,7 +1336,7 @@ export const en = {
       kpiRevenueHint: "cash collected, net of refunds",
       ofLeads: "{percent} of leads",
       revenueTrendTitle: "Revenue trend",
-      revenueTrendDescription: "Pro subscriptions and pay-per-lead fees, as collected.",
+      revenueTrendDescription: "Pro subscriptions and per-unlock lead fees, as collected.",
       byPeriodTitle: "By period",
       byPeriodDescription: "The chart above, row by row.",
       byCompanyTitle: "By company",
@@ -1796,9 +1800,9 @@ export const en = {
     howItWorksTitle: "How it works",
     howItWorksDescription:
       "How Rotamove matches you with carriers, how the ranking is weighted, and what every partner has to prove.",
-    partnersTitle: "For carriers — $100/month unlimited, or up to $7 per lead",
+    partnersTitle: "For carriers — three ways to buy demand, capped at $7 a lead",
     partnersDescription:
-      "Join the Rotamove partner network. Unlimited leads for a flat monthly fee, or pay per lead with a hard $7 cap.",
+      "Join the Rotamove partner network. Unlimited leads for a flat monthly fee, pay per lead, or pay only for the leads you choose to open — always with a hard $7 cap.",
   },
 } as const;
 

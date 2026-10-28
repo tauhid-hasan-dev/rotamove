@@ -135,13 +135,15 @@ export const it = {
   partnerTeaser: {
     eyebrow: "Per le aziende di trasporto",
     title: "Compra domanda, non numeri di telefono.",
-    body: "Quota mensile fissa, o pagamento per contatto con un tetto massimo. Nient’altro.",
+    body: "Quota mensile fissa, pagamento per contatto, o pagamento solo per le richieste che sblocchi. Nient’altro.",
     pricingCta: "Prezzi partner",
     demoCta: "Guarda la demo",
     proBody: "Tutti i contatti, illimitati. Posizionamento immediato nella ricerca.",
     proUnit: "/ mese",
     pplBody: "Nessun abbonamento. Mai più di {cap}.",
     pplUnit: "/ contatto",
+    ppsBody: "Sfoglia tutte le richieste mascherate. Massimo {cap} solo per quelle che sblocchi.",
+    ppsUnit: "/ sblocco",
   },
 
   faq: {
@@ -242,7 +244,7 @@ export const it = {
   partnersPage: {
     eyebrow: "Per le aziende di trasporto",
     title: "Compra domanda, non numeri di telefono.",
-    lede: "{leads} richieste verificate al mese su {corridors} corridoi. Due modi per acquistarle.",
+    lede: "{leads} richieste verificate al mese su {corridors} corridoi. Tre modi per acquistarle.",
     plansNote:
       "Entrambi i piani includono la verifica di licenza e assicurazione, la mediazione delle controversie e la rimozione dalla bacheca se gli standard calano.",
     chooserTitle: "Quale fa per te?",
@@ -259,7 +261,7 @@ export const it = {
     ctaTitle: "Inizia gratis. Passa al piano superiore quando conviene.",
     ctaBody: "La verifica richiede circa due giorni lavorativi.",
     ctaButton: "Apri la dashboard dimostrativa",
-    ctaNote: "{pro}/mese illimitato · oppure massimo {cap} per contatto",
+    ctaNote: "{pro}/mese illimitato · oppure massimo {cap} per contatto, comunque tu acquisti",
   },
 
   plans: {
@@ -335,7 +337,7 @@ export const it = {
         a: "Mai. {cap} è un limite rigido, indipendentemente da corridoio, volume o valore del lavoro, e il prezzo esatto è mostrato prima dello sblocco.",
       },
       {
-        q: "I partner a pagamento per contatto compaiono nei risultati di ricerca?",
+        q: "I partner con un piano a pagamento per contatto compaiono nei risultati di ricerca?",
         a: "Compari sulla bacheca dei risultati, ma segnalato come «risponde più tardi» invece che immediatamente. Il posizionamento con abbinamento immediato è una funzione di Pro Illimitato.",
       },
       {
@@ -680,6 +682,8 @@ export const it = {
       "{name} è su Pro Illimitato: {pro} fissi al mese per ogni richiesta sulla rete. Paga la stessa cifra sia che tu lo scelga o no.",
     billingPpl:
       "{name} è su Pagamento per contatto: paga fino a {cap} per sbloccare una richiesta che gli interessa. In entrambi i casi senza provvigioni.",
+    billingPps:
+      "{name} è su Pagamento per visione: vede gratuitamente il volume del carico e la tratta e paga fino a {cap} solo per le richieste che sblocca. In entrambi i casi senza provvigioni.",
     services: {
       packing: "Imballaggio professionale",
       storage: "Deposito doganale",
@@ -1218,7 +1222,7 @@ export const it = {
       assignToCompanies: "Assegna ad aziende",
       assignTitle: "Assegna la richiesta",
       assignDescription:
-        "Aziende attive che coprono da {origin} a {destination}. Ai partner a pagamento per contatto vengono addebitati {fee} all’assegnazione.",
+        "Aziende attive che coprono da {origin} a {destination}. Ai partner con un piano a sblocco vengono addebitati {fee} all’assegnazione.",
       responseTime: "risposta ~{mins} min",
       cancel: "Annulla",
       assign: "Assegna",
@@ -1311,7 +1315,7 @@ export const it = {
       kpiRevenueHint: "incassi, al netto dei rimborsi",
       ofLeads: "{percent} delle richieste",
       revenueTrendTitle: "Andamento dei ricavi",
-      revenueTrendDescription: "Abbonamenti Pro e commissioni per contatto, come incassati.",
+      revenueTrendDescription: "Abbonamenti Pro e commissioni per richiesta a sblocco, come incassati.",
       byPeriodTitle: "Per periodo",
       byPeriodDescription: "Il grafico qui sopra, riga per riga.",
       byCompanyTitle: "Per azienda",
@@ -1789,9 +1793,9 @@ export const it = {
     howItWorksTitle: "Come funziona",
     howItWorksDescription:
       "Come Rotamove ti abbina ai trasportatori, come è pesato il ranking e cosa deve dimostrare ogni partner.",
-    partnersTitle: "Per i trasportatori — 100 $/mese illimitato, o fino a 7 $ per contatto",
+    partnersTitle: "Per i trasportatori — tre modi per acquistare domanda, con tetto di 7 $ per contatto",
     partnersDescription:
-      "Entra nella rete di partner Rotamove. Richieste illimitate con una quota mensile fissa, oppure pagamento per contatto con tetto massimo di 7 $.",
+      "Entra nella rete di partner Rotamove. Richieste illimitate con una quota mensile fissa, pagamento per contatto, oppure pagamento solo per le richieste che scegli di sbloccare — sempre con un tetto massimo rigido di 7 $.",
   },
 } satisfies Dictionary;
 
