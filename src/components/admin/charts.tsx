@@ -55,9 +55,11 @@ function tickInterval(count: number): number {
 
 export function LeadsTrendChart({ data, className }: { data: LeadTrendPoint[]; className?: string }) {
   const { dict } = useI18n();
+  // Enquiries only. The conversion series shared this axis without
+  // sharing its scale, so a flat line near zero sat under the volume
+  // curve and read as a reporting failure rather than a ratio.
   const leadsConfig = {
     leads: { label: dict.admin.charts.leads, color: CATEGORICAL.green },
-    converted: { label: dict.admin.charts.converted, color: CATEGORICAL.blue },
   } satisfies ChartConfig;
 
   return (
@@ -80,13 +82,6 @@ export function LeadsTrendChart({ data, className }: { data: LeadTrendPoint[]; c
           stroke="var(--color-leads)"
           strokeWidth={2}
           fill="url(#leadsFill)"
-        />
-        <Area
-          dataKey="converted"
-          type="monotone"
-          stroke="var(--color-converted)"
-          strokeWidth={2}
-          fill="transparent"
         />
       </AreaChart>
     </ChartContainer>

@@ -50,7 +50,7 @@ export type AdminAction =
   | { type: "team/role"; memberId: string; roleId: string }
   | { type: "team/create"; name: string; email: string; roleId: string }
   | { type: "team/update"; memberId: string; patch: { name?: string; email?: string } }
-  | { type: "team/remove"; memberId: string };
+  | { type: "team/active"; memberId: string; active: boolean };
 
 function withAudit(
   state: AdminDataset,
@@ -529,16 +529,35 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
       );
     }
 
-    case "team/remove": {
+    /**
+     * Withdraw or restore console access.
+     *
+     * There is deliberately no action that deletes a team member. Audit
+     * entries, lead assignments and credit grants all name the operator who
+     * made them, and dropping the row would leave that history pointing at
+     * an id nobody can resolve. Deactivation withdraws the access and keeps
+     * the name attached to what it did.
+     */
+    case "team/active": {
       const member = state.team.find((m) => m.id === action.memberId);
       if (!member || member.locked) return state;
+      if (Boolean(member.deactivatedAt) === !action.active) return state;
+
+      const deactivatedAt = action.active ? undefined : new Date().toISOString();
       return withAudit(
-        { ...state, team: state.team.filter((m) => m.id !== action.memberId) },
         {
-          action: "team.removed",
+          ...state,
+          team: state.team.map((m) =>
+            m.id === action.memberId ? { ...m, deactivatedAt } : m,
+          ),
+        },
+        {
+          action: action.active ? "team.reactivated" : "team.deactivated",
           entity: "team",
           entityId: action.memberId,
-          detail: `${member.name} removed from the console`,
+          detail: action.active
+            ? `${member.name} regained console access`
+            : `${member.name} lost console access`,
         },
       );
     }

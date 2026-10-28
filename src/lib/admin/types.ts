@@ -279,8 +279,15 @@ export interface TeamMember {
   roleId: string;
   lastActiveAt: string;
   invitedAt: string;
-  /** The founding admin account — cannot be removed or demoted. */
+  /** The founding admin account — cannot be deactivated or demoted. */
   locked?: boolean;
+  /**
+   * When access was withdrawn, if it has been. Accounts are deactivated,
+   * never deleted: every lead assignment, credit and settings change in
+   * the audit trail names an actor, and removing the row would leave
+   * that history pointing at nobody.
+   */
+  deactivatedAt?: string;
 }
 
 export interface AuditEntry {

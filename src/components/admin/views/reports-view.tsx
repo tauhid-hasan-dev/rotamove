@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { EmptyState, KpiCard, PageHeader } from "@/components/admin/bits";
 import { RevenueTrendChart } from "@/components/admin/charts";
 import { DateRangePicker, useDateRange } from "@/components/admin/date-range-picker";
@@ -14,6 +15,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -24,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatUsdPrecise } from "@/lib/format";
+import type { PlanId } from "@/lib/types";
 import type { RangePreset } from "@/lib/admin/date-range";
 import {
   companyReport,
@@ -44,6 +54,23 @@ const PERIODS = [
   { id: "yearly", preset: "this_year" },
 ] as const satisfies ReadonlyArray<{ id: string; preset: Exclude<RangePreset, "custom"> }>;
 
+const PLAN_IDS: readonly PlanId[] = ["pro_unlimited", "pay_per_lead", "pay_per_seen"];
+
+const PERIOD_SORTS = ["period_desc", "period_asc", "revenue_desc", "leads_desc"] as const;
+const COMPANY_SORTS = ["total_desc", "leads_desc", "name_asc"] as const;
+
+type PeriodSort = (typeof PERIOD_SORTS)[number];
+type CompanySort = (typeof COMPANY_SORTS)[number];
+
+/** The toolbar strip each table carries above its own rows. */
+function FilterBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t bg-surface/60 px-6 py-3">
+      {children}
+    </div>
+  );
+}
+
 export function ReportsView() {
   const { dict, t } = useI18n();
   const rx = dict.admin.reports;
@@ -51,13 +78,70 @@ export function ReportsView() {
   const dateRange = useDateRange(data.anchorMs, "30d");
   const [period, setPeriod] = useState<string>("daily");
 
-  const rows = useMemo(() => reportRows(data, dateRange.range), [data, dateRange.range]);
-  const revenue = useMemo(() => revenueTrend(data, dateRange.range), [data, dateRange.range]);
-  const byCompany = useMemo(() => companyReport(data, dateRange.range), [data, dateRange.range]);
+  // Per-table filters. Each table carries its own, because the two answer
+  // different questions off the same range — "which weeks earned" and
+  // "which carriers paid" are rarely narrowed the same way.
+  const [periodSort, setPeriodSort] = useState<PeriodSort>("period_desc");
+  const [periodActive, setPeriodActive] = useState(false);
+  const [companyQuery, setCompanyQuery] = useState("");
+  const [companyPlan, setCompanyPlan] = useState<PlanId | "all">("all");
+  const [companySort, setCompanySort] = useState<CompanySort>("total_desc");
 
+  const allRows = useMemo(() => reportRows(data, dateRange.range), [data, dateRange.range]);
+  const revenue = useMemo(() => revenueTrend(data, dateRange.range), [data, dateRange.range]);
+  const allCompanyRows = useMemo(
+    () => companyReport(data, dateRange.range),
+    [data, dateRange.range],
+  );
+
+  const rows = useMemo(() => {
+    const kept = periodActive
+      ? allRows.filter((r) => r.leads > 0 || r.revenueUsd > 0)
+      : allRows;
+    const sorted = [...kept];
+    switch (periodSort) {
+      case "period_asc":
+        sorted.sort((a, b) => a.key.localeCompare(b.key));
+        break;
+      case "revenue_desc":
+        sorted.sort((a, b) => b.revenueUsd - a.revenueUsd);
+        break;
+      case "leads_desc":
+        sorted.sort((a, b) => b.leads - a.leads);
+        break;
+      default:
+        sorted.sort((a, b) => b.key.localeCompare(a.key));
+    }
+    return sorted;
+  }, [allRows, periodActive, periodSort]);
+
+  const byCompany = useMemo(() => {
+    const needle = companyQuery.trim().toLowerCase();
+    const kept = allCompanyRows.filter((r) => {
+      if (companyPlan !== "all" && r.company.mover.plan !== companyPlan) return false;
+      if (needle && !r.company.mover.name.toLowerCase().includes(needle)) return false;
+      return true;
+    });
+    const sorted = [...kept];
+    switch (companySort) {
+      case "leads_desc":
+        sorted.sort((a, b) => b.leadsReceived - a.leadsReceived);
+        break;
+      case "name_asc":
+        sorted.sort((a, b) => a.company.mover.name.localeCompare(b.company.mover.name));
+        break;
+      default:
+        sorted.sort((a, b) => b.totalUsd - a.totalUsd);
+    }
+    return sorted;
+  }, [allCompanyRows, companyQuery, companyPlan, companySort]);
+
+  // KPIs answer for the whole range, so they read off the unfiltered rows —
+  // a total that moved when you typed in a search box would be lying about
+  // the period it is labelled with.
   const totals = useMemo(
     () =>
-      rows.reduce(
+      allRows.reduce(
         (acc, r) => ({
           leads: acc.leads + r.leads,
           assigned: acc.assigned + r.assigned,
@@ -66,7 +150,7 @@ export function ReportsView() {
         }),
         { leads: 0, assigned: 0, converted: 0, revenue: 0 },
       ),
-    [rows],
+    [allRows],
   );
 
   const selectPeriod = (id: string) => {
@@ -147,9 +231,12 @@ export function ReportsView() {
         </CardContent>
       </Card>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      {/* Stacked, not side by side: each table is wide enough that sharing
+          a row squeezed the company names and crowded five money columns
+          into half a screen. */}
+      <div className="mt-4 space-y-4">
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
-          <CardHeader className="flex-row items-start justify-between pt-6 pb-4">
+          <CardHeader className="flex flex-row items-start justify-between gap-3 pt-6 pb-4">
             <div className="space-y-1">
               <CardTitle>{rx.byPeriodTitle}</CardTitle>
               <CardDescription>{rx.byPeriodDescription}</CardDescription>
@@ -159,6 +246,45 @@ export function ReportsView() {
               buildSheet={buildPeriodSheet}
             />
           </CardHeader>
+
+          <FilterBar>
+            <Select
+              value={periodSort}
+              onValueChange={(v) => setPeriodSort(v as PeriodSort)}
+            >
+              <SelectTrigger className="w-56" aria-label={rx.sortAria}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PERIOD_SORTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {rx.periodSorts[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={periodActive ? "active" : "all"}
+              onValueChange={(v) => setPeriodActive(v === "active")}
+            >
+              <SelectTrigger className="w-48" aria-label={rx.activityFilterAria}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{rx.allPeriods}</SelectItem>
+                <SelectItem value="active">{rx.activePeriodsOnly}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <span className="ms-auto text-[13px] text-muted-foreground tnum">
+              {t.fill(rx.showingPeriods, {
+                shown: t.number(rows.length),
+                total: t.number(allRows.length),
+              })}
+            </span>
+          </FilterBar>
+
           <div className="max-h-[460px] overflow-auto">
             <Table>
               <TableHeader className="sticky top-0 bg-card">
@@ -187,7 +313,7 @@ export function ReportsView() {
         </Card>
 
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
-          <CardHeader className="flex-row items-start justify-between pt-6 pb-4">
+          <CardHeader className="flex flex-row items-start justify-between gap-3 pt-6 pb-4">
             <div className="space-y-1">
               <CardTitle>{rx.byCompanyTitle}</CardTitle>
               <CardDescription>{rx.byCompanyDescription}</CardDescription>
@@ -197,6 +323,63 @@ export function ReportsView() {
               buildSheet={buildCompanySheet}
             />
           </CardHeader>
+
+          <FilterBar>
+            <div className="relative">
+              <Search
+                className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                value={companyQuery}
+                onChange={(e) => setCompanyQuery(e.target.value)}
+                placeholder={dict.admin.companies.searchPlaceholder}
+                aria-label={dict.admin.companies.searchAria}
+                className="w-64 ps-8"
+              />
+            </div>
+
+            <Select
+              value={companyPlan}
+              onValueChange={(v) => setCompanyPlan(v as PlanId | "all")}
+            >
+              <SelectTrigger className="w-44" aria-label={dict.admin.companies.planFilterAria}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{dict.admin.companies.allPlans}</SelectItem>
+                {PLAN_IDS.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {dict.admin.labels.plan[p]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={companySort}
+              onValueChange={(v) => setCompanySort(v as CompanySort)}
+            >
+              <SelectTrigger className="w-56" aria-label={rx.sortAria}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COMPANY_SORTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {rx.companySorts[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <span className="ms-auto text-[13px] text-muted-foreground tnum">
+              {t.fill(rx.showingCompanies, {
+                shown: t.number(byCompany.length),
+                total: t.number(allCompanyRows.length),
+              })}
+            </span>
+          </FilterBar>
+
           <div className="max-h-[460px] overflow-auto">
             <Table>
               <TableHeader className="sticky top-0 bg-card">

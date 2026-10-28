@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Lock, Pencil, Plus, Search, Trash2, UserPlus } from "lucide-react";
+import {
+  Lock,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  UserCheck,
+  UserPlus,
+  UserX,
+} from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, PageHeader } from "@/components/admin/bits";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
@@ -83,7 +92,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
   const [userEmail, setUserEmail] = useState("");
   const [userRoleId, setUserRoleId] = useState<string>(data.roles[0]?.id ?? "");
   const [userError, setUserError] = useState<string | null>(null);
-  const [removeUser, setRemoveUser] = useState<TeamMember | null>(null);
+  const [deactivateUser, setDeactivateUser] = useState<TeamMember | null>(null);
 
   const openCreateUser = () => {
     setUserName("");
@@ -203,7 +212,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
         {/* ---------------- Users ---------------- */}
         <TabsContent value="team" className="space-y-4">
           <Card className="gap-0 overflow-hidden py-0 shadow-soft">
-            <CardHeader className="flex-row items-start justify-between gap-3 pt-6 pb-4">
+            <CardHeader className="flex flex-row items-start justify-between gap-3 pt-6 pb-4">
               <div className="space-y-1.5">
                 <CardTitle>{sx.usersTitle}</CardTitle>
                 <CardDescription>{sx.usersDescription}</CardDescription>
@@ -227,13 +236,18 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                 <TableBody>
                   {data.team.map((member) => {
                     const role = roleById.get(member.roleId);
+                    const inactive = Boolean(member.deactivatedAt);
                     return (
-                      <TableRow key={member.id}>
+                      <TableRow key={member.id} className={inactive ? "opacity-60" : undefined}>
                         <TableCell>
                           <span className="flex items-center gap-3">
                             <span
                               aria-hidden
-                              className="flex size-8 items-center justify-center rounded-full bg-brand/25 text-xs font-semibold text-ink dark:bg-brand/15 dark:text-brand"
+                              className={`flex size-8 items-center justify-center rounded-full text-xs font-semibold ${
+                                inactive
+                                  ? "bg-muted text-muted-foreground"
+                                  : "bg-brand/25 text-ink dark:bg-brand/15 dark:text-brand"
+                              }`}
                             >
                               {member.name
                                 .split(" ")
@@ -242,7 +256,14 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                                 .join("")}
                             </span>
                             <span>
-                              <span className="block text-[13.5px] font-medium">{member.name}</span>
+                              <span className="flex items-center gap-2">
+                                <span className="text-[13.5px] font-medium">{member.name}</span>
+                                {inactive ? (
+                                  <Badge variant="outline" className="text-[10.5px]">
+                                    {sx.deactivated}
+                                  </Badge>
+                                ) : null}
+                              </span>
                               <span className="block text-xs text-muted-foreground">
                                 {member.email}
                               </span>
@@ -258,6 +279,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                           ) : (
                             <Select
                               value={member.roleId}
+                              disabled={inactive}
                               onValueChange={(roleId) => {
                                 dispatch({ type: "team/role", memberId: member.id, roleId });
                                 toast.success(
@@ -289,7 +311,11 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                           {member.invitedAt}
                         </TableCell>
                         <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                          {t.dateShort(member.lastActiveAt)}
+                          {inactive
+                            ? t.fill(sx.deactivatedOn, {
+                                date: t.dateShort(member.deactivatedAt as string),
+                              })
+                            : t.dateShort(member.lastActiveAt)}
                         </TableCell>
                         <TableCell className="text-end">
                           <span className="inline-flex gap-1">
@@ -297,19 +323,43 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                               variant="ghost"
                               size="icon-sm"
                               aria-label={t.fill(sx.editUserAria, { name: member.name })}
+                              disabled={inactive}
                               onClick={() => openEditUser(member)}
                             >
                               <Pencil aria-hidden />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={t.fill(sx.removeUserAria, { name: member.name })}
-                              disabled={member.locked}
-                              onClick={() => setRemoveUser(member)}
-                            >
-                              <Trash2 aria-hidden />
-                            </Button>
+                            {/* Access is withdrawn, never erased — the audit
+                                trail names this person against work they
+                                did, and that has to keep resolving. */}
+                            {inactive ? (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={t.fill(sx.reactivateUserAria, { name: member.name })}
+                                onClick={() => {
+                                  dispatch({
+                                    type: "team/active",
+                                    memberId: member.id,
+                                    active: true,
+                                  });
+                                  toast.success(
+                                    t.fill(sx.userReactivatedToast, { name: member.name }),
+                                  );
+                                }}
+                              >
+                                <UserCheck aria-hidden />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={t.fill(sx.deactivateUserAria, { name: member.name })}
+                                disabled={member.locked}
+                                onClick={() => setDeactivateUser(member)}
+                              >
+                                <UserX aria-hidden />
+                              </Button>
+                            )}
                           </span>
                         </TableCell>
                       </TableRow>
@@ -324,7 +374,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
         {/* ---------------- Roles & permissions ---------------- */}
         <TabsContent value="roles" className="space-y-4">
           <Card className="gap-0 overflow-hidden py-0 shadow-soft">
-            <CardHeader className="flex-row items-start justify-between gap-3 pt-6 pb-4">
+            <CardHeader className="flex flex-row items-start justify-between gap-3 pt-6 pb-4">
               <div className="space-y-1.5">
                 <CardTitle>{sx.rolesTitle}</CardTitle>
                 <CardDescription>{sx.rolesDescription}</CardDescription>
@@ -766,17 +816,17 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
       </Dialog>
 
       <ConfirmDialog
-        open={removeUser !== null}
-        onOpenChange={(open) => !open && setRemoveUser(null)}
-        title={t.fill(sx.removeUserTitle, { name: removeUser?.name ?? "" })}
-        description={sx.removeUserDescription}
-        confirmLabel={sx.removeUserConfirm}
+        open={deactivateUser !== null}
+        onOpenChange={(open) => !open && setDeactivateUser(null)}
+        title={t.fill(sx.deactivateUserTitle, { name: deactivateUser?.name ?? "" })}
+        description={sx.deactivateUserDescription}
+        confirmLabel={sx.deactivateUserConfirm}
         destructive
         onConfirm={() => {
-          if (!removeUser) return;
-          dispatch({ type: "team/remove", memberId: removeUser.id });
-          toast.success(t.fill(sx.userRemovedToast, { name: removeUser.name }));
-          setRemoveUser(null);
+          if (!deactivateUser) return;
+          dispatch({ type: "team/active", memberId: deactivateUser.id, active: false });
+          toast.success(t.fill(sx.userDeactivatedToast, { name: deactivateUser.name }));
+          setDeactivateUser(null);
         }}
       />
 
