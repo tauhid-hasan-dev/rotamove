@@ -41,6 +41,7 @@ export type AdminAction =
   | { type: "invoice/pay"; id: string; method: PaymentMethod }
   | { type: "invoice/refund"; id: string; reason: string }
   | { type: "credit/add"; companyId: string; amountUsd: number; reason: string }
+  | { type: "credit/amend"; creditId: string; amountUsd: number; reason: string }
   | { type: "settings/update"; patch: Partial<PlatformSettings> }
   | { type: "roles/toggle"; roleId: string; permission: PermissionKey }
   | { type: "roles/create"; name: string; permissions?: PermissionKey[] }
@@ -311,6 +312,61 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
         entity: "company",
         entityId: action.companyId,
         detail: `$${action.amountUsd} credit for ${company?.mover.name ?? action.companyId}: ${action.reason}`,
+      });
+    }
+
+    /**
+     * Correct a grant that was keyed in wrong.
+     *
+     * The entry is amended rather than reversed-and-reissued: a typo is not
+     * a second decision, and a ledger that shows "+$250, -$250, +$25" for
+     * one goodwill credit reads as three events to anyone auditing it
+     * later. The balance moves by the difference only, the original figure
+     * is kept on the entry so the correction stays visible, and the audit
+     * log records both numbers.
+     *
+     * Only operator grants reach this path — the negative entries are
+     * written by invoice settlement and amending one by hand would put the
+     * ledger out of step with the invoice that caused it.
+     */
+    case "credit/amend": {
+      const entry = state.credits.find((c) => c.id === action.creditId);
+      if (!entry || entry.deltaUsd < 0) return state;
+
+      const amount = Math.round(action.amountUsd * 100) / 100;
+      const diff = amount - entry.deltaUsd;
+
+      const next: AdminDataset = {
+        ...state,
+        companies: state.companies.map((c) =>
+          c.mover.id === entry.companyId
+            ? {
+                ...c,
+                creditBalanceUsd:
+                  Math.round(Math.max(0, c.creditBalanceUsd + diff) * 100) / 100,
+              }
+            : c,
+        ),
+        credits: state.credits.map((c) =>
+          c.id === action.creditId
+            ? {
+                ...c,
+                deltaUsd: amount,
+                reason: action.reason,
+                // A second correction still points at the figure first
+                // granted, not at the one it was corrected to.
+                correctedFrom: c.correctedFrom ?? c.deltaUsd,
+              }
+            : c,
+        ),
+      };
+
+      const company = state.companies.find((c) => c.mover.id === entry.companyId);
+      return withAudit(next, {
+        action: "credit.amended",
+        entity: "company",
+        entityId: entry.companyId,
+        detail: `Credit ${entry.id} for ${company?.mover.name ?? entry.companyId} corrected from $${entry.deltaUsd} to $${amount}: ${action.reason}`,
       });
     }
 

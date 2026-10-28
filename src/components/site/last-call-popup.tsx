@@ -14,6 +14,16 @@ import { useI18n } from "@/i18n/provider";
 const APPEAR_AFTER_MS = 900;
 
 /**
+ * Where the popup stays out of the way.
+ *
+ * The board it advertises, and anywhere the visitor is already acting on a
+ * request. Someone who has just pressed Send request has taken the offer —
+ * putting the same offer back in front of them is interrupting a conversion
+ * to advertise the thing they are already doing.
+ */
+const SILENT_PATHS = ["/last-call", "/quote", "/results"];
+
+/**
  * The last-call offer popup.
  *
  * Shown on every page load rather than once per visitor: the thing it
@@ -35,7 +45,8 @@ export function LastCallPopup() {
   const [dismissed, setDismissed] = useState(false);
   const [armed, setArmed] = useState(false);
 
-  const onBoard = stripLocale(pathname).startsWith("/last-call");
+  const path = stripLocale(pathname);
+  const silent = SILENT_PATHS.some((p) => path.startsWith(p));
   const target = href("/last-call");
 
   useEffect(() => {
@@ -52,7 +63,7 @@ export function LastCallPopup() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const open = armed && ready && !dismissed && !onBoard && offers.length > 0;
+  const open = armed && ready && !dismissed && !silent && offers.length > 0;
 
   // The three soonest to expire — enough to show the offer is real without
   // turning the popup into the board it links to.

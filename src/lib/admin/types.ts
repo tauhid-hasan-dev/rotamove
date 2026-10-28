@@ -176,6 +176,12 @@ export interface CreditEntry {
   deltaUsd: number;
   reason: string;
   by: string;
+  /**
+   * What the grant said before an operator corrected it. Set only on
+   * amended entries, so the ledger can show the figure it stands at today
+   * while still admitting it was not the figure first written down.
+   */
+  correctedFrom?: number;
 }
 
 /* ------------------------------------------------------------------ *

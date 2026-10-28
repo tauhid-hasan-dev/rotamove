@@ -85,6 +85,13 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
   const [creditAmount, setCreditAmount] = useState("25");
   const [creditReason, setCreditReason] = useState("");
 
+  // The grant currently being corrected — null when nothing is open.
+  const [amending, setAmending] = useState<{
+    id: string;
+    amount: string;
+    reason: string;
+  } | null>(null);
+
   if (!company) {
     return (
       <EmptyState
@@ -142,6 +149,25 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
     toast.success(t.fill(dict.admin.companyDetail.creditGrantedToast, { amount: t.usd(amount) }));
     setCreditOpen(false);
     setCreditReason("");
+  };
+
+  const saveAmendedCredit = () => {
+    if (!amending) return;
+    const amount = Number.parseFloat(amending.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error(dict.admin.companyDetail.creditAmountError);
+      return;
+    }
+    dispatch({
+      type: "credit/amend",
+      creditId: amending.id,
+      amountUsd: amount,
+      reason: amending.reason.trim() || dict.admin.companyDetail.creditReasonFallback,
+    });
+    toast.success(
+      t.fill(dict.admin.companyDetail.creditCorrectedToast, { amount: t.usd(amount) }),
+    );
+    setAmending(null);
   };
 
   return (
@@ -323,22 +349,57 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                   {dict.admin.companyDetail.noCreditActivity}
                 </p>
               ) : (
-                credits.slice(0, 5).map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between gap-2 text-[13px]">
-                    <span className="min-w-0">
-                      <span className="block truncate">{entry.reason}</span>
-                      <span className="tnum text-xs text-muted-foreground">
-                        {t.dateShort(entry.at)} · {entry.by}
-                      </span>
-                    </span>
-                    <span
-                      className={`tnum font-semibold ${entry.deltaUsd >= 0 ? "text-verify" : "text-destructive"}`}
+                credits.slice(0, 5).map((entry) => {
+                  // Spends are written by invoice settlement; correcting one
+                  // here would only put the ledger out of step with the
+                  // invoice that caused it.
+                  const correctable = entry.deltaUsd >= 0;
+                  return (
+                    <div
+                      key={entry.id}
+                      className="group flex items-center justify-between gap-2 text-[13px]"
                     >
-                      {entry.deltaUsd >= 0 ? "+" : ""}
-                      {t.usd(entry.deltaUsd)}
-                    </span>
-                  </div>
-                ))
+                      <span className="min-w-0">
+                        <span className="block truncate">{entry.reason}</span>
+                        <span className="tnum text-xs text-muted-foreground">
+                          {t.dateShort(entry.at)} · {entry.by}
+                          {entry.correctedFrom !== undefined
+                            ? ` · ${t.fill(dict.admin.companyDetail.creditWas, {
+                                amount: t.usd(entry.correctedFrom),
+                              })}`
+                            : ""}
+                        </span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1">
+                        <span
+                          className={`tnum font-semibold ${entry.deltaUsd >= 0 ? "text-verify" : "text-destructive"}`}
+                        >
+                          {entry.deltaUsd >= 0 ? "+" : ""}
+                          {t.usd(entry.deltaUsd)}
+                        </span>
+                        {correctable ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 text-muted-foreground opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+                            aria-label={t.fill(dict.admin.companyDetail.editCreditAria, {
+                              amount: t.usd(entry.deltaUsd),
+                            })}
+                            onClick={() =>
+                              setAmending({
+                                id: entry.id,
+                                amount: String(entry.deltaUsd),
+                                reason: entry.reason,
+                              })
+                            }
+                          >
+                            <Pencil className="size-3.5" aria-hidden />
+                          </Button>
+                        ) : null}
+                      </span>
+                    </div>
+                  );
+                })
               )}
               <Dialog open={creditOpen} onOpenChange={setCreditOpen}>
                 <DialogTrigger asChild>
@@ -383,6 +444,67 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                       <Button variant="ghost">{dict.admin.common.cancel}</Button>
                     </DialogClose>
                     <Button onClick={grantCredit}>{dict.admin.companyDetail.grantCredit}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Correcting a grant that was keyed in wrong. Separate from
+                  the grant dialog above because the two are different acts:
+                  one decides to give credit, the other fixes a number. */}
+              <Dialog
+                open={amending !== null}
+                onOpenChange={(open) => {
+                  if (!open) setAmending(null);
+                }}
+              >
+                <DialogContent className="sm:max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>{dict.admin.companyDetail.editCreditTitle}</DialogTitle>
+                    <DialogDescription>
+                      {dict.admin.companyDetail.editCreditDescription}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="credit-edit-amount">
+                        {dict.admin.companyDetail.amountUsd}
+                      </Label>
+                      <Input
+                        id="credit-edit-amount"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={amending?.amount ?? ""}
+                        onChange={(e) =>
+                          setAmending((prev) =>
+                            prev ? { ...prev, amount: e.target.value } : prev,
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="credit-edit-reason">
+                        {dict.admin.companyDetail.reason}
+                      </Label>
+                      <Input
+                        id="credit-edit-reason"
+                        value={amending?.reason ?? ""}
+                        onChange={(e) =>
+                          setAmending((prev) =>
+                            prev ? { ...prev, reason: e.target.value } : prev,
+                          )
+                        }
+                        placeholder={dict.admin.companyDetail.reasonPlaceholder}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="ghost">{dict.admin.common.cancel}</Button>
+                    </DialogClose>
+                    <Button onClick={saveAmendedCredit}>
+                      {dict.admin.companyDetail.editCreditSave}
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
