@@ -17,19 +17,21 @@ import { cn } from "@/lib/utils";
  */
 
 /**
- * Every vehicle crosses in the same time, spaced by negative delays.
+ * The convoy holds its ground; the road moves.
  *
- * Varying the durations to suggest depth looked right in the abstract and was
- * wrong in practice: on a single lane, different speeds mean the faster
- * vehicle eventually drives through the slower one. Equal speed with an even
- * stagger keeps the spacing constant forever. Depth comes from scale instead.
+ * Vehicles used to cross the band end to end, which meant the scene was
+ * mostly empty road and the composition changed every second. Planting them
+ * and animating the world instead — sliding tarmac, turning wheels, a faint
+ * bob — reads as driving while keeping the band a fixed, legible picture at
+ * every moment. It is also how a side-on vehicle shot is filmed.
+ *
+ * `x` is where each one sits across the band; `xSm` is the narrower
+ * arrangement for phones, where three abreast would overlap.
  */
-const CROSSING_SECONDS = 22;
-
 const CONVOY = [
-  { kind: "van", scale: 0.6, offset: 0, rest: "28%" },
-  { kind: "lorry", scale: 1, offset: 1 / 3, rest: "52%" },
-  { kind: "van", scale: 0.72, offset: 2 / 3, rest: "80%" },
+  { kind: "van", scale: 0.6, x: "28%", xSm: null },
+  { kind: "lorry", scale: 1, x: "52%", xSm: "35%" },
+  { kind: "van", scale: 0.72, x: "80%", xSm: "82%" },
 ] as const;
 
 /** Distance from the band's floor to the road surface, in px. */
@@ -99,6 +101,10 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
               {CONVOY.map((vehicle, i) => (
                 <Traveller key={i} {...vehicle} />
               ))}
+              {/* Speed lines trailing each vehicle, drifting backwards. The
+                  wheels say "turning"; these say "fast". */}
+              <span aria-hidden className="journey-draft" style={{ bottom: ROAD + 14 }} />
+              <span aria-hidden className="journey-draft" style={{ bottom: ROAD + 30 }} />
             </div>
           </div>
 
@@ -138,55 +144,94 @@ function Endpoint({
 }
 
 /**
- * One vehicle on its crossing.
+ * One parked vehicle.
  *
- * The negative delay starts it already part-way along, so the convoy is spread
- * across the road on first paint instead of queueing at the kerb.
+ * Position comes from plain CSS rather than an animation, so nothing special
+ * has to happen under `prefers-reduced-motion`: the wheels and the road stop,
+ * the convoy stays exactly where it was.
  *
- * Because the animation is what positions the vehicle, dropping it under
- * `prefers-reduced-motion` would stack all three on the near kerb. `--rest`
- * is where each one parks instead (applied in globals.css).
+ * Wheel speed is tied to scale. A smaller vehicle has smaller wheels, and
+ * smaller wheels turn faster to cover the same ground — getting that backwards
+ * is what makes a scene like this feel like clip-art.
  */
 function Traveller({
   kind,
   scale,
-  offset,
-  rest,
+  x,
+  xSm,
 }: {
   kind: "lorry" | "van";
   scale: number;
-  /** Position in the crossing cycle, 0–1. */
-  offset: number;
-  /** Where this vehicle parks when motion is reduced. */
-  rest: string;
+  /** Centre position across the band. */
+  x: string;
+  /** Centre on phones, or `null` to drop this one when space is tight. */
+  xSm: string | null;
 }) {
   return (
-    // The rail: stretched to the band's width, so `translateX(100%)` in the
-    // keyframes is exactly one crossing. It is the thing that moves.
     <span
-      className="journey-vehicle absolute inset-x-0 motion-safe:animate-[haul_var(--dur)_linear_infinite]"
+      className={cn(
+        "journey-vehicle absolute -translate-x-1/2",
+        xSm === null && "hidden sm:block",
+      )}
       style={{
         bottom: ROAD,
-        ["--dur" as string]: `${CROSSING_SECONDS}s`,
-        ["--rest" as string]: rest,
-        animationDelay: `${-offset * CROSSING_SECONDS}s`,
+        ["--x" as string]: x,
+        ["--x-sm" as string]: xSm ?? x,
       }}
     >
-      {/* Hangs off the rail's leading edge, so it starts fully off-stage. */}
-      <span className="absolute bottom-0 right-full">
       {/*
         Scale and jiggle live on separate elements on purpose: both animate
         `transform`, and the keyframed one silently wins — which flattened
         every vehicle to the same size. origin-bottom keeps the wheels on the
         road as the scale changes.
       */}
-        <span className="block origin-bottom" style={{ transform: `scale(${scale})` }}>
-          <span className="block text-foreground motion-safe:animate-[jiggle_1.6s_ease-in-out_infinite]">
-            {kind === "lorry" ? <Lorry /> : <Van />}
-          </span>
+      <span className="block origin-bottom" style={{ transform: `scale(${scale})` }}>
+        <span
+          className="block text-foreground motion-safe:animate-[jiggle_1.6s_ease-in-out_infinite]"
+          style={{ ["--roll" as string]: `${(0.95 * scale).toFixed(2)}s` }}
+        >
+          {kind === "lorry" ? <Lorry /> : <Van />}
         </span>
       </span>
     </span>
+  );
+}
+
+/**
+ * A turning wheel.
+ *
+ * The tyre is a static disc; only the hub and its spokes rotate. A plain
+ * disc could be spinning at any speed or not at all — the spokes are the
+ * whole reason the motion reads, and they are what makes a stationary
+ * vehicle look like it is driving.
+ */
+function Wheel({ cx, cy, r }: { cx: number; cy: number; r: number }) {
+  const spoke = r * 0.6;
+  return (
+    <>
+      <circle cx={cx} cy={cy} r={r} fill="currentColor" />
+      <g className="journey-wheel">
+        <circle cx={cx} cy={cy} r={r * 0.38} fill="var(--background)" />
+        <line
+          x1={cx - spoke}
+          y1={cy}
+          x2={cx + spoke}
+          y2={cy}
+          stroke="var(--background)"
+          strokeOpacity="0.5"
+          strokeWidth="1.4"
+        />
+        <line
+          x1={cx}
+          y1={cy - spoke}
+          x2={cx}
+          y2={cy + spoke}
+          stroke="var(--background)"
+          strokeOpacity="0.5"
+          strokeWidth="1.4"
+        />
+      </g>
+    </>
   );
 }
 
@@ -223,10 +268,8 @@ function Lorry() {
       <rect x="2" y="34" width="108" height="3" fill="currentColor" fillOpacity="0.55" />
 
       {/* wheels — bottom edge of each sits on y=50 */}
-      <circle cx="26" cy="42" r="8" fill="currentColor" />
-      <circle cx="26" cy="42" r="3" fill="var(--background)" />
-      <circle cx="96" cy="42" r="8" fill="currentColor" />
-      <circle cx="96" cy="42" r="3" fill="var(--background)" />
+      <Wheel cx={26} cy={42} r={8} />
+      <Wheel cx={96} cy={42} r={8} />
     </svg>
   );
 }
@@ -245,10 +288,8 @@ function Van() {
       <path d="M49 9h3.6l10 9H49z" fill="var(--background)" fillOpacity="0.92" />
 
       {/* wheels — bottom edge of each sits on y=44 */}
-      <circle cx="22" cy="36" r="8" fill="currentColor" />
-      <circle cx="22" cy="36" r="3" fill="var(--background)" />
-      <circle cx="62" cy="36" r="8" fill="currentColor" />
-      <circle cx="62" cy="36" r="3" fill="var(--background)" />
+      <Wheel cx={22} cy={36} r={8} />
+      <Wheel cx={62} cy={36} r={8} />
     </svg>
   );
 }

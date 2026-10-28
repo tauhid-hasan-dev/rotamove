@@ -374,28 +374,23 @@
 }
 
 /* --- hero journey scene ------------------------------------------------- *
- * The convoy crosses the full band, starting and ending fully off-stage.
- *
- * This animates a *rail* stretched to the band's full width, not the vehicle
- * itself. `translateX` percentages resolve against the element's own width,
- * so on the vehicle a 124px lorry would shuffle 124px and stop; on the rail
- * 100% is exactly the distance to be travelled, at any viewport, with no
- * container-query units involved.
- *
- * Each vehicle hangs off the rail's left edge (`right: 100%`), so at 0% it is
- * fully off-stage left. The extra 140px — wider than the widest vehicle —
- * carries it fully off-stage right before the loop restarts.                 */
-@keyframes haul {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(100% + 140px));
+ * The convoy is parked and the world moves: sliding tarmac, turning wheels,
+ * drifting speed lines. Nothing about the vehicles' position is animated,
+ * which is why the band looks the same at every moment and why reduced
+ * motion needs no special case — the scene simply stops.                     */
+
+.journey-vehicle {
+  left: var(--x-sm);
+}
+
+@media (min-width: 640px) {
+  .journey-vehicle {
+    left: var(--x);
   }
 }
 
 /* Road markings sliding the other way — the cheap trick that sells motion
-   without needing the vehicles themselves to move very far. */
+   without needing the vehicles themselves to move at all. */
 @keyframes tarmac {
   from {
     stroke-dashoffset: 0;
@@ -403,6 +398,52 @@
   to {
     stroke-dashoffset: -24;
   }
+}
+
+/* The hub turns, the tyre does not: a rotating solid disc shows nothing. */
+@keyframes roll {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.journey-wheel {
+  /* fill-box so the group turns about its own centre, with no per-wheel
+     origin to keep in sync with the SVG coordinates. */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: roll var(--roll, 0.95s) linear infinite;
+}
+
+/* Thin streaks sliding backwards past the convoy. Short, faint and far
+   apart — at any more they stop reading as air and start reading as rain. */
+@keyframes draft {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -220px 0;
+  }
+}
+
+.journey-draft {
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  pointer-events: none;
+  /* Short and far apart, and much fainter than the road itself — at the
+     tarmac's weight they read as a second carriageway in mid-air. */
+  background-image: repeating-linear-gradient(
+    to right,
+    color-mix(in oklab, var(--muted-foreground) 18%, transparent) 0 18px,
+    transparent 18px 220px
+  );
+  animation: draft 1.5s linear infinite;
+}
+
+.journey-draft:nth-of-type(even) {
+  animation-duration: 2.1s;
+  opacity: 0.55;
 }
 
 /* A sub-pixel bob. Any more reads as a cartoon. */
@@ -503,12 +544,11 @@
     scroll-behavior: auto !important;
   }
 
-  /* The hero convoy is positioned by its animation, so simply suppressing the
-     animation would stack all three vehicles on the left kerb. Park each one
-     at its own point along the road instead — a still photo of the journey
-     rather than a traffic jam. */
-  .journey-vehicle {
-    animation: none !important;
-    transform: translateX(var(--rest, 50%));
+  /* The hero convoy needs no special case any more: its position is plain
+     CSS, so stopping the wheels and the tarmac leaves a still photo of the
+     journey with every vehicle where it belongs. The speed lines are the
+     one exception — frozen, they are just dashes hanging in the air. */
+  .journey-draft {
+    display: none;
   }
 }
