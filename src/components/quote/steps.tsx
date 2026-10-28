@@ -240,7 +240,19 @@ const CHANNEL_ICONS: Record<ContactChannel, React.ReactNode> = {
 
 const CHANNEL_ORDER: ContactChannel[] = ["whatsapp", "phone", "email", "all"];
 
-export function StepContact({ draft, update, touched }: StepProps & { touched: boolean }) {
+export function StepContact({
+  draft,
+  update,
+  touched,
+  hideMatchCount = false,
+}: StepProps & {
+  touched: boolean;
+  /**
+   * Last-call requests go to one named vehicle, so there is no "how many
+   * carriers" decision to put to the customer.
+   */
+  hideMatchCount?: boolean;
+}) {
   const { dict } = useI18n();
 
   const setContact = <K extends keyof LeadDraft["contact"]>(
@@ -344,10 +356,12 @@ export function StepContact({ draft, update, touched }: StepProps & { touched: b
         />
       </div>
 
-      <MatchCountPicker
-        value={draft.preferredMatches}
-        onChange={(v) => update({ preferredMatches: v })}
-      />
+      {!hideMatchCount && (
+        <MatchCountPicker
+          value={draft.preferredMatches}
+          onChange={(v) => update({ preferredMatches: v })}
+        />
+      )}
 
       <label
         className={cn(

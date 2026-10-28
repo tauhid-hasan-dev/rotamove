@@ -1,7 +1,16 @@
 import { nanoid } from "nanoid";
 import { addDaysIso, todayLocalIso } from "@/lib/calendar";
 import { DEMO_PARTNER } from "@/lib/partner-session";
-import type { LaneInput, LanePatch, PartnerLane } from "@/lib/lanes";
+import {
+  lastCallActive,
+  lastCallEndAt,
+  lastCallWindow,
+  type LaneInput,
+  type LanePatch,
+  type LastCallHours,
+  type PartnerLane,
+} from "@/lib/lanes";
+import { MOVERS } from "@/lib/movers";
 
 /**
  * Lane repository.
@@ -18,11 +27,20 @@ export type LaneIndex = ReadonlyMap<string, PartnerLane[]>;
 
 export interface LaneRepository {
   list(moverId: string): Promise<PartnerLane[]>;
+  /** One lane by id, regardless of owner — the public board links by id. */
+  get(laneId: string): Promise<PartnerLane | null>;
   create(moverId: string, input: LaneInput): Promise<PartnerLane>;
   update(moverId: string, laneId: string, patch: LanePatch): Promise<PartnerLane | null>;
   remove(moverId: string, laneId: string): Promise<boolean>;
   /** Every active partner's lanes, for one matching run. */
   index(): Promise<LaneIndex>;
+  /**
+   * Live last-call offers across every partner, soonest to expire first.
+   *
+   * Takes the clock as an argument for the same reason the lead board does:
+   * the server and the client have to agree on which offers are still open.
+   */
+  activeLastCall(nowMs: number): Promise<PartnerLane[]>;
 }
 
 class InMemoryLaneRepository implements LaneRepository {
@@ -80,6 +98,19 @@ class InMemoryLaneRepository implements LaneRepository {
     return this.lanes.delete(laneId);
   }
 
+  async get(laneId: string): Promise<PartnerLane | null> {
+    return this.lanes.get(laneId) ?? null;
+  }
+
+  async activeLastCall(nowMs: number): Promise<PartnerLane[]> {
+    return [...this.lanes.values()]
+      .filter((lane) => lastCallActive(lane, nowMs))
+      .sort(
+        (a, b) =>
+          Date.parse(lastCallEndAt(a.lastCall!)) - Date.parse(lastCallEndAt(b.lastCall!)),
+      );
+  }
+
   async index(): Promise<LaneIndex> {
     const byMover = new Map<string, PartnerLane[]>();
     for (const lane of this.lanes.values()) {
@@ -95,16 +126,51 @@ class InMemoryLaneRepository implements LaneRepository {
 
 const lane = (
   id: string,
-  partial: Omit<PartnerLane, "id" | "moverId" | "updatedAt" | "notes" | "status"> &
-    Partial<Pick<PartnerLane, "notes" | "status">>,
+  partial: Omit<
+    PartnerLane,
+    "id" | "moverId" | "updatedAt" | "notes" | "status" | "lastCall"
+  > &
+    Partial<Pick<PartnerLane, "notes" | "status" | "lastCall">>,
 ): PartnerLane => ({
   id,
   moverId: DEMO_PARTNER.id,
   notes: "",
   status: "active",
+  lastCall: null,
   updatedAt: new Date().toISOString(),
   ...partial,
 });
+
+/**
+ * A last-call lane that is genuinely live right now.
+ *
+ * Anchored on the current clock rather than a fixed date: the seed has to be
+ * inside its own window on every restart, or the public last-call page opens
+ * empty and the feature looks broken.
+ */
+function lastCallLane(
+  id: string,
+  partial: Omit<
+    PartnerLane,
+    "id" | "moverId" | "updatedAt" | "notes" | "status" | "lastCall" | "window"
+  > & { notes?: string },
+  hours: LastCallHours,
+  startOffsetHours: number,
+  moverId: string = DEMO_PARTNER.id,
+): PartnerLane {
+  const startAt = new Date(Date.now() + startOffsetHours * 3_600_000).toISOString();
+  const lastCall = { hours, startAt };
+  return {
+    id,
+    moverId,
+    notes: "",
+    status: "active",
+    lastCall,
+    window: lastCallWindow(lastCall),
+    updatedAt: new Date().toISOString(),
+    ...partial,
+  };
+}
 
 /**
  * What the demo account already runs.
@@ -157,6 +223,69 @@ function seedLanes(): PartnerLane[] {
       capacityM3: 44,
       notes: "Delivering a job in Budapest — space left on the outbound leg.",
     }),
+
+    // Live last-call offers. Spread across partners and durations so the
+    // public board has something real to show on a cold start; the page
+    // never names the carrier, which is why other movers appear here.
+    lastCallLane(
+      "ln_lc_ber",
+      {
+        fromCode: "IST",
+        toCode: "BER",
+        bothWays: false,
+        vehicle: "lorry",
+        mode: "road",
+        capacityM3: 38,
+        notes: "Trailer loads tomorrow morning — 38 m³ still open.",
+      },
+      24,
+      2,
+    ),
+    lastCallLane(
+      "ln_lc_mil",
+      {
+        fromCode: "IST",
+        toCode: "MIL",
+        bothWays: false,
+        vehicle: "lorry",
+        mode: "road",
+        capacityM3: 62,
+        notes: "Groupage to Milan, part-load space.",
+      },
+      48,
+      6,
+      MOVERS[3]?.id ?? DEMO_PARTNER.id,
+    ),
+    lastCallLane(
+      "ln_lc_ams",
+      {
+        fromCode: "IST",
+        toCode: "AMS",
+        bothWays: false,
+        vehicle: "van",
+        mode: "road",
+        capacityM3: 18,
+        notes: "Van returning via Amsterdam, small loads only.",
+      },
+      72,
+      12,
+      MOVERS[6]?.id ?? DEMO_PARTNER.id,
+    ),
+    lastCallLane(
+      "ln_lc_sof",
+      {
+        fromCode: "SOF",
+        toCode: "IST",
+        bothWays: false,
+        vehicle: "lorry",
+        mode: "road",
+        capacityM3: 50,
+        notes: "Backload from Sofia, departs this evening.",
+      },
+      24,
+      5,
+      MOVERS[9]?.id ?? DEMO_PARTNER.id,
+    ),
   ];
 }
 

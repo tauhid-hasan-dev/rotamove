@@ -3,7 +3,14 @@
 import { useMemo } from "react";
 import { FlaskConical } from "lucide-react";
 import { EmptyState, KpiCard, PageHeader } from "@/components/admin/bits";
-import { CHANNEL_COLORS, ChannelDonut, SessionsChart } from "@/components/admin/charts";
+import {
+  CHANNEL_COLORS,
+  ChannelDonut,
+  MixDonut,
+  RankedBars,
+  SERVICE_COLORS,
+  SessionsChart,
+} from "@/components/admin/charts";
 import { DateRangePicker, useDateRange } from "@/components/admin/date-range-picker";
 import { ExportMenu } from "@/components/admin/export-menu";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -27,10 +34,14 @@ import {
   channelTotals,
   countryRows,
   landingPageRows,
+  leadsInRange,
+  serviceMix,
   sessionsTrend,
+  topLeadRoutes,
   trafficTotals,
   type NamedStatsRow,
 } from "@/lib/admin/metrics";
+import { getCity } from "@/lib/geo";
 import { useAdminData } from "@/lib/admin/store";
 import { useI18n } from "@/i18n/provider";
 
@@ -83,6 +94,29 @@ export function AnalyticsView() {
   const countries = useMemo(
     () => countryRows(data.traffic, range).slice(0, 10),
     [data.traffic, range],
+  );
+
+  const rangeLeads = useMemo(() => leadsInRange(data.leads, range), [data.leads, range]);
+
+  const routes = useMemo(
+    () =>
+      topLeadRoutes(rangeLeads, 8).map((r) => ({
+        key: `${r.fromCode}:${r.toCode}`,
+        label: `${getCity(r.fromCode)?.name ?? r.fromCode} → ${getCity(r.toCode)?.name ?? r.toCode}`,
+        value: r.count,
+      })),
+    [rangeLeads],
+  );
+
+  const services = useMemo(
+    () =>
+      serviceMix(rangeLeads).map((s) => ({
+        id: s.service,
+        label: dict.enums.serviceLevel[s.service].label,
+        value: s.count,
+        color: SERVICE_COLORS[s.service],
+      })),
+    [rangeLeads, dict],
   );
 
   const donutData = useMemo(
@@ -170,6 +204,37 @@ export function AnalyticsView() {
               <EmptyState title={ax.noLeadsInRange} className="py-8" />
             ) : (
               <ChannelDonut data={donutData} className="h-64 w-full" />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Lead demand: where enquiries flow and what they ask for. */}
+      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+        <Card className="shadow-soft xl:col-span-2">
+          <CardHeader>
+            <CardTitle>{dict.admin.routesCard.title}</CardTitle>
+            <CardDescription>{dict.admin.routesCard.description}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {routes.length === 0 ? (
+              <EmptyState title={dict.admin.routesCard.empty} className="py-8" />
+            ) : (
+              <RankedBars items={routes} className="columns-1 md:columns-2 md:gap-8" />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle>{dict.admin.routesCard.serviceTitle}</CardTitle>
+            <CardDescription>{dict.admin.routesCard.serviceDescription}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {services.length === 0 ? (
+              <EmptyState title={dict.admin.routesCard.empty} className="py-8" />
+            ) : (
+              <MixDonut data={services} className="h-64 w-full" />
             )}
           </CardContent>
         </Card>

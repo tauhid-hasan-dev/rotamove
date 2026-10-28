@@ -212,23 +212,24 @@ export interface Campaign {
  * Admin settings, team, audit
  * ------------------------------------------------------------------ */
 
-export type AdminRole = "owner" | "ops_manager" | "sales" | "support" | "analyst";
+/**
+ * A console role.
+ *
+ * Roles are operator data, not a fixed union: the admin creates them, names
+ * them and grants permissions role by role. Only the Admin role is locked —
+ * full access, not editable, not deletable — so the console can never be
+ * configured into a state where nobody can manage it.
+ */
+export interface RoleDef {
+  id: string;
+  /** What the admin typed (or our seeded defaults). Never translated. */
+  name: string;
+  /** True only for the Admin role. */
+  locked: boolean;
+  permissions: Record<PermissionKey, boolean>;
+}
 
-export const ADMIN_ROLES: readonly AdminRole[] = [
-  "owner",
-  "ops_manager",
-  "sales",
-  "support",
-  "analyst",
-];
-
-export const ROLE_LABELS: Record<AdminRole, string> = {
-  owner: "Owner",
-  ops_manager: "Ops manager",
-  sales: "Sales",
-  support: "Support",
-  analyst: "Analyst",
-};
+export const ADMIN_ROLE_ID = "admin";
 
 export type PermissionKey =
   | "leads.view"
@@ -269,9 +270,11 @@ export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role: AdminRole;
+  roleId: string;
   lastActiveAt: string;
   invitedAt: string;
+  /** The founding admin account — cannot be removed or demoted. */
+  locked?: boolean;
 }
 
 export interface AuditEntry {
@@ -314,7 +317,7 @@ export interface AdminDataset {
   traffic: TrafficDay[];
   campaigns: Campaign[];
   team: TeamMember[];
-  roles: Record<AdminRole, Record<PermissionKey, boolean>>;
+  roles: RoleDef[];
   audit: AuditEntry[];
   settings: PlatformSettings;
 }

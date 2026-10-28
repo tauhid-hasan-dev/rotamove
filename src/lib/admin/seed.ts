@@ -9,7 +9,6 @@ import type {
   AdminCompany,
   AdminDataset,
   AdminLead,
-  AdminRole,
   AuditEntry,
   Campaign,
   ChannelDayStats,
@@ -22,11 +21,12 @@ import type {
   LeadStatus,
   Payment,
   PermissionKey,
+  RoleDef,
   StatusEvent,
   TeamMember,
   TrafficDay,
 } from "@/lib/admin/types";
-import { CHANNELS, PERMISSION_KEYS } from "@/lib/admin/types";
+import { ADMIN_ROLE_ID, CHANNELS, PERMISSION_KEYS } from "@/lib/admin/types";
 
 /* ======================================================================== *
  *  Seeded prototype dataset — DEMO DATA, no backend behind it.
@@ -81,7 +81,7 @@ const LAST_NAMES = [
 
 const SIZES: PropertySize[] = [
   "few_items", "studio", "one_bed", "two_bed",
-  "three_bed", "four_bed", "villa", "office",
+  "three_bed", "four_bed", "villa", "office", "project",
 ];
 
 const NOTE_POOL = [
@@ -770,44 +770,84 @@ function generateTeam(anchorMs: number): TeamMember[] {
     id: string,
     name: string,
     email: string,
-    role: AdminRole,
+    roleId: string,
     activeDaysAgo: number,
     invitedDaysAgo: number,
+    locked = false,
   ): TeamMember => ({
     id,
     name,
     email,
-    role,
+    roleId,
     lastActiveAt: isoAt(anchorMs - activeDaysAgo * DAY),
     invitedAt: isoDay(anchorMs - invitedDaysAgo * DAY),
+    ...(locked ? { locked } : {}),
   });
 
   return [
-    member("tm_01", "Demo Admin", "admin@rotamove.demo", "owner", 0, 900),
-    member("tm_02", "Ayse Korkmaz", "ayse@rotamove.demo", "ops_manager", 0, 740),
-    member("tm_03", "Jonas Richter", "jonas@rotamove.demo", "sales", 1, 520),
-    member("tm_04", "Meline Avetisyan", "meline@rotamove.demo", "support", 2, 310),
-    member("tm_05", "Tom Verhoeven", "tom@rotamove.demo", "analyst", 6, 150),
+    member("tm_01", "Demo Admin", "admin@rotamove.demo", ADMIN_ROLE_ID, 0, 900, true),
+    member("tm_02", "Ayse Korkmaz", "ayse@rotamove.demo", "sales_manager", 0, 740),
+    member("tm_03", "Jonas Richter", "jonas@rotamove.demo", "sales_executive", 1, 520),
+    member("tm_04", "Meline Avetisyan", "meline@rotamove.demo", "support_manager", 2, 310),
+    member("tm_05", "Tom Verhoeven", "tom@rotamove.demo", "analytics_executive", 6, 150),
+    member("tm_06", "Deniz Aksoy", "deniz@rotamove.demo", "accounts_manager", 1, 280),
   ];
 }
 
-function defaultRoles(): Record<AdminRole, Record<PermissionKey, boolean>> {
+/**
+ * The roles the console ships with.
+ *
+ * Four departments, each with a manager who can act and an executive who
+ * mostly reads — plus the locked Admin role. The admin can rename, re-grant,
+ * add and delete any of these except Admin; this is only the starting point.
+ */
+function defaultRoles(): RoleDef[] {
   const grant = (keys: PermissionKey[]): Record<PermissionKey, boolean> => {
     const row = {} as Record<PermissionKey, boolean>;
     for (const key of PERMISSION_KEYS) row[key] = keys.includes(key);
     return row;
   };
 
-  return {
-    owner: grant([...PERMISSION_KEYS]),
-    ops_manager: grant([
+  const role = (id: string, name: string, keys: PermissionKey[]): RoleDef => ({
+    id,
+    name,
+    locked: false,
+    permissions: grant(keys),
+  });
+
+  return [
+    { id: ADMIN_ROLE_ID, name: "Admin", locked: true, permissions: grant([...PERMISSION_KEYS]) },
+
+    role("sales_manager", "Sales — Manager", [
       "leads.view", "leads.manage", "companies.view", "companies.manage",
-      "billing.view", "billing.manage", "reports.view", "analytics.view",
+      "reports.view", "analytics.view",
     ]),
-    sales: grant(["leads.view", "leads.manage", "companies.view", "reports.view"]),
-    support: grant(["leads.view", "companies.view", "billing.view"]),
-    analyst: grant(["leads.view", "companies.view", "reports.view", "analytics.view"]),
-  };
+    role("sales_executive", "Sales — Executive", [
+      "leads.view", "leads.manage", "companies.view", "reports.view",
+    ]),
+
+    role("accounts_manager", "Accounts — Manager", [
+      "billing.view", "billing.manage", "companies.view", "companies.manage",
+      "reports.view",
+    ]),
+    role("accounts_executive", "Accounts — Executive", [
+      "billing.view", "companies.view", "reports.view",
+    ]),
+
+    role("support_manager", "Support — Manager", [
+      "leads.view", "leads.manage", "companies.view", "companies.manage", "billing.view",
+    ]),
+    role("support_executive", "Support — Executive", [
+      "leads.view", "companies.view", "billing.view",
+    ]),
+
+    role("analytics_manager", "Analytics — Manager", [
+      "leads.view", "companies.view", "reports.view", "analytics.view", "billing.view",
+    ]),
+    role("analytics_executive", "Analytics — Executive", [
+      "reports.view", "analytics.view",
+    ]),
+  ];
 }
 
 function generateAudit(

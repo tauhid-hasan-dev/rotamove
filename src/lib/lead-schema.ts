@@ -81,6 +81,7 @@ export const leadDraftSchema = z
       "four_bed",
       "villa",
       "office",
+      "project",
     ]),
     volumeM3: z.number().min(2).max(400),
     serviceLevel: z.enum(["full_service", "door_to_door", "transport_only"]),

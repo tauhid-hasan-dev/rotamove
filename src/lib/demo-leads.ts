@@ -82,6 +82,7 @@ const SIZES: PropertySize[] = [
   "four_bed",
   "villa",
   "office",
+  "project",
 ];
 
 const NOTE_POOL = [

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { IBM_Plex_Sans_Arabic, Instrument_Sans, Inter } from "next/font/google";
 import { AdminShell } from "@/components/admin/shell";
+import { AdminLoginForm } from "@/components/admin/login-form";
+import { ADMIN_COOKIE } from "@/lib/admin-session";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -66,8 +68,12 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const cookie = (await cookies()).get(LOCALE_COOKIE)?.value;
+  const jar = await cookies();
+  const cookie = jar.get(LOCALE_COOKIE)?.value;
   const locale: Locale = isLocale(cookie) ? cookie : "en";
+  // Checked before any console chrome renders, so every /admin/* URL is
+  // behind the same gate rather than each page guarding itself.
+  const signedIn = jar.get(ADMIN_COOKIE)?.value === "1";
   const dict = getDictionary(locale);
   const dir = dirFor(locale);
   const font = FONT_FOR_SCRIPT[SCRIPT_FOR_LOCALE[locale]];
@@ -91,15 +97,21 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         >
           <I18nProvider locale={locale} dict={dict}>
             <TooltipProvider delayDuration={200}>
-              <a
-                href="#admin-main"
-                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-ink"
-              >
-                {dict.common.skipToContent}
-              </a>
-              <AdminStoreProvider anchorDate={anchorDate}>
-                <AdminShell>{children}</AdminShell>
-              </AdminStoreProvider>
+              {signedIn ? (
+                <>
+                  <a
+                    href="#admin-main"
+                    className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-ink"
+                  >
+                    {dict.common.skipToContent}
+                  </a>
+                  <AdminStoreProvider anchorDate={anchorDate}>
+                    <AdminShell>{children}</AdminShell>
+                  </AdminStoreProvider>
+                </>
+              ) : (
+                <AdminLoginForm />
+              )}
               <Toaster
                 position={dir === "rtl" ? "bottom-left" : "bottom-right"}
                 richColors

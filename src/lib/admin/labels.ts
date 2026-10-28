@@ -136,6 +136,7 @@ export const PROPERTY_SIZE_LABELS: Record<PropertySize, string> = {
   four_bed: "4-bed home",
   villa: "Villa",
   office: "Office",
+  project: "Project cargo",
 };
 
 export const FLEXIBILITY_LABELS: Record<DateFlexibility, string> = {

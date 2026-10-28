@@ -7,6 +7,7 @@ import { CityField } from "@/components/search/city-field";
 import { DateRangeField } from "@/components/search/date-range-field";
 import type { DateRange } from "@/components/common/range-calendar";
 import { getCity } from "@/lib/geo";
+import type { LastCallHours } from "@/lib/lanes";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
@@ -30,16 +31,27 @@ type Field = "from" | "to" | "dates" | null;
 export function RouteSearch({
   size = "lg",
   className,
+  initial,
 }: {
   size?: "lg" | "md";
   className?: string;
+  /** Prefill, used when arriving from a last-call route card. */
+  initial?: {
+    from?: string | null;
+    to?: string | null;
+    dates?: DateRange;
+    lastCall?: LastCallHours | null;
+  };
 }) {
   const router = useRouter();
   const { dict, href } = useI18n();
 
-  const [from, setFrom] = useState<string | null>(null);
-  const [to, setTo] = useState<string | null>(null);
-  const [dates, setDates] = useState<DateRange>({ start: null, end: null });
+  const [from, setFrom] = useState<string | null>(initial?.from ?? null);
+  const [to, setTo] = useState<string | null>(initial?.to ?? null);
+  const [dates, setDates] = useState<DateRange>(
+    initial?.dates ?? { start: null, end: null },
+  );
+  const [lastCall, setLastCall] = useState<LastCallHours | null>(initial?.lastCall ?? null);
   const [active, setActive] = useState<Field>(null);
   const [pending, startTransition] = useTransition();
 
@@ -51,12 +63,18 @@ export function RouteSearch({
       return;
     }
     const params = new URLSearchParams({ from: from!, to: to! });
-    // The wizard turns these into a move date plus a flexibility window.
-    if (dates.start) params.set("start", dates.start);
-    if (dates.end) params.set("end", dates.end);
+    if (lastCall) {
+      // Last call replaces the date window rather than narrowing it: the
+      // wizard derives the collection date from the duration instead.
+      params.set("lastcall", String(lastCall));
+    } else {
+      // The wizard turns these into a move date plus a flexibility window.
+      if (dates.start) params.set("start", dates.start);
+      if (dates.end) params.set("end", dates.end);
+    }
 
     startTransition(() => router.push(href(`/quote?${params.toString()}`)));
-  }, [complete, from, to, dates, router, href]);
+  }, [complete, from, to, dates, lastCall, router, href]);
 
   const swap = () => {
     setFrom(to);
@@ -114,6 +132,8 @@ export function RouteSearch({
         <DateRangeField
           value={dates}
           onChange={setDates}
+          lastCall={lastCall}
+          onLastCallChange={setLastCall}
           active={active === "dates"}
           onActivate={() => setActive("dates")}
           onDismiss={() => setActive(null)}

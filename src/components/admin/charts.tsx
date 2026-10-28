@@ -259,3 +259,84 @@ export function DistributionBar({
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * Ranked bars — a top-N list with proportional bars, plain divs.
+ * ------------------------------------------------------------------ */
+
+export function RankedBars({
+  items,
+  className,
+}: {
+  items: Array<{ key: string; label: string; value: number }>;
+  className?: string;
+}) {
+  const { t } = useI18n();
+  const max = Math.max(1, ...items.map((i) => i.value));
+  if (items.length === 0) return null;
+  return (
+    <ol className={className}>
+      {items.map((item) => (
+        <li key={item.key} className="py-1.5">
+          <div className="flex items-baseline justify-between gap-3 text-[13px]">
+            <span className="min-w-0 truncate">{item.label}</span>
+            <span className="tnum shrink-0 font-medium">{t.number(item.value)}</span>
+          </div>
+          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <span
+              className="block h-full rounded-full bg-brand-deep"
+              style={{ width: `${(item.value / max) * 100}%` }}
+            />
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Generic donut — same visual contract as ChannelDonut, any slice set.
+ * ------------------------------------------------------------------ */
+
+export interface MixSlice {
+  id: string;
+  label: string;
+  value: number;
+  color: string;
+}
+
+export function MixDonut({ data, className }: { data: MixSlice[]; className?: string }) {
+  const config = Object.fromEntries(
+    data.map((d) => [d.id, { label: d.label, color: d.color }]),
+  ) satisfies ChartConfig;
+
+  return (
+    <ChartContainer config={config} className={className}>
+      <PieChart margin={{ top: 4, bottom: 4 }}>
+        <ChartTooltip content={<ChartTooltipContent nameKey="id" />} />
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="id"
+          innerRadius="55%"
+          outerRadius="85%"
+          stroke="var(--background)"
+          strokeWidth={2}
+          paddingAngle={1}
+        >
+          {data.map((d) => (
+            <Cell key={d.id} fill={d.color} />
+          ))}
+        </Pie>
+        <ChartLegend content={<ChartLegendContent nameKey="id" />} />
+      </PieChart>
+    </ChartContainer>
+  );
+}
+
+/** Fixed, CVD-safe series colours for the three service levels. */
+export const SERVICE_COLORS: Record<import("@/lib/types").ServiceLevel, string> = {
+  full_service: CATEGORICAL.green,
+  door_to_door: CATEGORICAL.blue,
+  transport_only: CATEGORICAL.ochre,
+};

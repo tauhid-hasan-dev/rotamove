@@ -43,7 +43,6 @@ import {
   COMPANY_STATUS_META,
   DELIVERY_META,
   INVOICE_STATUS_META,
-  LEAD_STATUS_META,
 } from "@/lib/admin/labels";
 import { presetRange } from "@/lib/admin/date-range";
 import {
@@ -145,9 +144,6 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
     setCreditReason("");
   };
 
-  const deliveredRate =
-    perf && perf.leadsReceived > 0 ? perf.delivered / perf.leadsReceived : undefined;
-
   return (
     <div className="animate-rise">
       <Button asChild variant="ghost" size="sm" className="mb-3 -ms-2 gap-1.5 text-muted-foreground">
@@ -238,13 +234,6 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
           }
         />
         <KpiCard
-          label={dict.admin.companyDetail.kpiDeliveryRate}
-          value={deliveredRate === undefined ? "—" : t.percent(deliveredRate)}
-          hint={
-            perf ? t.fill(dict.admin.companyDetail.kpiBounced, { n: perf.bounced }) : undefined
-          }
-        />
-        <KpiCard
           label={dict.admin.companyDetail.kpiFeesPaid12mo}
           value={
             mover.plan !== "pro_unlimited"
@@ -277,19 +266,6 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
               <dl>
                 <DetailRow label={dict.admin.companyDetail.rating}>
                   <Stars rating={mover.rating} count={mover.reviewCount} />
-                </DetailRow>
-                <DetailRow label={dict.admin.companyDetail.completedMoves}>
-                  <span className="tnum">{t.number(mover.completedMoves)}</span>
-                </DetailRow>
-                <DetailRow label={dict.admin.companyDetail.onTimeRate}>
-                  <span className="tnum">{t.percent(mover.onTimeRate)}</span>
-                </DetailRow>
-                <DetailRow label={dict.admin.companyDetail.medianResponse}>
-                  <span className="tnum">
-                    {t.fill(dict.admin.companyDetail.medianResponseValue, {
-                      mins: mover.responseMins,
-                    })}
-                  </span>
                 </DetailRow>
                 <DetailRow label={dict.admin.companyDetail.fleet}>
                   {t.fill(dict.admin.companyDetail.fleetValue, {
@@ -439,7 +415,6 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                         <TableHead>{dict.admin.companyDetail.colAssigned}</TableHead>
                         <TableHead className="text-end">{dict.admin.companyDetail.colFee}</TableHead>
                         <TableHead>{dict.admin.companyDetail.colDelivery}</TableHead>
-                        <TableHead>{dict.admin.companyDetail.colPipeline}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -476,12 +451,6 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                               <StatusBadge
                                 meta={DELIVERY_META[assignment.delivery]}
                                 label={dict.admin.status.delivery[assignment.delivery]}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <StatusBadge
-                                meta={LEAD_STATUS_META[l.status]}
-                                label={dict.admin.status.lead[l.status]}
                               />
                             </TableCell>
                           </TableRow>

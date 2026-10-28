@@ -1,9 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Lock, Search } from "lucide-react";
+import { Lock, Pencil, Plus, Search, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState, PageHeader } from "@/components/admin/bits";
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PaginationBar, usePagination } from "@/components/admin/table-bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,10 +46,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminData, useAdminDispatch } from "@/lib/admin/store";
 import {
-  ADMIN_ROLES,
   PERMISSION_KEYS,
-  type AdminRole,
   type PlatformSettings,
+  type RoleDef,
+  type TeamMember,
 } from "@/lib/admin/types";
 import { useI18n } from "@/i18n/provider";
 
@@ -55,10 +64,90 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
   const data = useAdminData();
   const dispatch = useAdminDispatch();
   const { dict, t } = useI18n();
+  const sx = dict.admin.settings;
 
   const [tab, setTab] = useState(
-    initialTab === "audit" || initialTab === "platform" ? initialTab : "team",
+    initialTab === "audit" || initialTab === "platform" || initialTab === "roles"
+      ? initialTab
+      : "team",
   );
+
+  const roleById = useMemo(
+    () => new Map(data.roles.map((r) => [r.id, r])),
+    [data.roles],
+  );
+
+  /* ---- user dialogs ---- */
+  const [userDialog, setUserDialog] = useState<{ mode: "create" } | { mode: "edit"; member: TeamMember } | null>(null);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userRoleId, setUserRoleId] = useState<string>(data.roles[0]?.id ?? "");
+  const [userError, setUserError] = useState<string | null>(null);
+  const [removeUser, setRemoveUser] = useState<TeamMember | null>(null);
+
+  const openCreateUser = () => {
+    setUserName("");
+    setUserEmail("");
+    setUserRoleId(data.roles.find((r) => !r.locked)?.id ?? data.roles[0]?.id ?? "");
+    setUserError(null);
+    setUserDialog({ mode: "create" });
+  };
+
+  const openEditUser = (member: TeamMember) => {
+    setUserName(member.name);
+    setUserEmail(member.email);
+    setUserRoleId(member.roleId);
+    setUserError(null);
+    setUserDialog({ mode: "edit", member });
+  };
+
+  const submitUser = () => {
+    const name = userName.trim();
+    const email = userEmail.trim();
+    if (name.length < 2) {
+      setUserError(sx.userNameError);
+      return;
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setUserError(sx.userEmailError);
+      return;
+    }
+    if (!userDialog) return;
+    if (userDialog.mode === "create") {
+      dispatch({ type: "team/create", name, email, roleId: userRoleId });
+      toast.success(t.fill(sx.userCreatedToast, { name }));
+    } else {
+      dispatch({ type: "team/update", memberId: userDialog.member.id, patch: { name, email } });
+      if (userRoleId !== userDialog.member.roleId) {
+        dispatch({ type: "team/role", memberId: userDialog.member.id, roleId: userRoleId });
+      }
+      toast.success(t.fill(sx.userUpdatedToast, { name }));
+    }
+    setUserDialog(null);
+  };
+
+  /* ---- role dialogs ---- */
+  const [roleDialog, setRoleDialog] = useState<{ mode: "create" } | { mode: "edit"; role: RoleDef } | null>(null);
+  const [roleName, setRoleName] = useState("");
+  const [roleError, setRoleError] = useState<string | null>(null);
+  const [removeRole, setRemoveRole] = useState<RoleDef | null>(null);
+
+  const submitRole = () => {
+    const name = roleName.trim();
+    if (name.length < 2) {
+      setRoleError(sx.roleNameError);
+      return;
+    }
+    if (!roleDialog) return;
+    if (roleDialog.mode === "create") {
+      dispatch({ type: "roles/create", name });
+      toast.success(t.fill(sx.roleCreatedToast, { name }));
+    } else {
+      dispatch({ type: "roles/rename", roleId: roleDialog.role.id, name });
+      toast.success(t.fill(sx.roleRenamedToast, { name }));
+    }
+    setRoleDialog(null);
+  };
 
   /* ---- audit log state ---- */
   const [auditQuery, setAuditQuery] = useState("");
@@ -105,101 +194,218 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-4">
-          <TabsTrigger value="team">{dict.admin.settings.tabTeam}</TabsTrigger>
-          <TabsTrigger value="audit">{dict.admin.settings.tabAudit}</TabsTrigger>
-          <TabsTrigger value="platform">{dict.admin.settings.tabPlatform}</TabsTrigger>
+          <TabsTrigger value="team">{sx.tabUsers}</TabsTrigger>
+          <TabsTrigger value="roles">{sx.tabRoles}</TabsTrigger>
+          <TabsTrigger value="audit">{sx.tabAudit}</TabsTrigger>
+          <TabsTrigger value="platform">{sx.tabPlatform}</TabsTrigger>
         </TabsList>
 
-        {/* ---------------- Team & roles ---------------- */}
+        {/* ---------------- Users ---------------- */}
         <TabsContent value="team" className="space-y-4">
           <Card className="gap-0 overflow-hidden py-0 shadow-soft">
-            <CardHeader className="pt-6 pb-4">
-              <CardTitle>{dict.admin.settings.teamTitle}</CardTitle>
-              <CardDescription>{dict.admin.settings.teamDescription}</CardDescription>
+            <CardHeader className="flex-row items-start justify-between gap-3 pt-6 pb-4">
+              <div className="space-y-1.5">
+                <CardTitle>{sx.usersTitle}</CardTitle>
+                <CardDescription>{sx.usersDescription}</CardDescription>
+              </div>
+              <Button className="gap-2" onClick={openCreateUser}>
+                <UserPlus aria-hidden />
+                {sx.addUser}
+              </Button>
             </CardHeader>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{dict.admin.settings.colMember}</TableHead>
-                    <TableHead>{dict.admin.settings.colRole}</TableHead>
-                    <TableHead>{dict.admin.settings.colInvited}</TableHead>
-                    <TableHead>{dict.admin.settings.colLastActive}</TableHead>
+                    <TableHead>{sx.colMember}</TableHead>
+                    <TableHead>{sx.colRole}</TableHead>
+                    <TableHead>{sx.colInvited}</TableHead>
+                    <TableHead>{sx.colLastActive}</TableHead>
+                    <TableHead className="text-end">{sx.colActions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.team.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <span className="flex items-center gap-3">
-                          <span
-                            aria-hidden
-                            className="flex size-8 items-center justify-center rounded-full bg-brand/25 text-xs font-semibold text-ink dark:bg-brand/15 dark:text-brand"
-                          >
-                            {member.name
-                              .split(" ")
-                              .map((part) => part[0])
-                              .slice(0, 2)
-                              .join("")}
-                          </span>
-                          <span>
-                            <span className="block text-[13.5px] font-medium">{member.name}</span>
-                            <span className="block text-xs text-muted-foreground">
-                              {member.email}
+                  {data.team.map((member) => {
+                    const role = roleById.get(member.roleId);
+                    return (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <span className="flex items-center gap-3">
+                            <span
+                              aria-hidden
+                              className="flex size-8 items-center justify-center rounded-full bg-brand/25 text-xs font-semibold text-ink dark:bg-brand/15 dark:text-brand"
+                            >
+                              {member.name
+                                .split(" ")
+                                .map((part) => part[0])
+                                .slice(0, 2)
+                                .join("")}
+                            </span>
+                            <span>
+                              <span className="block text-[13.5px] font-medium">{member.name}</span>
+                              <span className="block text-xs text-muted-foreground">
+                                {member.email}
+                              </span>
                             </span>
                           </span>
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {member.role === "owner" ? (
-                          <Badge variant="secondary" className="gap-1">
-                            <Lock aria-hidden />
-                            {dict.admin.settings.roles.owner}
-                          </Badge>
-                        ) : (
-                          <Select
-                            value={member.role}
-                            onValueChange={(role) => {
-                              dispatch({
-                                type: "team/role",
-                                memberId: member.id,
-                                role: role as AdminRole,
-                              });
-                              toast.success(
-                                t.fill(dict.admin.settings.roleToast, {
-                                  name: member.name,
-                                  role: dict.admin.settings.roles[role as AdminRole],
-                                }),
-                              );
-                            }}
-                          >
-                            <SelectTrigger
-                              size="sm"
-                              className="w-36"
-                              aria-label={t.fill(dict.admin.settings.roleForAria, {
-                                name: member.name,
-                              })}
+                        </TableCell>
+                        <TableCell>
+                          {member.locked ? (
+                            <Badge variant="secondary" className="gap-1">
+                              <Lock aria-hidden />
+                              {role?.name ?? member.roleId}
+                            </Badge>
+                          ) : (
+                            <Select
+                              value={member.roleId}
+                              onValueChange={(roleId) => {
+                                dispatch({ type: "team/role", memberId: member.id, roleId });
+                                toast.success(
+                                  t.fill(sx.roleToast, {
+                                    name: member.name,
+                                    role: roleById.get(roleId)?.name ?? roleId,
+                                  }),
+                                );
+                              }}
                             >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {ADMIN_ROLES.filter((r) => r !== "owner").map((role) => (
-                                <SelectItem key={role} value={role}>
-                                  {dict.admin.settings.roles[role]}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </TableCell>
-                      <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                        {member.invitedAt}
-                      </TableCell>
-                      <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                        {t.dateShort(member.lastActiveAt)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                              <SelectTrigger
+                                size="sm"
+                                className="w-52"
+                                aria-label={t.fill(sx.roleForAria, { name: member.name })}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {data.roles.map((r) => (
+                                  <SelectItem key={r.id} value={r.id}>
+                                    {r.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </TableCell>
+                        <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
+                          {member.invitedAt}
+                        </TableCell>
+                        <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
+                          {t.dateShort(member.lastActiveAt)}
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <span className="inline-flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t.fill(sx.editUserAria, { name: member.name })}
+                              onClick={() => openEditUser(member)}
+                            >
+                              <Pencil aria-hidden />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t.fill(sx.removeUserAria, { name: member.name })}
+                              disabled={member.locked}
+                              onClick={() => setRemoveUser(member)}
+                            >
+                              <Trash2 aria-hidden />
+                            </Button>
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </TabsContent>
+
+        {/* ---------------- Roles & permissions ---------------- */}
+        <TabsContent value="roles" className="space-y-4">
+          <Card className="gap-0 overflow-hidden py-0 shadow-soft">
+            <CardHeader className="flex-row items-start justify-between gap-3 pt-6 pb-4">
+              <div className="space-y-1.5">
+                <CardTitle>{sx.rolesTitle}</CardTitle>
+                <CardDescription>{sx.rolesDescription}</CardDescription>
+              </div>
+              <Button
+                className="gap-2"
+                onClick={() => {
+                  setRoleName("");
+                  setRoleError(null);
+                  setRoleDialog({ mode: "create" });
+                }}
+              >
+                <Plus aria-hidden />
+                {sx.addRole}
+              </Button>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{sx.colRole}</TableHead>
+                    <TableHead>{sx.colGranted}</TableHead>
+                    <TableHead>{sx.colUsers}</TableHead>
+                    <TableHead className="text-end">{sx.colActions}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.roles.map((role) => {
+                    const granted = PERMISSION_KEYS.filter((k) => role.permissions[k]).length;
+                    const holders = data.team.filter((m) => m.roleId === role.id).length;
+                    return (
+                      <TableRow key={role.id}>
+                        <TableCell className="text-[13.5px] font-medium">
+                          <span className="flex items-center gap-2">
+                            {role.name}
+                            {role.locked ? (
+                              <Badge variant="secondary" className="gap-1">
+                                <Lock aria-hidden />
+                                {sx.lockedRole}
+                              </Badge>
+                            ) : null}
+                          </span>
+                        </TableCell>
+                        <TableCell className="tnum text-[13px] text-muted-foreground">
+                          {t.fill(sx.grantedOf, {
+                            n: granted,
+                            total: PERMISSION_KEYS.length,
+                          })}
+                        </TableCell>
+                        <TableCell className="tnum text-[13px] text-muted-foreground">
+                          {holders}
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <span className="inline-flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t.fill(sx.renameRoleAria, { name: role.name })}
+                              disabled={role.locked}
+                              onClick={() => {
+                                setRoleName(role.name);
+                                setRoleError(null);
+                                setRoleDialog({ mode: "edit", role });
+                              }}
+                            >
+                              <Pencil aria-hidden />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t.fill(sx.deleteRoleAria, { name: role.name })}
+                              disabled={role.locked}
+                              onClick={() => setRemoveRole(role)}
+                            >
+                              <Trash2 aria-hidden />
+                            </Button>
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -207,17 +413,17 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
 
           <Card className="gap-0 overflow-hidden py-0 shadow-soft">
             <CardHeader className="pt-6 pb-4">
-              <CardTitle>{dict.admin.settings.permissionsTitle}</CardTitle>
-              <CardDescription>{dict.admin.settings.permissionsDescription}</CardDescription>
+              <CardTitle>{sx.permissionsTitle}</CardTitle>
+              <CardDescription>{sx.permissionsDescription}</CardDescription>
             </CardHeader>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-44">{dict.admin.settings.colPermission}</TableHead>
-                    {ADMIN_ROLES.map((role) => (
-                      <TableHead key={role} className="text-center">
-                        {dict.admin.settings.roles[role]}
+                    <TableHead className="min-w-44">{sx.colPermission}</TableHead>
+                    {data.roles.map((role) => (
+                      <TableHead key={role.id} className="min-w-28 text-center">
+                        {role.name}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -226,19 +432,19 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                   {PERMISSION_KEYS.map((permission) => (
                     <TableRow key={permission}>
                       <TableCell className="text-[13px] font-medium">
-                        {dict.admin.settings.permissions[permission]}
+                        {sx.permissions[permission]}
                         <span className="block text-[10.5px] text-muted-foreground">
                           {permission}
                         </span>
                       </TableCell>
-                      {ADMIN_ROLES.map((role) => (
-                        <TableCell key={role} className="text-center">
+                      {data.roles.map((role) => (
+                        <TableCell key={role.id} className="text-center">
                           <Checkbox
-                            checked={data.roles[role][permission]}
-                            disabled={role === "owner"}
-                            aria-label={`${dict.admin.settings.roles[role]}: ${dict.admin.settings.permissions[permission]}`}
+                            checked={role.permissions[permission]}
+                            disabled={role.locked}
+                            aria-label={`${role.name}: ${sx.permissions[permission]}`}
                             onCheckedChange={() => {
-                              dispatch({ type: "roles/toggle", role, permission });
+                              dispatch({ type: "roles/toggle", roleId: role.id, permission });
                             }}
                           />
                         </TableCell>
@@ -453,6 +659,141 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* ---------------- User create / edit ---------------- */}
+      <Dialog open={userDialog !== null} onOpenChange={(open) => !open && setUserDialog(null)}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>
+              {userDialog?.mode === "edit" ? sx.editUserTitle : sx.addUserTitle}
+            </DialogTitle>
+            <DialogDescription>
+              {userDialog?.mode === "edit" ? sx.editUserDescription : sx.addUserDescription}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="user-name">{sx.userName}</Label>
+              <Input
+                id="user-name"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                placeholder={sx.userNamePlaceholder}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="user-email">{sx.userEmail}</Label>
+              <Input
+                id="user-email"
+                type="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                placeholder={sx.userEmailPlaceholder}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="user-role">{sx.colRole}</Label>
+              <Select
+                value={userRoleId}
+                onValueChange={setUserRoleId}
+                disabled={userDialog?.mode === "edit" && userDialog.member.locked}
+              >
+                <SelectTrigger id="user-role" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {data.roles.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {userError ? (
+              <p role="alert" className="text-[13px] text-destructive">
+                {userError}
+              </p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setUserDialog(null)}>
+              {dict.admin.common.cancel}
+            </Button>
+            <Button onClick={submitUser}>
+              {userDialog?.mode === "edit" ? dict.admin.common.saveChanges : sx.addUser}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---------------- Role create / rename ---------------- */}
+      <Dialog open={roleDialog !== null} onOpenChange={(open) => !open && setRoleDialog(null)}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>
+              {roleDialog?.mode === "edit" ? sx.renameRoleTitle : sx.addRoleTitle}
+            </DialogTitle>
+            <DialogDescription>
+              {roleDialog?.mode === "edit" ? sx.renameRoleDescription : sx.addRoleDescription}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="role-name">{sx.roleName}</Label>
+              <Input
+                id="role-name"
+                value={roleName}
+                onChange={(e) => setRoleName(e.target.value)}
+                placeholder={sx.roleNamePlaceholder}
+              />
+            </div>
+            {roleError ? (
+              <p role="alert" className="text-[13px] text-destructive">
+                {roleError}
+              </p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRoleDialog(null)}>
+              {dict.admin.common.cancel}
+            </Button>
+            <Button onClick={submitRole}>
+              {roleDialog?.mode === "edit" ? dict.admin.common.saveChanges : sx.addRole}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={removeUser !== null}
+        onOpenChange={(open) => !open && setRemoveUser(null)}
+        title={t.fill(sx.removeUserTitle, { name: removeUser?.name ?? "" })}
+        description={sx.removeUserDescription}
+        confirmLabel={sx.removeUserConfirm}
+        destructive
+        onConfirm={() => {
+          if (!removeUser) return;
+          dispatch({ type: "team/remove", memberId: removeUser.id });
+          toast.success(t.fill(sx.userRemovedToast, { name: removeUser.name }));
+          setRemoveUser(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={removeRole !== null}
+        onOpenChange={(open) => !open && setRemoveRole(null)}
+        title={t.fill(sx.deleteRoleTitle, { name: removeRole?.name ?? "" })}
+        description={sx.deleteRoleDescription}
+        confirmLabel={sx.deleteRoleConfirm}
+        destructive
+        onConfirm={() => {
+          if (!removeRole) return;
+          dispatch({ type: "roles/delete", roleId: removeRole.id });
+          toast.success(t.fill(sx.roleDeletedToast, { name: removeRole.name }));
+          setRemoveRole(null);
+        }}
+      />
     </div>
   );
 }

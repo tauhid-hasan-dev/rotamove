@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Loader2, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock3, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { RouteEditor } from "@/components/quote/route-editor";
 import { CollectionWindow } from "@/components/quote/collection-window";
@@ -21,7 +21,26 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import type { LeadDraft } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
+/**
+ * The last-call context a request was started from.
+ *
+ * Presence of this object is what makes the flow a last-call request: it
+ * hides the carrier-count question (the run is one specific vehicle) and
+ * pins the collection window to the declared departure.
+ */
+export interface LastCallContext {
+  hours: number;
+  /** When the offer expires, if the request came from a specific run. */
+  endAt: string | null;
+}
+
+export function QuoteWizard({
+  initial,
+  lastCall = null,
+}: {
+  initial?: Partial<LeadDraft>;
+  lastCall?: LastCallContext | null;
+}) {
   const router = useRouter();
   const { dict, locale, t, href, rtl } = useI18n();
   const { draft, update, swapRoute } = useQuoteDraft(initial, locale);
@@ -85,6 +104,19 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {lastCall && (
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl bg-lastcall px-4 py-3 text-lastcall-foreground">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]">
+            <Clock3 className="size-3" />
+            {dict.dates.lastCallLabel}
+          </span>
+          <p className="min-w-0 text-[13.5px]">
+            {t.fill(dict.quote.lastCallBanner, { n: lastCall.hours })}
+            {lastCall.endAt ? ` · ${t.fill(dict.quote.lastCallExpires, { when: t.dateTime(lastCall.endAt) })}` : ""}
+          </p>
+        </div>
+      )}
+
       <RouteEditor draft={draft} update={update} swapRoute={swapRoute} />
       <CollectionWindow draft={draft} update={update} />
 
@@ -144,7 +176,12 @@ export function QuoteWizard({ initial }: { initial?: Partial<LeadDraft> }) {
               {step.id === "home" && <StepHome draft={draft} update={update} />}
               {step.id === "services" && <StepServices draft={draft} update={update} />}
               {step.id === "contact" && (
-                <StepContact draft={draft} update={update} touched={touched} />
+                <StepContact
+                  draft={draft}
+                  update={update}
+                  touched={touched}
+                  hideMatchCount={lastCall !== null}
+                />
               )}
             </motion.div>
           </AnimatePresence>

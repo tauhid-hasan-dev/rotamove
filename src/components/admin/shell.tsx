@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Building2,
@@ -12,6 +12,7 @@ import {
   Inbox,
   LayoutDashboard,
   LockOpen,
+  LogOut,
   Menu,
   Moon,
   Settings,
@@ -21,9 +22,18 @@ import {
 import { useTheme } from "next-themes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AdminLocaleSwitcher } from "@/components/admin/locale-switcher";
+import { ADMIN_COOKIE, ADMIN_EMAIL } from "@/lib/admin-session";
 import { useI18n } from "@/i18n/provider";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/utils";
@@ -125,6 +135,38 @@ function ThemeToggle() {
   );
 }
 
+function AccountMenu() {
+  const { dict } = useI18n();
+  const router = useRouter();
+
+  const signOut = () => {
+    document.cookie = `${ADMIN_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    router.refresh();
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={dict.admin.auth.account}
+        className="flex size-8 items-center justify-center rounded-full bg-brand/25 text-xs font-semibold text-ink outline-ring/40 transition-opacity hover:opacity-90 dark:bg-brand/15 dark:text-brand"
+      >
+        DA
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="font-normal">
+          <span className="block text-[13px] font-medium">{dict.admin.auth.demoAdmin}</span>
+          <span className="block text-xs text-muted-foreground">{ADMIN_EMAIL}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={signOut} className="gap-2">
+          <LogOut aria-hidden className="rtl:-scale-x-100" />
+          {dict.admin.auth.signOut}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function AdminShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { dict } = useI18n();
@@ -180,12 +222,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </div>
             <AdminLocaleSwitcher />
             <ThemeToggle />
-            <span
-              aria-hidden
-              className="flex size-8 items-center justify-center rounded-full bg-brand/25 text-xs font-semibold text-ink dark:bg-brand/15 dark:text-brand"
-            >
-              DA
-            </span>
+            <AccountMenu />
           </div>
         </header>
 

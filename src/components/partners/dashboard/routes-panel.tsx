@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   CalendarRange,
   Box,
+  Clock3,
   Pause,
   Pencil,
   Play,
@@ -19,7 +20,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { LaneDialog } from "@/components/partners/dashboard/lane-dialog";
-import { laneExpired, type LaneInput, type PartnerLane } from "@/lib/lanes";
+import {
+  laneExpired,
+  lastCallEndAt,
+  lastCallHoursLeft,
+  type LaneInput,
+  type PartnerLane,
+} from "@/lib/lanes";
 import { getCity } from "@/lib/geo";
 import { todayLocalIso } from "@/lib/calendar";
 import { useI18n } from "@/i18n/provider";
@@ -41,7 +48,7 @@ const MODE_ICONS = { road: Truck, sea: Ship, air: Plane, rail: Train } as const;
  * No optimistic update: a lane that looks saved but is not would send the
  * carrier to a border with no load.
  */
-export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
+export function RoutesPanel({ initial, now }: { initial: PartnerLane[]; now: number }) {
   const { dict, t } = useI18n();
   const lx = dict.partnerDashboard.lanes;
   const [lanes, setLanes] = useState(initial);
@@ -50,7 +57,9 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const today = todayLocalIso();
-  const active = lanes.filter((lane) => lane.status === "active" && !laneExpired(lane, today));
+  const active = lanes.filter(
+    (lane) => lane.status === "active" && !laneExpired(lane, today, now),
+  );
   const dated = active.filter((lane) => lane.window).length;
 
   const capacity = active.reduce((sum, lane) => sum + lane.capacityM3, 0);
@@ -176,8 +185,9 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
             <LaneCard
               key={lane.id}
               lane={lane}
+              now={now}
               busy={busyId === lane.id}
-              expired={laneExpired(lane, today)}
+              expired={laneExpired(lane, today, now)}
               onEdit={() => openEdit(lane)}
               onToggle={() => void toggleStatus(lane)}
               onRemove={() => void remove(lane)}
@@ -218,6 +228,7 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
 
 function LaneCard({
   lane,
+  now,
   busy,
   expired,
   onEdit,
@@ -225,6 +236,7 @@ function LaneCard({
   onRemove,
 }: {
   lane: PartnerLane;
+  now: number;
   busy: boolean;
   expired: boolean;
   onEdit: () => void;
@@ -258,7 +270,12 @@ function LaneCard({
       <div className="flex flex-wrap items-start gap-x-5 gap-y-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            {lane.window ? (
+            {lane.lastCall ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-ink">
+                <Clock3 className="size-3" />
+                {lx.lastCall}
+              </span>
+            ) : lane.window ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-ink">
                 <CalendarRange className="size-3" />
                 {lx.oneRun}
@@ -310,12 +327,19 @@ function LaneCard({
               <Box className="size-3.5" />
               {t.fill(lx.capacityFree, { n: t.number(lane.capacityM3) })}
             </span>
-            {lane.window && (
+            {lane.lastCall ? (
+              <span className="inline-flex items-center gap-1.5 font-medium text-lastcall-foreground">
+                <Clock3 className="size-3.5" />
+                {expired
+                  ? t.fill(lx.lastCallEndsAt, { when: t.dateTime(lastCallEndAt(lane.lastCall)) })
+                  : t.fill(lx.lastCallLeft, { n: lastCallHoursLeft(lane, now) })}
+              </span>
+            ) : lane.window ? (
               <span className="inline-flex items-center gap-1.5">
                 <CalendarRange className="size-3.5" />
                 {t.dateRange(lane.window)}
               </span>
-            )}
+            ) : null}
           </dl>
 
           {lane.notes && (

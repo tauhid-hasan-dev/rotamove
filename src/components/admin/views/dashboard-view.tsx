@@ -2,17 +2,17 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { ArrowRight, Building2, Inbox } from "lucide-react";
+import { Building2, Route } from "lucide-react";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { EmptyState, KpiCard, PageHeader, StatusBadge } from "@/components/admin/bits";
 import {
-  ChannelDonut,
-  DistributionBar,
   LeadsTrendChart,
+  MixDonut,
+  RankedBars,
   RevenueTrendChart,
+  SERVICE_COLORS,
 } from "@/components/admin/charts";
 import { DateRangePicker, useDateRange } from "@/components/admin/date-range-picker";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,16 +21,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  billingTotals,
   companyPerformance,
   computeKpis,
   leadTrend,
   leadsInRange,
   previousRange,
   revenueTrend,
-  statusCounts,
+  serviceMix,
+  topLeadRoutes,
 } from "@/lib/admin/metrics";
-import { COMPANY_STATUS_META, LEAD_STATUS_META } from "@/lib/admin/labels";
-import { CHANNELS, LEAD_STATUSES } from "@/lib/admin/types";
+import { COMPANY_STATUS_META } from "@/lib/admin/labels";
+import { getCity } from "@/lib/geo";
 import { useAdminData } from "@/lib/admin/store";
 import { useI18n } from "@/i18n/provider";
 
@@ -52,15 +54,26 @@ export function DashboardView() {
   const revenue = useMemo(() => revenueTrend(data, range), [data, range]);
 
   const rangeLeads = useMemo(() => leadsInRange(data.leads, range), [data.leads, range]);
-  const counts = useMemo(() => statusCounts(rangeLeads), [rangeLeads]);
+  const billing = useMemo(() => billingTotals(data, range), [data, range]);
 
-  const channelSlices = useMemo(
+  const routes = useMemo(
     () =>
-      CHANNELS.map((channel) => ({
-        channel,
-        label: dict.admin.labels.channel[channel],
-        value: rangeLeads.filter((l) => l.source.channel === channel).length,
-      })).filter((s) => s.value > 0),
+      topLeadRoutes(rangeLeads).map((r) => ({
+        key: `${r.fromCode}:${r.toCode}`,
+        label: `${getCity(r.fromCode)?.name ?? r.fromCode} → ${getCity(r.toCode)?.name ?? r.toCode}`,
+        value: r.count,
+      })),
+    [rangeLeads],
+  );
+
+  const services = useMemo(
+    () =>
+      serviceMix(rangeLeads).map((s) => ({
+        id: s.service,
+        label: dict.enums.serviceLevel[s.service].label,
+        value: s.count,
+        color: SERVICE_COLORS[s.service],
+      })),
     [rangeLeads, dict],
   );
 
@@ -72,8 +85,6 @@ export function DashboardView() {
         .slice(0, 5),
     [data, range],
   );
-
-  const activity = data.audit.slice(0, 8);
 
   return (
     <div className="animate-rise">
@@ -90,27 +101,11 @@ export function DashboardView() {
       />
 
       {/* KPI grid */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <KpiCard
           label={dx.kpiTotalLeads}
           value={t.number(kpis.totalLeads)}
           delta={delta(kpis.totalLeads, prev.totalLeads)}
-        />
-        <KpiCard label={dx.kpiNew} value={t.number(kpis.newLeads)} hint={dx.kpiNewHint} />
-        <KpiCard
-          label={dx.kpiQualified}
-          value={t.number(kpis.qualifiedLeads)}
-          delta={delta(kpis.qualifiedLeads, prev.qualifiedLeads)}
-        />
-        <KpiCard
-          label={dx.kpiConverted}
-          value={t.number(kpis.convertedLeads)}
-          delta={delta(kpis.convertedLeads, prev.convertedLeads)}
-        />
-        <KpiCard
-          label={dx.kpiConversionRate}
-          value={t.percent(kpis.conversionRate, 1)}
-          delta={delta(kpis.conversionRate, prev.conversionRate)}
         />
         <KpiCard
           label={dx.kpiActiveCompanies}
@@ -126,6 +121,11 @@ export function DashboardView() {
           label={dx.kpiOutstanding}
           value={t.usd(kpis.outstandingUsd)}
           hint={dx.kpiOutstandingHint}
+        />
+        <KpiCard
+          label={dict.admin.billing.kpiOverdue}
+          value={t.usd(billing.overdueUsd)}
+          hint={t.fill(dict.admin.billing.kpiOverdueHint, { n: t.number(billing.overdueCount) })}
         />
       </div>
 
@@ -155,30 +155,36 @@ export function DashboardView() {
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>{dx.pipelineTitle}</CardTitle>
-            <CardDescription>{dx.pipelineDescription}</CardDescription>
+            <CardTitle>{dict.admin.routesCard.title}</CardTitle>
+            <CardDescription>{dict.admin.routesCard.description}</CardDescription>
           </CardHeader>
           <CardContent>
-            {rangeLeads.length === 0 ? (
+            {routes.length === 0 ? (
               <EmptyState
-                title={dx.pipelineEmptyTitle}
-                description={dx.pipelineEmptyBody}
-                icon={<Inbox className="size-5" aria-hidden />}
+                title={dict.admin.routesCard.empty}
+                icon={<Route className="size-5" aria-hidden />}
                 className="py-8"
               />
             ) : (
-              <>
-                <DistributionBar
-                  segments={LEAD_STATUSES.map((status) => ({
-                    label: dict.admin.status.lead[status],
-                    value: counts[status],
-                    colorClassName: LEAD_STATUS_META[status].dotClassName,
-                  }))}
-                />
-                <div className="mt-5 border-t pt-4">
-                  <ChannelDonut data={channelSlices} className="h-48 w-full" />
-                </div>
-              </>
+              <RankedBars items={routes} />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle>{dict.admin.routesCard.serviceTitle}</CardTitle>
+            <CardDescription>{dict.admin.routesCard.serviceDescription}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {services.length === 0 ? (
+              <EmptyState
+                title={dict.admin.routesCard.empty}
+                icon={<Route className="size-5" aria-hidden />}
+                className="py-8"
+              />
+            ) : (
+              <MixDonut data={services} className="h-56 w-full" />
             )}
           </CardContent>
         </Card>
@@ -222,34 +228,6 @@ export function DashboardView() {
                 </Link>
               ))
             )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle>{dx.activityTitle}</CardTitle>
-            <CardDescription>{dx.activityDescription}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ol className="space-y-3">
-              {activity.map((entry) => (
-                <li key={entry.id} className="flex gap-3 text-[13px]">
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand-deep" aria-hidden />
-                  <span className="min-w-0">
-                    <span className="block truncate">{entry.detail}</span>
-                    <span className="tnum text-xs text-muted-foreground">
-                      {entry.actor} · {t.dateShort(entry.at)}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <Button asChild variant="ghost" size="sm" className="mt-3 gap-1.5">
-              <Link href="/admin/settings?tab=audit">
-                {dx.fullAuditLog}
-                <ArrowRight aria-hidden />
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>

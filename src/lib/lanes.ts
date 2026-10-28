@@ -16,17 +16,32 @@ import type { DateRange, Lead } from "@/lib/types";
  * So lanes are declared by the partner, not derived from their profile, and
  * they come in two kinds:
  *
- *  - `standing` — a scheduled service they run all year. No dates.
- *  - `dated`    — one run, with a window. "A lorry goes Istanbul → Bratislava
- *                 between 10 and 16 November." This is the temporary route a
- *                 partner adds when a job happens to take a vehicle somewhere
- *                 new, and it expires on its own.
+ *  - `standing`  — a scheduled service they run all year. No dates.
+ *  - `dated`     — one run, with a window. "A lorry goes Istanbul → Bratislava
+ *                  between 10 and 16 November." This is the temporary route a
+ *                  partner adds when a job happens to take a vehicle somewhere
+ *                  new, and it expires on its own.
+ *  - `last call` — a dated run measured in hours rather than days: the vehicle
+ *                  leaves at a stated time and the offer dies 24, 48 or 72
+ *                  hours later. Same matching path as a dated run (it carries
+ *                  a `window` too) with a countdown on top, because the whole
+ *                  value of the space is that it is about to depart.
  *
- * Both feed matching. See `laneBonus` in lib/matching.ts.
+ * All three feed matching. See `laneBonus` in lib/matching.ts.
  */
 
 export const LANE_VEHICLES = ["lorry", "van"] as const;
 export type LaneVehicle = (typeof LANE_VEHICLES)[number];
+
+/** The only durations a last-call offer may run for. */
+export const LAST_CALL_HOURS = [24, 48, 72] as const;
+export type LastCallHours = (typeof LAST_CALL_HOURS)[number];
+
+export interface LastCall {
+  hours: LastCallHours;
+  /** ISO datetime the vehicle is available from — date *and* hour. */
+  startAt: string;
+}
 
 export const LANE_MODES = ["road", "sea", "air", "rail"] as const satisfies ReadonlyArray<TransportMode>;
 
@@ -40,8 +55,14 @@ export interface PartnerLane {
   toCode: string;
   /** The vehicle comes back loaded too, so the reverse leg matches as well. */
   bothWays: boolean;
-  /** `null` for a standing service; ISO `[start, end]` for a single dated run. */
+  /**
+   * `null` for a standing service; ISO `[start, end]` for a single dated run.
+   * A last-call lane carries one too, derived from its start and duration, so
+   * matching never needs to know which kind of dated run it is looking at.
+   */
   window: DateRange | null;
+  /** Set only on last-call lanes. The countdown lives here. */
+  lastCall: LastCall | null;
   vehicle: LaneVehicle;
   mode: TransportMode;
   /** Space still unsold on this run, m³ — what a backload is actually sized by. */
@@ -72,6 +93,12 @@ const laneObjectSchema = z.object({
   toCode: cityCode,
   bothWays: z.boolean(),
   window: z.tuple([isoDate, isoDate]).nullable(),
+  lastCall: z
+    .object({
+      hours: z.union([z.literal(24), z.literal(48), z.literal(72)]),
+      startAt: z.string().datetime({ offset: true }),
+    })
+    .nullable(),
   vehicle: z.enum(LANE_VEHICLES),
   mode: z.enum(LANE_MODES),
   capacityM3: z.number().int().min(1).max(5000),
@@ -87,6 +114,12 @@ export const laneInputSchema = laneObjectSchema
   .refine((lane) => !lane.window || lane.window[0] <= lane.window[1], {
     message: "The run has to end after it starts",
     path: ["window"],
+  })
+  // A last-call offer is a dated run by definition — without a window it
+  // would never expire and would keep matching long after the lorry left.
+  .refine((lane) => !lane.lastCall || lane.window !== null, {
+    message: "A last-call run needs a departure window",
+    path: ["lastCall"],
   });
 
 export type LaneInput = z.infer<typeof laneInputSchema>;
@@ -188,10 +221,53 @@ export function windowOverlap(a: DateRange, b: DateRange): DateRange | null {
   return start <= end ? [start, end] : null;
 }
 
+/* -------------------------------------------------------------- last call -- */
+
+const HOUR_MS = 3_600_000;
+
+/** When the offer dies: start plus its duration, to the minute. */
+export function lastCallEndAt({ startAt, hours }: LastCall): string {
+  return new Date(Date.parse(startAt) + hours * HOUR_MS).toISOString();
+}
+
+/**
+ * The `[start, end]` day window a last-call offer occupies.
+ *
+ * Derived rather than entered: the partner picks a departure time and a
+ * duration, and the dates follow. Two sources of truth for "when does this
+ * run" is how a 24-hour offer ends up matching a move three weeks out.
+ */
+export function lastCallWindow(lastCall: LastCall): DateRange {
+  return [lastCall.startAt.slice(0, 10), lastCallEndAt(lastCall).slice(0, 10)];
+}
+
+/** Still open for requests — the clock has not run out yet. */
+export function lastCallActive(lane: PartnerLane, nowMs: number): boolean {
+  if (!lane.lastCall) return false;
+  if (lane.status !== "active") return false;
+  return Date.parse(lastCallEndAt(lane.lastCall)) > nowMs;
+}
+
+/** Whole hours left on the offer, floored at zero. */
+export function lastCallHoursLeft(lane: PartnerLane, nowMs: number): number {
+  if (!lane.lastCall) return 0;
+  const left = Date.parse(lastCallEndAt(lane.lastCall)) - nowMs;
+  return Math.max(0, Math.floor(left / HOUR_MS));
+}
+
 /* ------------------------------------------------------------------ view -- */
 
-/** Has a dated run already finished? Used to grey it out rather than delete it. */
-export function laneExpired(lane: PartnerLane, todayIso: string): boolean {
+/**
+ * Has a dated run already finished? Used to grey it out rather than delete it.
+ *
+ * Last-call runs expire on the clock, not the calendar: a 24-hour offer that
+ * started at 18:00 yesterday is over by now even though its end *date* is
+ * today. `nowMs` is optional so existing date-only callers keep working.
+ */
+export function laneExpired(lane: PartnerLane, todayIso: string, nowMs?: number): boolean {
+  if (lane.lastCall && nowMs !== undefined) {
+    return Date.parse(lastCallEndAt(lane.lastCall)) <= nowMs;
+  }
   return lane.window !== null && lane.window[1] < todayIso;
 }
 

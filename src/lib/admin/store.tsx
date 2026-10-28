@@ -5,14 +5,15 @@ import { nanoid } from "nanoid";
 import { generateAdminDataset } from "@/lib/admin/seed";
 import type {
   AdminDataset,
-  AdminRole,
   CompanyStatus,
   DeliveryStatus,
   LeadStatus,
   PaymentMethod,
   PermissionKey,
   PlatformSettings,
+  RoleDef,
 } from "@/lib/admin/types";
+import { ADMIN_ROLE_ID, PERMISSION_KEYS } from "@/lib/admin/types";
 
 /* ======================================================================== *
  *  Session store for the admin prototype.
@@ -40,8 +41,14 @@ export type AdminAction =
   | { type: "invoice/refund"; id: string; reason: string }
   | { type: "credit/add"; companyId: string; amountUsd: number; reason: string }
   | { type: "settings/update"; patch: Partial<PlatformSettings> }
-  | { type: "roles/toggle"; role: AdminRole; permission: PermissionKey }
-  | { type: "team/role"; memberId: string; role: AdminRole };
+  | { type: "roles/toggle"; roleId: string; permission: PermissionKey }
+  | { type: "roles/create"; name: string; permissions?: PermissionKey[] }
+  | { type: "roles/rename"; roleId: string; name: string }
+  | { type: "roles/delete"; roleId: string }
+  | { type: "team/role"; memberId: string; roleId: string }
+  | { type: "team/create"; name: string; email: string; roleId: string }
+  | { type: "team/update"; memberId: string; patch: { name?: string; email?: string } }
+  | { type: "team/remove"; memberId: string };
 
 function withAudit(
   state: AdminDataset,
@@ -315,33 +322,166 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
     }
 
     case "roles/toggle": {
-      const current = state.roles[action.role][action.permission];
+      const role = state.roles.find((r) => r.id === action.roleId);
+      // The Admin role is the floor of the permission system: if it could be
+      // edited, the console could be locked out of itself.
+      if (!role || role.locked) return state;
+      const granted = !role.permissions[action.permission];
       const next: AdminDataset = {
         ...state,
-        roles: {
-          ...state.roles,
-          [action.role]: { ...state.roles[action.role], [action.permission]: !current },
-        },
+        roles: state.roles.map((r) =>
+          r.id === action.roleId
+            ? { ...r, permissions: { ...r.permissions, [action.permission]: granted } }
+            : r,
+        ),
       };
       return withAudit(next, {
         action: "roles.updated",
         entity: "settings",
-        detail: `${action.role}: ${action.permission} ${current ? "revoked" : "granted"}`,
+        entityId: action.roleId,
+        detail: `${role.name}: ${action.permission} ${granted ? "granted" : "revoked"}`,
       });
     }
 
+    case "roles/create": {
+      const name = action.name.trim();
+      if (!name) return state;
+      const permissions = {} as Record<PermissionKey, boolean>;
+      for (const key of PERMISSION_KEYS) {
+        permissions[key] = action.permissions?.includes(key) ?? false;
+      }
+      const role: RoleDef = { id: `role_${nanoid(8)}`, name, locked: false, permissions };
+      return withAudit(
+        { ...state, roles: [...state.roles, role] },
+        {
+          action: "roles.created",
+          entity: "settings",
+          entityId: role.id,
+          detail: `Role ${name} created`,
+        },
+      );
+    }
+
+    case "roles/rename": {
+      const role = state.roles.find((r) => r.id === action.roleId);
+      const name = action.name.trim();
+      if (!role || role.locked || !name) return state;
+      return withAudit(
+        {
+          ...state,
+          roles: state.roles.map((r) => (r.id === action.roleId ? { ...r, name } : r)),
+        },
+        {
+          action: "roles.renamed",
+          entity: "settings",
+          entityId: action.roleId,
+          detail: `Role ${role.name} renamed to ${name}`,
+        },
+      );
+    }
+
+    case "roles/delete": {
+      const role = state.roles.find((r) => r.id === action.roleId);
+      if (!role || role.locked) return state;
+      // Anyone holding the deleted role falls back to Admin rather than to a
+      // dangling id — an account with no resolvable role has no permissions
+      // at all, which is a worse failure than one with too many.
+      return withAudit(
+        {
+          ...state,
+          roles: state.roles.filter((r) => r.id !== action.roleId),
+          team: state.team.map((m) =>
+            m.roleId === action.roleId ? { ...m, roleId: ADMIN_ROLE_ID } : m,
+          ),
+        },
+        {
+          action: "roles.deleted",
+          entity: "settings",
+          entityId: action.roleId,
+          detail: `Role ${role.name} deleted`,
+        },
+      );
+    }
+
     case "team/role": {
-      const next = {
-        ...state,
-        team: state.team.map((m) => (m.id === action.memberId ? { ...m, role: action.role } : m)),
-      };
       const member = state.team.find((m) => m.id === action.memberId);
-      return withAudit(next, {
-        action: "team.role_changed",
-        entity: "team",
-        entityId: action.memberId,
-        detail: `${member?.name ?? action.memberId} is now ${action.role}`,
-      });
+      if (!member || member.locked) return state;
+      const role = state.roles.find((r) => r.id === action.roleId);
+      if (!role) return state;
+      return withAudit(
+        {
+          ...state,
+          team: state.team.map((m) =>
+            m.id === action.memberId ? { ...m, roleId: action.roleId } : m,
+          ),
+        },
+        {
+          action: "team.role_changed",
+          entity: "team",
+          entityId: action.memberId,
+          detail: `${member.name} is now ${role.name}`,
+        },
+      );
+    }
+
+    case "team/create": {
+      const name = action.name.trim();
+      const email = action.email.trim().toLowerCase();
+      if (!name || !email) return state;
+      const now = new Date().toISOString();
+      const member = {
+        id: `tm_${nanoid(8)}`,
+        name,
+        email,
+        roleId: action.roleId,
+        invitedAt: now.slice(0, 10),
+        lastActiveAt: now,
+      };
+      const role = state.roles.find((r) => r.id === action.roleId);
+      return withAudit(
+        { ...state, team: [...state.team, member] },
+        {
+          action: "team.created",
+          entity: "team",
+          entityId: member.id,
+          detail: `${name} invited as ${role?.name ?? action.roleId}`,
+        },
+      );
+    }
+
+    case "team/update": {
+      const member = state.team.find((m) => m.id === action.memberId);
+      if (!member) return state;
+      const patch = {
+        ...(action.patch.name?.trim() ? { name: action.patch.name.trim() } : {}),
+        ...(action.patch.email?.trim() ? { email: action.patch.email.trim().toLowerCase() } : {}),
+      };
+      return withAudit(
+        {
+          ...state,
+          team: state.team.map((m) => (m.id === action.memberId ? { ...m, ...patch } : m)),
+        },
+        {
+          action: "team.updated",
+          entity: "team",
+          entityId: action.memberId,
+          detail: `${member.name} profile updated`,
+        },
+      );
+    }
+
+    case "team/remove": {
+      const member = state.team.find((m) => m.id === action.memberId);
+      if (!member || member.locked) return state;
+      return withAudit(
+        { ...state, team: state.team.filter((m) => m.id !== action.memberId) },
+        {
+          action: "team.removed",
+          entity: "team",
+          entityId: action.memberId,
+          detail: `${member.name} removed from the console`,
+        },
+      );
     }
   }
 }

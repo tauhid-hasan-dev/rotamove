@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, MoveRight, Search } from "lucide-react";
-import { EmptyState, PageHeader, StatusBadge } from "@/components/admin/bits";
+import { EmptyState, PageHeader } from "@/components/admin/bits";
 import { DateRangePicker, useDateRange } from "@/components/admin/date-range-picker";
 import { ExportMenu } from "@/components/admin/export-menu";
 import {
@@ -33,15 +33,9 @@ import {
 } from "@/components/ui/table";
 import { useI18n } from "@/i18n/provider";
 import { cityLabel } from "@/lib/geo";
-import { LEAD_STATUS_META } from "@/lib/admin/labels";
 import { leadsInRange } from "@/lib/admin/metrics";
 import { useAdminData } from "@/lib/admin/store";
-import {
-  CHANNELS,
-  LEAD_STATUSES,
-  type AdminLead,
-  type LeadStatus,
-} from "@/lib/admin/types";
+import { CHANNELS, type AdminLead } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type SortKey = "created" | "move" | "quality" | "fee";
@@ -57,7 +51,6 @@ export function LeadsView() {
   const dateRange = useDateRange(data.anchorMs, "30d");
 
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<LeadStatus | "all">("all");
   const [channel, setChannel] = useState<string>("all");
   const [companyId, setCompanyId] = useState<string>("all");
   const [dupOnly, setDupOnly] = useState(false);
@@ -66,7 +59,6 @@ export function LeadsView() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const rows = leadsInRange(data.leads, dateRange.range).filter((l) => {
-      if (status !== "all" && l.status !== status) return false;
       if (channel !== "all" && l.source.channel !== channel) return false;
       if (companyId !== "all" && !l.assignments.some((a) => a.companyId === companyId)) {
         return false;
@@ -94,7 +86,7 @@ export function LeadsView() {
           return dir * (a.feeUsd - b.feeUsd);
       }
     });
-  }, [data.leads, dateRange.range, query, status, channel, companyId, dupOnly, sort]);
+  }, [data.leads, dateRange.range, query, channel, companyId, dupOnly, sort]);
 
   const pagination = usePagination(filtered, 12);
 
@@ -135,8 +127,7 @@ export function LeadsView() {
     ]),
   });
 
-  const hasFilters =
-    query !== "" || status !== "all" || channel !== "all" || companyId !== "all" || dupOnly;
+  const hasFilters = query !== "" || channel !== "all" || companyId !== "all" || dupOnly;
 
   return (
     <div className="animate-rise">
@@ -170,20 +161,6 @@ export function LeadsView() {
             className="w-64 ps-8"
           />
         </div>
-
-        <Select value={status} onValueChange={(v) => setStatus(v as LeadStatus | "all")}>
-          <SelectTrigger className="w-36" aria-label={dict.admin.leads.filterStatusAria}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{dict.admin.leads.allStatuses}</SelectItem>
-            {LEAD_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {dict.admin.status.lead[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         <Select value={channel} onValueChange={setChannel}>
           <SelectTrigger className="w-40" aria-label={dict.admin.leads.filterChannelAria}>
@@ -235,7 +212,6 @@ export function LeadsView() {
                 <SortHead label={dict.admin.leads.colQuality} sortKey="quality" sort={sort} onToggle={toggle} align="right" />
                 <SortHead label={dict.admin.leads.colFee} sortKey="fee" sort={sort} onToggle={toggle} align="right" />
                 <TableHead className="text-end">{dict.admin.leads.colAssigned}</TableHead>
-                <TableHead>{dict.admin.leads.colStatus}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -298,9 +274,6 @@ export function LeadsView() {
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
                     {l.assignments.length}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge meta={LEAD_STATUS_META[l.status]} label={dict.admin.status.lead[l.status]} />
                   </TableCell>
                 </TableRow>
               ))}

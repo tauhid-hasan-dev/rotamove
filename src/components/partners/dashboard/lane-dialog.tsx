@@ -1,18 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftRight, CalendarRange, Loader2, Plane, Repeat, Ship, Train, Truck } from "lucide-react";
+import {
+  ArrowLeftRight,
+  CalendarRange,
+  Clock3,
+  Loader2,
+  Plane,
+  Repeat,
+  Ship,
+  Train,
+  Truck,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RangeCalendar } from "@/components/common/range-calendar";
 import { HubPicker } from "@/components/partners/dashboard/hub-picker";
-import { laneInputSchema, LANE_MODES, type LaneInput, type PartnerLane } from "@/lib/lanes";
-import { daysBetween } from "@/lib/calendar";
+import {
+  laneInputSchema,
+  lastCallEndAt,
+  lastCallWindow,
+  LANE_MODES,
+  LAST_CALL_HOURS,
+  type LaneInput,
+  type LastCallHours,
+  type PartnerLane,
+} from "@/lib/lanes";
+import { daysBetween, todayLocalIso } from "@/lib/calendar";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 const MODE_ICONS = { road: Truck, sea: Ship, air: Plane, rail: Train } as const;
+
+/** What kind of run is being declared. Drives everything else on the form. */
+type LaneKind = "scheduled" | "one_run" | "last_call";
+
+/** Local `yyyy-mm-ddThh:mm` → ISO with the browser's offset. */
+function localToIso(date: string, hour: string): string | null {
+  const parsed = new Date(`${date}T${hour}`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
 
 /**
  * The form's own state.
@@ -27,15 +55,21 @@ const MODE_ICONS = { road: Truck, sea: Ship, air: Plane, rail: Train } as const;
  *    the end"; collapsing that to `[start, start]` makes the second click
  *    look like the start of a new range, and the user can never close one.
  *
- * `dated` is its own flag rather than being inferred from the range, so
- * switching to a scheduled service and back does not lose the dates.
+ * `kind` is its own field rather than being inferred from the range, so
+ * switching to a scheduled service and back does not lose the dates — and so
+ * a last-call run stays distinguishable from an ordinary dated one even
+ * though both end up carrying a window.
  */
-type Draft = Omit<LaneInput, "fromCode" | "toCode" | "capacityM3" | "window"> & {
+type Draft = Omit<LaneInput, "fromCode" | "toCode" | "capacityM3" | "window" | "lastCall"> & {
   fromCode: string | null;
   toCode: string | null;
   capacityM3: string;
-  dated: boolean;
+  kind: LaneKind;
   range: { start: string | null; end: string | null };
+  /** Last call only: departure day, departure hour, and how long it runs. */
+  lastCallDate: string | null;
+  lastCallHour: string;
+  lastCallHours: LastCallHours;
 };
 
 /** A blank lane. Road and a lorry, because that is the overwhelming default. */
@@ -43,8 +77,11 @@ const emptyDraft = (): Draft => ({
   fromCode: null,
   toCode: null,
   bothWays: false,
-  dated: false,
+  kind: "scheduled",
   range: { start: null, end: null },
+  lastCallDate: null,
+  lastCallHour: "09:00",
+  lastCallHours: 24,
   vehicle: "lorry",
   mode: "road",
   capacityM3: "",
@@ -52,20 +89,29 @@ const emptyDraft = (): Draft => ({
   status: "active",
 });
 
-const draftFrom = (lane: PartnerLane): Draft => ({
-  fromCode: lane.fromCode,
-  toCode: lane.toCode,
-  bothWays: lane.bothWays,
-  dated: lane.window !== null,
-  range: lane.window
-    ? { start: lane.window[0], end: lane.window[1] }
-    : { start: null, end: null },
-  vehicle: lane.vehicle,
-  mode: lane.mode,
-  capacityM3: String(lane.capacityM3),
-  notes: lane.notes,
-  status: lane.status,
-});
+const draftFrom = (lane: PartnerLane): Draft => {
+  const start = lane.lastCall ? new Date(lane.lastCall.startAt) : null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    fromCode: lane.fromCode,
+    toCode: lane.toCode,
+    bothWays: lane.bothWays,
+    kind: lane.lastCall ? "last_call" : lane.window !== null ? "one_run" : "scheduled",
+    range: lane.window
+      ? { start: lane.window[0], end: lane.window[1] }
+      : { start: null, end: null },
+    lastCallDate: start
+      ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`
+      : null,
+    lastCallHour: start ? `${pad(start.getHours())}:${pad(start.getMinutes())}` : "09:00",
+    lastCallHours: lane.lastCall?.hours ?? 24,
+    vehicle: lane.vehicle,
+    mode: lane.mode,
+    capacityM3: String(lane.capacityM3),
+    notes: lane.notes,
+    status: lane.status,
+  };
+};
 
 /**
  * Declare or change one lane.
@@ -110,8 +156,18 @@ export function LaneDialog({
 
   const update = (patch: Partial<Draft>) => setDraft((prev) => ({ ...prev, ...patch }));
 
-  const { dated, range } = draft;
+  const { kind, range } = draft;
+  const dated = kind === "one_run";
+  const isLastCall = kind === "last_call";
   const span = range.start && range.end ? daysBetween(range.start, range.end) + 1 : 0;
+
+  // The end is never typed — it is the start plus the chosen duration, shown
+  // live so the partner can see exactly when the offer dies before saving.
+  const lastCallStartIso =
+    draft.lastCallDate && localToIso(draft.lastCallDate, draft.lastCallHour);
+  const lastCallEndIso = lastCallStartIso
+    ? lastCallEndAt({ startAt: lastCallStartIso, hours: draft.lastCallHours })
+    : null;
 
   const save = async () => {
     // Checked before the schema so the message names the thing that is
@@ -128,13 +184,29 @@ export function LaneDialog({
       setError(dx.errDates);
       return;
     }
+    if (isLastCall && !lastCallStartIso) {
+      setError(dx.errLastCallStart);
+      return;
+    }
+
+    const lastCall =
+      isLastCall && lastCallStartIso
+        ? { hours: draft.lastCallHours, startAt: lastCallStartIso }
+        : null;
 
     // A run with only a start is a single-day departure, which is a real
     // thing to declare — so it saves rather than nagging for a second click.
+    const window = lastCall
+      ? lastCallWindow(lastCall)
+      : dated && range.start
+        ? [range.start, range.end ?? range.start]
+        : null;
+
     const parsed = laneInputSchema.safeParse({
       ...draft,
       capacityM3: Number(draft.capacityM3),
-      window: dated && range.start ? [range.start, range.end ?? range.start] : null,
+      window,
+      lastCall,
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? dx.errCheck);
@@ -158,10 +230,10 @@ export function LaneDialog({
 
         <div className="mt-2 space-y-6">
           {/* kind ------------------------------------------------- */}
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <KindCard
-              selected={!dated}
-              onSelect={() => update({ dated: false })}
+              selected={kind === "scheduled"}
+              onSelect={() => update({ kind: "scheduled" })}
               icon={<Repeat className="size-4" />}
               title={dx.scheduledTitle}
               hint={dx.scheduledHint}
@@ -171,10 +243,25 @@ export function LaneDialog({
               // Nothing is pre-filled. Seeding the start with today looks
               // helpful and is not: the calendar would then read the user's
               // first click as the *end* of a range beginning today.
-              onSelect={() => update({ dated: true })}
+              onSelect={() => update({ kind: "one_run" })}
               icon={<CalendarRange className="size-4" />}
               title={dx.oneRunTitle}
               hint={dx.oneRunHint}
+            />
+            <KindCard
+              selected={isLastCall}
+              onSelect={() =>
+                update({
+                  kind: "last_call",
+                  // Unlike the range picker, a departure day *is* safe to
+                  // seed: there is one date field, so today is a sane start
+                  // rather than half of an ambiguous range.
+                  lastCallDate: draft.lastCallDate ?? todayLocalIso(),
+                })
+              }
+              icon={<Clock3 className="size-4" />}
+              title={dx.lastCallTitle}
+              hint={dx.lastCallHint}
             />
           </div>
 
@@ -225,6 +312,70 @@ export function LaneDialog({
               <div className="mt-3">
                 <RangeCalendar months={1} value={range} onChange={(next) => update({ range: next })} />
               </div>
+            </div>
+          )}
+
+          {/* last call -------------------------------------------- */}
+          {isLastCall && (
+            <div className="rounded-2xl border bg-surface p-4">
+              <span className="text-[13.5px] font-medium">{dx.lastCallDuration}</span>
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                {LAST_CALL_HOURS.map((hours) => (
+                  <Chip
+                    key={hours}
+                    active={draft.lastCallHours === hours}
+                    onClick={() => update({ lastCallHours: hours })}
+                  >
+                    {t.fill(dx.lastCallHoursOption, { n: hours })}
+                  </Chip>
+                ))}
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="lc-date" className="mb-2 block text-[13.5px]">
+                    {dx.lastCallStartDate}
+                  </label>
+                  <Input
+                    id="lc-date"
+                    type="date"
+                    min={todayLocalIso()}
+                    value={draft.lastCallDate ?? ""}
+                    onChange={(event) => update({ lastCallDate: event.target.value || null })}
+                    className="h-12 rounded-2xl tnum"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lc-hour" className="mb-2 block text-[13.5px]">
+                    {dx.lastCallStartHour}
+                  </label>
+                  <Input
+                    id="lc-hour"
+                    type="time"
+                    step={900}
+                    value={draft.lastCallHour}
+                    onChange={(event) => update({ lastCallHour: event.target.value })}
+                    className="h-12 rounded-2xl tnum"
+                  />
+                </div>
+              </div>
+
+              {/* The whole point of the mode: the partner sees the deadline
+                  they are committing to before they commit to it. */}
+              <dl className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1.5 border-t pt-3.5 text-[12.5px]">
+                <div className="flex items-baseline gap-2">
+                  <dt className="text-muted-foreground">{dx.lastCallStarts}</dt>
+                  <dd className="tnum font-medium">
+                    {lastCallStartIso ? t.dateTime(lastCallStartIso) : "—"}
+                  </dd>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <dt className="text-muted-foreground">{dx.lastCallEnds}</dt>
+                  <dd className="tnum font-medium text-brand-deep">
+                    {lastCallEndIso ? t.dateTime(lastCallEndIso) : "—"}
+                  </dd>
+                </div>
+              </dl>
             </div>
           )}
 

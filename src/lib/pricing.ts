@@ -29,6 +29,7 @@ export const VOLUME_BY_SIZE: Record<PropertySize, number> = {
   four_bed: 72,
   villa: 95,
   office: 60,
+  project: 50,
 };
 
 export const PROPERTY_SIZES: Array<{
@@ -45,6 +46,7 @@ export const PROPERTY_SIZES: Array<{
   { id: "four_bed", label: "4+ bedrooms", hint: "~170 m² home", volume: 72 },
   { id: "villa", label: "Villa / detached", hint: "220 m² and up", volume: 95 },
   { id: "office", label: "Office / commercial", hint: "Desks, IT, archive", volume: 60 },
+  { id: "project", label: "Project cargo", hint: "Turbine, yacht, boat, cars", volume: 50 },
 ];
 
 /** Per m³, per 1 000 km. */

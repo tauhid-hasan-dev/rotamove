@@ -53,7 +53,7 @@ export function LastCallBar({ count }: { count: number }) {
         </p>
 
         <Link
-          href={href("/")}
+          href={href("/last-call")}
           className="group ms-auto hidden shrink-0 items-center gap-1 text-[13px] font-medium underline-offset-4 hover:underline sm:inline-flex"
         >
           {dict.lastCall.cta}

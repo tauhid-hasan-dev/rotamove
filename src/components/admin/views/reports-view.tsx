@@ -76,8 +76,8 @@ export function ReportsView() {
   };
 
   const buildPeriodSheet = () => ({
-    headers: [rx.colPeriod, rx.colLeads, rx.colAssigned, rx.colConverted, rx.colRevenueUsd],
-    rows: rows.map((r) => [r.label, r.leads, r.assigned, r.converted, r.revenueUsd]),
+    headers: [rx.colPeriod, rx.colLeads, rx.colRevenueUsd],
+    rows: rows.map((r) => [r.label, r.leads, r.revenueUsd]),
   });
 
   const buildCompanySheet = () => ({
@@ -132,26 +132,8 @@ export function ReportsView() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard label={rx.kpiLeads} value={t.number(totals.leads)} />
-        <KpiCard
-          label={rx.kpiAssigned}
-          value={t.number(totals.assigned)}
-          hint={
-            totals.leads > 0
-              ? t.fill(rx.ofLeads, { percent: t.percent(totals.assigned / totals.leads) })
-              : undefined
-          }
-        />
-        <KpiCard
-          label={rx.kpiConverted}
-          value={t.number(totals.converted)}
-          hint={
-            totals.leads > 0
-              ? t.fill(rx.ofLeads, { percent: t.percent(totals.converted / totals.leads, 1) })
-              : undefined
-          }
-        />
         <KpiCard label={rx.kpiRevenue} value={t.usd(totals.revenue)} hint={rx.kpiRevenueHint} />
       </div>
 
@@ -183,8 +165,6 @@ export function ReportsView() {
                 <TableRow>
                   <TableHead>{rx.colPeriod}</TableHead>
                   <TableHead className="text-end">{rx.colLeads}</TableHead>
-                  <TableHead className="text-end">{rx.colAssigned}</TableHead>
-                  <TableHead className="text-end">{rx.colConverted}</TableHead>
                   <TableHead className="text-end">{rx.colRevenue}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -193,8 +173,6 @@ export function ReportsView() {
                   <TableRow key={r.key}>
                     <TableCell className="whitespace-nowrap text-[13px]">{r.label}</TableCell>
                     <TableCell className="tnum text-end text-[13px]">{r.leads}</TableCell>
-                    <TableCell className="tnum text-end text-[13px]">{r.assigned}</TableCell>
-                    <TableCell className="tnum text-end text-[13px]">{r.converted}</TableCell>
                     <TableCell className="tnum text-end text-[13px]">
                       {formatUsdPrecise(r.revenueUsd)}
                     </TableCell>

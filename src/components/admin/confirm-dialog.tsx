@@ -24,8 +24,11 @@ export function ConfirmDialog({
   destructive = false,
   onConfirm,
   children,
+  open: controlledOpen,
+  onOpenChange,
 }: {
-  trigger: ReactNode;
+  /** Omit when driving the dialog with `open` / `onOpenChange` instead. */
+  trigger?: ReactNode;
   title: string;
   description: string;
   confirmLabel: string;
@@ -33,13 +36,25 @@ export function ConfirmDialog({
   onConfirm: () => void;
   /** Optional extra form content shown between description and footer. */
   children?: ReactNode;
+  /**
+   * Controlled mode, for rows whose confirm button carries per-row data: the
+   * caller holds "which row" in state and the dialog follows it.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { dict } = useI18n();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const controlled = controlledOpen !== undefined;
+  const open = controlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    if (controlled) onOpenChange?.(next);
+    else setUncontrolledOpen(next);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

@@ -301,7 +301,7 @@ export function PartnerDashboard({
           </div>
         )}
 
-        {section === "lanes" && <RoutesPanel initial={lanes} />}
+        {section === "lanes" && <RoutesPanel initial={lanes} now={now} />}
 
         {section === "billing" && (
           <BillingPanel plan={plan} walletSpent={walletSpent} metrics={metrics} now={now} />

@@ -568,3 +568,52 @@ export function invoicesForCompany(invoices: Invoice[], companyId: string): Invo
     .filter((i) => i.companyId === companyId)
     .sort((a, b) => b.issuedAt.localeCompare(a.issuedAt));
 }
+
+/* ------------------------------------------------------------------ *
+ * Lead routes & service mix — the marketing-targeting selectors.
+ * ------------------------------------------------------------------ */
+
+export interface LeadRouteCount {
+  fromCode: string;
+  toCode: string;
+  count: number;
+}
+
+/**
+ * Top origin → destination city pairs by lead count.
+ *
+ * This is the "where is demand actually coming from" number: the corridors
+ * worth pointing marketing spend at, straight from the enquiries.
+ */
+export function topLeadRoutes(leads: AdminLead[], limit = 6): LeadRouteCount[] {
+  const counts = new Map<string, LeadRouteCount>();
+  for (const { lead } of leads) {
+    const key = `${lead.origin.cityCode}:${lead.destination.cityCode}`;
+    const row = counts.get(key);
+    if (row) row.count += 1;
+    else {
+      counts.set(key, {
+        fromCode: lead.origin.cityCode,
+        toCode: lead.destination.cityCode,
+        count: 1,
+      });
+    }
+  }
+  return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, limit);
+}
+
+export interface ServiceMixSlice {
+  service: Lead["serviceLevel"];
+  count: number;
+}
+
+/** Lead counts per requested service level, zero-count services dropped. */
+export function serviceMix(leads: AdminLead[]): ServiceMixSlice[] {
+  const counts = new Map<Lead["serviceLevel"], number>();
+  for (const { lead } of leads) {
+    counts.set(lead.serviceLevel, (counts.get(lead.serviceLevel) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([service, count]) => ({ service, count }))
+    .sort((a, b) => b.count - a.count);
+}

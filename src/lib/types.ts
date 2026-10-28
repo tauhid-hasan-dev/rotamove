@@ -15,7 +15,9 @@ export type PropertySize =
   | "three_bed"
   | "four_bed"
   | "villa"
-  | "office";
+  | "office"
+  /** Out-of-gauge one-offs: a turbine, a yacht, a boat, cars. */
+  | "project";
 
 export type ServiceLevel = "full_service" | "door_to_door" | "transport_only";
 
