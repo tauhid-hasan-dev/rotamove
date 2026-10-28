@@ -449,6 +449,50 @@
   animation: var(--animate-shimmer);
 }
 
+/* Last call -------------------------------------------------------------
+   Stock that disappears within hours gets two pieces of motion, both slow
+   on purpose: a nav ring that draws the eye on arrival, and a sheen across
+   the popup header. Anything faster reads as an alarm, and a header you
+   have to ignore for a whole session is worse than no header. */
+
+@keyframes last-call-ping {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.last-call-ping {
+  animation: last-call-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes last-call-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  /* Most of the cycle is the rest beat, so the sweep is an occasional
+     glint rather than a strobe. */
+  45%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.last-call-sheen {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in oklab, white 28%, transparent) 50%,
+    transparent 100%
+  );
+  animation: last-call-sheen 5.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

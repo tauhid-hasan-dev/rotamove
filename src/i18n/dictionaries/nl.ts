@@ -53,6 +53,7 @@ export const nl = {
   },
 
   nav: {
+    lastCall: "Last minute",
     howItWorks: "Hoe het werkt",
     coverage: "Dekking",
     forMovers: "Voor vervoerders",
@@ -416,6 +417,13 @@ export const nl = {
     body: "{count} routes met ruimte, vertrek binnen enkele uren.",
     cta: "Bekijk ze",
     dismiss: "Sluiten",
+  },
+
+  lastCallPopup: {
+    title: "Ruimte die binnen enkele uren vertrekt",
+    body: "{count} vervoerders hebben ruimte gemeld op een voertuig dat al aan het laden is. Wie wacht, ziet de vrachtwagen vertrekken.",
+    cta: "Bekijk de routes",
+    note: "Aanbiedingen verdwijnen zodra het voertuig vertrekt.",
   },
 
   lastCallPage: {

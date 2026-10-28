@@ -53,6 +53,7 @@ export const de = {
   },
 
   nav: {
+    lastCall: "Kurzfristig frei",
     howItWorks: "So funktioniert’s",
     coverage: "Abdeckung",
     forMovers: "Für Speditionen",
@@ -417,6 +418,13 @@ export const de = {
     body: "{count} Routen mit freiem Platz, Abfahrt in wenigen Stunden.",
     cta: "Ansehen",
     dismiss: "Schließen",
+  },
+
+  lastCallPopup: {
+    title: "Laderaum, der in wenigen Stunden abfährt",
+    body: "{count} Speditionen haben Platz auf einem Fahrzeug gemeldet, das bereits beladen wird. Wer wartet, dem fährt der Lkw davon.",
+    cta: "Routen ansehen",
+    note: "Die Angebote verschwinden, sobald das Fahrzeug abfährt.",
   },
 
   lastCallPage: {

@@ -53,6 +53,7 @@ export const it = {
   },
 
   nav: {
+    lastCall: "Ultimo minuto",
     howItWorks: "Come funziona",
     coverage: "Copertura",
     forMovers: "Per i trasportatori",
@@ -416,6 +417,13 @@ export const it = {
     body: "{count} tratte con spazio libero, in partenza entro poche ore.",
     cta: "Vedile",
     dismiss: "Chiudi",
+  },
+
+  lastCallPopup: {
+    title: "Spazio in partenza entro poche ore",
+    body: "{count} trasportatori hanno pubblicato lo spazio libero su un mezzo già in fase di carico. Chi aspetta si vede partire il camion.",
+    cta: "Vedi le tratte",
+    note: "Le offerte spariscono quando il mezzo parte.",
   },
 
   lastCallPage: {

@@ -53,6 +53,7 @@ export const fr = {
   },
 
   nav: {
+    lastCall: "Dernière minute",
     howItWorks: "Comment ça marche",
     coverage: "Couverture",
     forMovers: "Pour les transporteurs",
@@ -418,6 +419,13 @@ export const fr = {
     body: "{count} trajets avec de la place, départ dans quelques heures.",
     cta: "Les voir",
     dismiss: "Fermer",
+  },
+
+  lastCallPopup: {
+    title: "De la place qui part dans quelques heures",
+    body: "{count} transporteurs ont signalé de la place sur un véhicule déjà en chargement. Attendre, c’est laisser partir le camion.",
+    cta: "Voir les trajets",
+    note: "Les offres disparaissent dès que le véhicule part.",
   },
 
   lastCallPage: {

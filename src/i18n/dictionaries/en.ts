@@ -66,6 +66,7 @@ export const en = {
 
   /* -------------------------------------------------------------- nav -- */
   nav: {
+    lastCall: "Last call",
     howItWorks: "How it works",
     coverage: "Coverage",
     forMovers: "For carriers",
@@ -440,6 +441,13 @@ export const en = {
     body: "{count} routes with space, leaving within hours.",
     cta: "See them",
     dismiss: "Dismiss",
+  },
+
+  lastCallPopup: {
+    title: "Space leaving within hours",
+    body: "{count} carriers have posted room on a vehicle that is already loading. The price of waiting is the lorry.",
+    cta: "See the routes",
+    note: "Offers disappear when the vehicle leaves.",
   },
 
   /* -------------------------------------------------- last call page -- */

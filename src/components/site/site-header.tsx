@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
+import { Clock3, Menu } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
+import { useLastCall } from "@/components/site/use-last-call";
 import {
   Sheet,
   SheetContent,
@@ -19,11 +20,62 @@ import { useI18n } from "@/i18n/provider";
 import { stripLocale } from "@/i18n/paths";
 import { cn } from "@/lib/utils";
 
+/**
+ * The last-call entry in the navigation.
+ *
+ * Deliberately not a plain link like its neighbours: it points at stock
+ * that disappears within hours, so it carries the accent colour, a clock
+ * and a live count. The pulse is one slow ring rather than a blink —
+ * enough to catch the eye on arrival without becoming scenery you have to
+ * ignore for the rest of the session.
+ */
+function LastCallNavLink({
+  href: target,
+  label,
+  count,
+  mobile = false,
+}: {
+  href: string;
+  label: string;
+  count: number;
+  mobile?: boolean;
+}) {
+  return (
+    <Link
+      href={target}
+      className={cn(
+        "group relative inline-flex items-center gap-2 font-medium transition-all duration-200",
+        "bg-lastcall text-lastcall-foreground hover:brightness-[0.97]",
+        mobile
+          ? "rounded-xl px-3 py-3 text-[16px]"
+          : "rounded-full px-3.5 py-1.5 text-[14px]",
+      )}
+    >
+      <span className="relative grid size-4 place-items-center">
+        <Clock3 className="relative size-4" strokeWidth={2.2} />
+        {count > 0 && (
+          <span
+            aria-hidden
+            className="last-call-ping absolute inset-0 rounded-full bg-lastcall-accent"
+          />
+        )}
+      </span>
+      {label}
+      {count > 0 && (
+        <span className="rounded-full bg-lastcall-accent px-1.5 py-0.5 text-[10.5px] font-semibold text-ink tnum">
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 export function SiteHeader({ variant = "default" }: { variant?: "default" | "flush" }) {
   const { dict, href, rtl } = useI18n();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { offers } = useLastCall();
 
   const nav = [
     { path: "/how-it-works", label: dict.nav.howItWorks },
@@ -76,6 +128,12 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
               </Link>
             );
           })}
+
+          <LastCallNavLink
+            href={href("/last-call")}
+            label={dict.nav.lastCall}
+            count={offers.length}
+          />
         </nav>
 
         <div className="ms-auto flex items-center gap-1">
@@ -122,6 +180,12 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
                     {item.label}
                   </Link>
                 ))}
+                <LastCallNavLink
+                  href={href("/last-call")}
+                  label={dict.nav.lastCall}
+                  count={offers.length}
+                  mobile
+                />
                 <Link
                   href={href("/partners/login")}
                   className="rounded-xl px-3 py-3 text-[16px] transition-colors hover:bg-muted"

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { IBM_Plex_Sans_Arabic, Instrument_Sans, Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { LastCallBar } from "@/components/site/last-call-bar";
+import { LastCallPopup } from "@/components/site/last-call-popup";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LAST_CALL_SCRIPT } from "@/lib/last-call";
@@ -144,6 +145,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
               </a>
               <LastCallBar />
               {children}
+              <LastCallPopup />
               <Toaster
                 position={dirFor(locale) === "rtl" ? "bottom-left" : "bottom-right"}
                 richColors

@@ -58,6 +58,7 @@ export const tr = {
   },
 
   nav: {
+    lastCall: "Son çağrı",
     howItWorks: "Nasıl çalışır",
     coverage: "Kapsama",
     forMovers: "Taşıyıcılar için",
@@ -418,6 +419,13 @@ export const tr = {
     body: "{count} hatta yer var, saatler içinde kalkıyor.",
     cta: "Hepsini gör",
     dismiss: "Kapat",
+  },
+
+  lastCallPopup: {
+    title: "Saatler içinde kalkacak yer",
+    body: "{count} taşıyıcı, hâlihazırda yüklenen bir araçta kalan yeri ilan etti. Beklemenin bedeli kamyonu kaçırmaktır.",
+    cta: "Hatları gör",
+    note: "Araç kalktığında teklifler ortadan kalkar.",
   },
 
   lastCallPage: {
