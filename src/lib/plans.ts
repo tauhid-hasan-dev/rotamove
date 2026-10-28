@@ -49,6 +49,25 @@ export const PPL_FEATURE_INCLUDED: readonly boolean[] = [
 ];
 
 /**
+ * Which Pay Per Seen features are actually included.
+ *
+ * Positionally aligned with `dict.plans.ppsFeatures`, same contract as
+ * `PPL_FEATURE_INCLUDED` above.
+ */
+export const PPS_FEATURE_INCLUDED: readonly boolean[] = [
+  true, // no monthly fee
+  true, // masked board: volume, access, route visible free
+  true, // unlock to reveal the full lead
+  true, // charged only on unlock
+  true, // confirmation email per unlock
+  true, // 24h refund
+  false, // instant-match placement — Pro only
+  false, // one-tap contact — Pro only
+  false, // lead API and webhooks — Pro only
+  true, // 1 operator seat
+];
+
+/**
  * What a pay-per-lead partner is charged to unlock this lead.
  *
  * The signal we price on is expected job value, not a flat rate: a 68 m³

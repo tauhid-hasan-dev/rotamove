@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableHead } from "@/components/ui/table";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 /* Sorting + pagination used by every admin table. Client-side on purpose:
@@ -102,18 +103,19 @@ export function PaginationBar({
   onPage: (page: number) => void;
   children?: ReactNode;
 }) {
+  const { dict, t } = useI18n();
   if (total === 0) return null;
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
       <p className="tnum text-[13px] text-muted-foreground">
-        {from}–{to} of {total}
+        {t.fill(dict.admin.common.rangeOf, { from, to, total: t.number(total) })}
       </p>
       <div className="flex items-center gap-1.5">
         {children}
         <Button
           variant="outline"
           size="icon-sm"
-          aria-label="Previous page"
+          aria-label={dict.admin.common.prevPage}
           disabled={page === 0}
           onClick={() => onPage(page - 1)}
         >
@@ -125,7 +127,7 @@ export function PaginationBar({
         <Button
           variant="outline"
           size="icon-sm"
-          aria-label="Next page"
+          aria-label={dict.admin.common.nextPage}
           disabled={page >= pageCount - 1}
           onClick={() => onPage(page + 1)}
         >

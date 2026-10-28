@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CreditCard,
+  Eye,
   Filter,
   Inbox,
   Check,
@@ -30,20 +31,23 @@ import {
 } from "@/components/ui/select";
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import type { PartnerLane } from "@/lib/lanes";
-import { REGIONS, REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
-import { AVG_LEAD_FEE_USD, LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
+import type { PlanId } from "@/lib/types";
+import { REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
+import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, AVG_LEAD_FEE_USD, PRO_MONTHLY_USD } from "@/lib/plans";
 import { DEMO_PARTNER, DEMO_PARTNER_ID, PARTNER_COOKIE } from "@/lib/partner-session";
-import { formatNumber, formatUsdPrecise } from "@/lib/format";
 import { useI18n } from "@/i18n/provider";
+import { regionName } from "@/i18n/geo-labels";
 import { cn } from "@/lib/utils";
 
 type SectionId = "inbox" | "lanes" | "billing";
 
-const SECTIONS: Array<{ id: SectionId; label: string; icon: typeof Inbox }> = [
-  { id: "inbox", label: "Lead board", icon: Inbox },
-  { id: "lanes", label: "Routes", icon: Route },
-  { id: "billing", label: "Billing", icon: CreditCard },
-];
+const SECTION_ICONS: Record<SectionId, typeof Inbox> = {
+  inbox: Inbox,
+  lanes: Route,
+  billing: CreditCard,
+};
+
+const SECTION_IDS: SectionId[] = ["inbox", "lanes", "billing"];
 
 /**
  * Partner dashboard.
@@ -57,21 +61,25 @@ export function PartnerDashboard({
   board,
   now,
   lanes,
+  initialUnlocked,
 }: {
   board: BoardLead[];
   now: number;
   lanes: PartnerLane[];
+  /** Server-recorded pay-per-seen unlocks, so a refresh keeps them revealed. */
+  initialUnlocked: string[];
 }) {
-  const { dict, href } = useI18n();
+  const { dict, href, t } = useI18n();
+  const pd = dict.partnerDashboard;
   const router = useRouter();
-  const [isPro, setIsPro] = useState(true);
+  const [plan, setPlan] = useState<PlanId>("pro_unlimited");
   const [section, setSection] = useState<SectionId>("inbox");
-  const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
+  const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set(initialUnlocked));
   const [region, setRegion] = useState<string>("all");
   const [onlyNew, setOnlyNew] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
-  const metrics = useMemo(() => generatePartnerMetrics(isPro), [isPro]);
+  const metrics = useMemo(() => generatePartnerMetrics(plan), [plan]);
 
   const visible = useMemo(
     () =>
@@ -91,16 +99,16 @@ export function PartnerDashboard({
     (v) => v.status === "new" && !unlocked.has(v.lead.id),
   ).length;
 
-  // Pro partners unlock for nothing; only pay-per-lead unlocks cost money.
+  // Pro partners unlock for nothing; both per-unit plans pay per unlock.
   const walletSpent = useMemo(
     () =>
-      isPro
+      plan === "pro_unlimited"
         ? 0
         : [...unlocked].reduce(
             (sum, id) => sum + (board.find((b) => b.lead.id === id)?.feeUsd ?? 0),
             0,
           ),
-    [unlocked, board, isPro],
+    [unlocked, board, plan],
   );
 
   const signOut = () => {
@@ -120,7 +128,7 @@ export function PartnerDashboard({
                 {DEMO_PARTNER.name}
               </p>
               <p className="truncate text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                {isPro ? "Pro Unlimited" : "Pay Per Lead"}
+                {pd.planNames[plan]}
               </p>
             </div>
           </div>
@@ -135,11 +143,11 @@ export function PartnerDashboard({
               setTimeout(() => setCopiedId(false), 1800);
             }}
             className="group mt-4 flex w-full items-center gap-2 rounded-xl border bg-surface px-3 py-2.5 text-start transition-colors hover:border-foreground/25"
-            aria-label={`Partner ID ${DEMO_PARTNER_ID}`}
+            aria-label={`${pd.partnerId} ${DEMO_PARTNER_ID}`}
           >
             <span className="min-w-0 flex-1">
               <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                Partner ID
+                {pd.partnerId}
               </span>
               <span className="code mt-0.5 block truncate text-[13px] font-semibold">
                 {DEMO_PARTNER_ID}
@@ -152,14 +160,15 @@ export function PartnerDashboard({
             )}
           </button>
 
-          <nav className="mt-6 flex gap-1 lg:flex-col" aria-label="Dashboard">
-            {SECTIONS.map((item) => {
-              const active = section === item.id;
+          <nav className="mt-6 flex gap-1 lg:flex-col" aria-label={pd.navAria}>
+            {SECTION_IDS.map((id) => {
+              const active = section === id;
+              const Icon = SECTION_ICONS[id];
               return (
                 <button
-                  key={item.id}
+                  key={id}
                   type="button"
-                  onClick={() => setSection(item.id)}
+                  onClick={() => setSection(id)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "inline-flex flex-1 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[14px] transition-colors lg:flex-none",
@@ -168,9 +177,9 @@ export function PartnerDashboard({
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  <item.icon className="size-4 shrink-0" strokeWidth={2} />
-                  {item.label}
-                  {item.id === "inbox" && newCount > 0 && (
+                  <Icon className="size-4 shrink-0" strokeWidth={2} />
+                  {pd.sections[id]}
+                  {id === "inbox" && newCount > 0 && (
                     <span className="ms-auto rounded-full bg-brand px-1.5 py-0.5 text-[10.5px] font-medium text-ink tnum">
                       {newCount}
                     </span>
@@ -181,7 +190,7 @@ export function PartnerDashboard({
           </nav>
 
           <div className="mt-6 hidden border-t pt-6 lg:block">
-            <PlanSwitch isPro={isPro} onChange={setIsPro} />
+            <PlanSwitch plan={plan} onChange={setPlan} />
             <button
               type="button"
               onClick={signOut}
@@ -197,7 +206,7 @@ export function PartnerDashboard({
       {/* content ------------------------------------------------- */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3 lg:hidden">
-          <PlanSwitch isPro={isPro} onChange={setIsPro} />
+          <PlanSwitch plan={plan} onChange={setPlan} />
           <button
             type="button"
             onClick={signOut}
@@ -211,22 +220,29 @@ export function PartnerDashboard({
         {/* kpis ------------------------------------------------- */}
         <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:mt-0">
           <Kpi
-            label="Leads this month"
-            value={formatNumber(metrics.leadsThisMonth)}
-            sub={isPro ? "Unlimited on your plan" : `${metrics.unlocked} unlocked`}
-          />
-          <Kpi
-            label="Avg. reply time"
-            value={`${metrics.avgResponseMins} min`}
-            sub={isPro ? "Auto-confirmed from your rate card" : "Manual pickup"}
-          />
-          <Kpi
-            label="Platform spend"
-            value={formatUsdPrecise(metrics.spendUsd + walletSpent)}
+            label={pd.kpis.leadsThisMonth}
+            value={t.number(metrics.leadsThisMonth)}
             sub={
-              isPro
-                ? `Flat $${PRO_MONTHLY_USD}/mo, any volume`
-                : `≈ ${formatUsdPrecise(AVG_LEAD_FEE_USD)} per lead`
+              plan === "pro_unlimited"
+                ? pd.kpis.unlimitedOnPlan
+                : t.fill(pd.kpis.nUnlocked, { n: t.number(metrics.unlocked) })
+            }
+          />
+          <Kpi
+            label={pd.kpis.avgReply}
+            value={t.fill(dict.units.minutesShort, { n: t.number(metrics.avgResponseMins) })}
+            sub={plan === "pro_unlimited" ? pd.kpis.autoConfirmed : pd.kpis.manualPickup}
+          />
+          <Kpi
+            label={pd.kpis.platformSpend}
+            value={t.usd(Math.round((metrics.spendUsd + walletSpent) * 100) / 100)}
+            sub={
+              plan === "pro_unlimited"
+                ? t.fill(pd.kpis.flatPerMonth, { amount: t.usd(PRO_MONTHLY_USD) })
+                : t.fill(
+                    plan === "pay_per_seen" ? pd.kpis.perUnlockApprox : pd.kpis.perLeadApprox,
+                    { amount: t.usd(AVG_LEAD_FEE_USD) },
+                  )
             }
           />
         </div>
@@ -234,7 +250,7 @@ export function PartnerDashboard({
         {section === "inbox" && (
           <div className="mt-8">
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-[20px] tracking-[-0.03em]">Lead board</h2>
+              <h2 className="text-[20px] tracking-[-0.03em]">{pd.sections.inbox}</h2>
 
               <div className="ms-auto flex flex-wrap items-center gap-2">
                 <button
@@ -247,17 +263,17 @@ export function PartnerDashboard({
                   )}
                 >
                   <Filter className="size-3.5" />
-                  New only
+                  {pd.board.newOnly}
                 </button>
                 <Select value={region} onValueChange={setRegion}>
                   <SelectTrigger className="w-[190px]">
-                    <SelectValue placeholder="All corridors" />
+                    <SelectValue placeholder={dict.common.allCorridors} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All corridors</SelectItem>
+                    <SelectItem value="all">{dict.common.allCorridors}</SelectItem>
                     {REGION_ORDER.map((id) => (
                       <SelectItem key={id} value={id}>
-                        {REGIONS[id].name}
+                        {regionName(dict, id)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -270,7 +286,7 @@ export function PartnerDashboard({
                 <LeadRow
                   key={item.lead.id}
                   item={item}
-                  isPro={isPro}
+                  plan={plan}
                   unlocked={unlocked.has(item.lead.id)}
                   onUnlock={(id) => setUnlocked((prev) => new Set(prev).add(id))}
                   now={now}
@@ -278,7 +294,7 @@ export function PartnerDashboard({
               ))}
               {visible.length === 0 && (
                 <p className="rounded-xl border border-dashed p-10 text-center text-[14px] text-muted-foreground">
-                  No leads match this filter right now. Widen the corridor selection.
+                  {pd.board.empty}
                 </p>
               )}
             </div>
@@ -288,7 +304,7 @@ export function PartnerDashboard({
         {section === "lanes" && <RoutesPanel initial={lanes} />}
 
         {section === "billing" && (
-          <BillingPanel isPro={isPro} walletSpent={walletSpent} metrics={metrics} />
+          <BillingPanel plan={plan} walletSpent={walletSpent} metrics={metrics} now={now} />
         )}
       </div>
     </div>
@@ -309,24 +325,28 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub: string 
   );
 }
 
-function PlanSwitch({ isPro, onChange }: { isPro: boolean; onChange: (v: boolean) => void }) {
+function PlanSwitch({ plan, onChange }: { plan: PlanId; onChange: (v: PlanId) => void }) {
+  const { dict } = useI18n();
+  const pd = dict.partnerDashboard;
+  const options: Array<{ id: PlanId; label: string; icon: typeof InfinityIcon }> = [
+    { id: "pro_unlimited", label: pd.planSwitch.pro, icon: InfinityIcon },
+    { id: "pay_per_lead", label: pd.planSwitch.perLead, icon: Ticket },
+    { id: "pay_per_seen", label: pd.planSwitch.perSeen, icon: Eye },
+  ];
   return (
     <div
       role="radiogroup"
-      aria-label="Subscription plan"
+      aria-label={pd.planSwitch.aria}
       className="inline-flex rounded-full border bg-background p-1"
     >
-      {[
-        { pro: true, label: "Pro", icon: InfinityIcon },
-        { pro: false, label: "Per lead", icon: Ticket },
-      ].map((option) => {
-        const active = option.pro === isPro;
+      {options.map((option) => {
+        const active = option.id === plan;
         return (
           <button
-            key={option.label}
+            key={option.id}
             role="radio"
             aria-checked={active}
-            onClick={() => onChange(option.pro)}
+            onClick={() => onChange(option.id)}
             className={cn(
               "relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
               active ? "text-ink" : "text-muted-foreground hover:text-foreground",
@@ -349,19 +369,36 @@ function PlanSwitch({ isPro, onChange }: { isPro: boolean; onChange: (v: boolean
 }
 
 function BillingPanel({
-  isPro,
+  plan,
   walletSpent,
   metrics,
+  now,
 }: {
-  isPro: boolean;
+  plan: PlanId;
   walletSpent: number;
   metrics: ReturnType<typeof generatePartnerMetrics>;
+  now: number;
 }) {
+  const { dict, t } = useI18n();
+  const pd = dict.partnerDashboard;
+  const isPro = plan === "pro_unlimited";
+
   const invoices = [
-    { ref: "INV-2026-0418", period: "This month", amount: isPro ? PRO_MONTHLY_USD : metrics.spendUsd, status: "Open" },
-    { ref: "INV-2026-0392", period: "Last month", amount: isPro ? PRO_MONTHLY_USD : 198.4, status: "Paid" },
-    { ref: "INV-2026-0361", period: "Two months ago", amount: isPro ? PRO_MONTHLY_USD : 164.8, status: "Paid" },
+    { ref: "INV-2026-0418", period: pd.billing.periodThisMonth, amount: isPro ? PRO_MONTHLY_USD : metrics.spendUsd, paid: false },
+    { ref: "INV-2026-0392", period: pd.billing.periodLastMonth, amount: isPro ? PRO_MONTHLY_USD : 198.4, paid: true },
+    { ref: "INV-2026-0361", period: pd.billing.periodTwoMonthsAgo, amount: isPro ? PRO_MONTHLY_USD : 164.8, paid: true },
   ];
+
+  // First of next month, from the request clock the board already carries.
+  const anchor = new Date(now);
+  const nextCycle = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+
+  const planDescription = isPro
+    ? t.fill(pd.billing.proDesc, { amount: t.usd(PRO_MONTHLY_USD) })
+    : t.fill(plan === "pay_per_seen" ? pd.billing.ppsDesc : pd.billing.pplDesc, {
+        floor: t.usd(LEAD_FEE_FLOOR_USD),
+        cap: t.usd(LEAD_FEE_CAP_USD),
+      });
 
   return (
     <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
@@ -369,43 +406,47 @@ function BillingPanel({
         <div className="flex items-center gap-2.5">
           <Wallet className="size-4 text-brand" />
           <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            Current plan
+            {pd.billing.currentPlan}
           </h3>
         </div>
         <p className="mt-4 text-[26px] font-semibold tracking-[-0.035em]">
-          {isPro ? "Pro Unlimited" : "Pay Per Lead"}
+          {pd.planNames[plan]}
         </p>
         <p className="mt-2 max-w-md text-[14px] leading-relaxed text-muted-foreground">
-          {isPro
-            ? `Flat $${PRO_MONTHLY_USD} a month. Every international and domestic lead included, with instant-match placement in customer search. Cancel any time, no notice period.`
-            : `No subscription. You are charged between $2 and $${LEAD_FEE_CAP_USD} each time you unlock a lead, and never more than the cap.`}
+          {planDescription}
         </p>
 
         <dl className="mt-7 grid gap-5 border-t pt-6 sm:grid-cols-2">
           <div>
-            <dt className="eyebrow">Billed this cycle</dt>
+            <dt className="eyebrow">{pd.billing.billedThisCycle}</dt>
             <dd className="mt-1.5 text-[24px] font-medium tnum">
-              {formatUsdPrecise(isPro ? PRO_MONTHLY_USD : metrics.spendUsd + walletSpent)}
+              {t.usd(
+                Math.round((isPro ? PRO_MONTHLY_USD : metrics.spendUsd + walletSpent) * 100) /
+                  100,
+              )}
             </dd>
           </div>
           <div>
-            <dt className="eyebrow">Next charge</dt>
+            <dt className="eyebrow">{pd.billing.nextCharge}</dt>
             <dd className="mt-1.5 text-[24px] font-medium tnum">
-              {isPro ? "1 Nov" : "On unlock"}
+              {isPro ? t.dateShort(nextCycle.toISOString()) : pd.billing.onUnlock}
             </dd>
           </div>
           <div>
-            <dt className="eyebrow">Leads consumed</dt>
+            <dt className="eyebrow">{pd.billing.leadsConsumed}</dt>
             <dd className="mt-1.5 text-[24px] font-medium tnum">
-              {isPro ? "∞" : metrics.unlocked}
+              {isPro ? "∞" : t.number(metrics.unlocked)}
             </dd>
           </div>
           <div>
-            <dt className="eyebrow">Effective cost / lead</dt>
+            <dt className="eyebrow">{pd.billing.effectiveCost}</dt>
             <dd className="mt-1.5 text-[24px] font-medium text-verify tnum">
-              {formatUsdPrecise(
-                (isPro ? PRO_MONTHLY_USD : metrics.spendUsd) /
-                  Math.max(1, isPro ? metrics.leadsThisMonth : metrics.unlocked),
+              {t.usd(
+                Math.round(
+                  ((isPro ? PRO_MONTHLY_USD : metrics.spendUsd) /
+                    Math.max(1, isPro ? metrics.leadsThisMonth : metrics.unlocked)) *
+                    100,
+                ) / 100,
               )}
             </dd>
           </div>
@@ -415,19 +456,26 @@ function BillingPanel({
           className="mt-7"
           variant={isPro ? "outline" : "default"}
           onClick={() =>
-            toast.success(isPro ? "Downgrade scheduled" : "Upgrade to Pro Unlimited", {
-              description: isPro
-                ? "You will move to Pay Per Lead at the end of the cycle."
-                : `$${PRO_MONTHLY_USD}/month, unlimited leads, instant-match placement.`,
-            })
+            toast.success(
+              isPro ? pd.billing.downgradeTitle : pd.billing.upgradeTitle,
+              {
+                description: isPro
+                  ? t.fill(pd.billing.downgradeBody, { plan: pd.planNames.pay_per_lead })
+                  : t.fill(pd.billing.upgradeBody, { amount: t.usd(PRO_MONTHLY_USD) }),
+              },
+            )
           }
         >
-          {isPro ? "Switch to Pay Per Lead" : `Upgrade to Pro — $${PRO_MONTHLY_USD}/mo`}
+          {isPro
+            ? pd.billing.switchToPpl
+            : t.fill(pd.billing.upgradeToPro, { amount: t.usd(PRO_MONTHLY_USD) })}
         </Button>
       </div>
 
       <div className="rounded-2xl border bg-card p-6">
-        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Invoices</h3>
+        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+          {pd.billing.invoices}
+        </h3>
         <ul className="mt-5 divide-y">
           {invoices.map((inv) => (
             <li key={inv.ref} className="flex items-center gap-4 py-3.5">
@@ -435,22 +483,22 @@ function BillingPanel({
                 <p className="truncate text-[12.5px] tnum">{inv.ref}</p>
                 <p className="text-[12px] text-muted-foreground">{inv.period}</p>
               </div>
-              <span className="shrink-0 text-[13px] tnum">{formatUsdPrecise(inv.amount)}</span>
+              <span className="shrink-0 text-[13px] tnum">{t.usd(inv.amount)}</span>
               <span
                 className={cn(
                   "shrink-0 rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em]",
-                  inv.status === "Paid"
+                  inv.paid
                     ? "bg-verify/12 text-verify"
                     : "bg-brand-soft text-foreground dark:bg-accent",
                 )}
               >
-                {inv.status}
+                {inv.paid ? pd.billing.statusPaid : pd.billing.statusOpen}
               </span>
             </li>
           ))}
         </ul>
         <p className="mt-5 text-[12.5px] leading-relaxed text-muted-foreground">
-          Platform fees are billed in USD. Rotamove never touches the job revenue.
+          {pd.billing.footnote}
         </p>
       </div>
     </div>

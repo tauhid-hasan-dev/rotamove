@@ -38,6 +38,8 @@ interface I18nValue {
     dateLong: (iso: string) => string;
     dateShort: (iso: string) => string;
     dateRange: (range: [string, string]) => string;
+    dateTime: (iso: string) => string;
+    relative: (timestamp: number, now: number) => string;
     volume: (m3: number) => string;
     days: (range: [number, number]) => string;
     weeks: (weeks: number) => string;
@@ -79,6 +81,8 @@ export function I18nProvider({
         dateLong: (iso) => fmt.formatDateLong(locale, iso),
         dateShort: (iso) => fmt.formatDateShort(locale, iso),
         dateRange: (range) => fmt.formatDateRange(locale, range),
+        dateTime: (iso) => fmt.formatDateTime(locale, iso),
+        relative: (timestamp, now) => fmt.formatRelative(locale, timestamp, now),
         volume: (m3) => fmt.formatVolume(locale, dict, m3),
         days: (range) => fmt.formatDays(locale, dict, range),
         weeks: (weeks) => fmt.formatWeeks(locale, dict, weeks),

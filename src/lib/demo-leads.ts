@@ -2,7 +2,7 @@ import { CITIES, cityCountry, getCity } from "@/lib/geo";
 import { AVG_LEAD_FEE_USD, PRO_MONTHLY_USD, leadFeeUsd, leadQualityScore } from "@/lib/plans";
 import { estimateVolume } from "@/lib/pricing";
 import { createRng } from "@/lib/rand";
-import type { Lead, PropertySize } from "@/lib/types";
+import type { Lead, PlanId, PropertySize } from "@/lib/types";
 
 /**
  * Demo lead board.
@@ -215,13 +215,22 @@ export interface PartnerMetrics {
   avgResponseMins: number;
 }
 
-export function generatePartnerMetrics(planIsPro: boolean): PartnerMetrics {
-  const leadsThisMonth = planIsPro ? 312 : 47;
-  const unlocked = planIsPro ? 312 : 31;
+export function generatePartnerMetrics(plan: PlanId): PartnerMetrics {
+  if (plan === "pro_unlimited") {
+    return {
+      leadsThisMonth: 312,
+      unlocked: 312,
+      spendUsd: PRO_MONTHLY_USD,
+      avgResponseMins: 12,
+    };
+  }
+  // Pay-per-seen partners browse a masked board, so they open fewer leads
+  // than pay-per-lead partners who see the full details up front.
+  const unlocked = plan === "pay_per_seen" ? 9 : 31;
   return {
-    leadsThisMonth,
+    leadsThisMonth: plan === "pay_per_seen" ? 54 : 47,
     unlocked,
-    spendUsd: planIsPro ? PRO_MONTHLY_USD : Math.round(unlocked * AVG_LEAD_FEE_USD * 100) / 100,
-    avgResponseMins: planIsPro ? 12 : 41,
+    spendUsd: Math.round(unlocked * AVG_LEAD_FEE_USD * 100) / 100,
+    avgResponseMins: plan === "pay_per_seen" ? 55 : 41,
   };
 }

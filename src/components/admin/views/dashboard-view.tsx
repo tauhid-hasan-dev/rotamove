@@ -20,7 +20,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatDateShort, formatNumber, formatUsd, pct } from "@/lib/format";
 import {
   companyPerformance,
   computeKpis,
@@ -31,8 +30,9 @@ import {
   statusCounts,
 } from "@/lib/admin/metrics";
 import { COMPANY_STATUS_META, LEAD_STATUS_META } from "@/lib/admin/labels";
-import { CHANNELS, CHANNEL_LABELS, LEAD_STATUSES } from "@/lib/admin/types";
+import { CHANNELS, LEAD_STATUSES } from "@/lib/admin/types";
 import { useAdminData } from "@/lib/admin/store";
+import { useI18n } from "@/i18n/provider";
 
 function delta(current: number, previous: number): number | undefined {
   if (previous === 0) return undefined;
@@ -40,6 +40,8 @@ function delta(current: number, previous: number): number | undefined {
 }
 
 export function DashboardView() {
+  const { dict, t } = useI18n();
+  const dx = dict.admin.dashboard;
   const data = useAdminData();
   const dateRange = useDateRange(data.anchorMs, "30d");
   const { range } = dateRange;
@@ -56,10 +58,10 @@ export function DashboardView() {
     () =>
       CHANNELS.map((channel) => ({
         channel,
-        label: CHANNEL_LABELS[channel],
+        label: dict.admin.labels.channel[channel],
         value: rangeLeads.filter((l) => l.source.channel === channel).length,
       })).filter((s) => s.value > 0),
-    [rangeLeads],
+    [rangeLeads, dict],
   );
 
   const topCompanies = useMemo(
@@ -76,8 +78,8 @@ export function DashboardView() {
   return (
     <div className="animate-rise">
       <PageHeader
-        title="Dashboard"
-        description="Marketplace health at a glance. Every figure follows the selected period."
+        title={dx.title}
+        description={dx.description}
         actions={
           <DateRangePicker
             value={dateRange}
@@ -90,40 +92,40 @@ export function DashboardView() {
       {/* KPI grid */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
-          label="Total leads"
-          value={formatNumber(kpis.totalLeads)}
+          label={dx.kpiTotalLeads}
+          value={t.number(kpis.totalLeads)}
           delta={delta(kpis.totalLeads, prev.totalLeads)}
         />
-        <KpiCard label="New" value={formatNumber(kpis.newLeads)} hint="awaiting first contact" />
+        <KpiCard label={dx.kpiNew} value={t.number(kpis.newLeads)} hint={dx.kpiNewHint} />
         <KpiCard
-          label="Qualified"
-          value={formatNumber(kpis.qualifiedLeads)}
+          label={dx.kpiQualified}
+          value={t.number(kpis.qualifiedLeads)}
           delta={delta(kpis.qualifiedLeads, prev.qualifiedLeads)}
         />
         <KpiCard
-          label="Converted"
-          value={formatNumber(kpis.convertedLeads)}
+          label={dx.kpiConverted}
+          value={t.number(kpis.convertedLeads)}
           delta={delta(kpis.convertedLeads, prev.convertedLeads)}
         />
         <KpiCard
-          label="Conversion rate"
-          value={pct(kpis.conversionRate, 1)}
+          label={dx.kpiConversionRate}
+          value={t.percent(kpis.conversionRate, 1)}
           delta={delta(kpis.conversionRate, prev.conversionRate)}
         />
         <KpiCard
-          label="Active companies"
-          value={formatNumber(kpis.activeCompanies)}
-          hint="of the partner network"
+          label={dx.kpiActiveCompanies}
+          value={t.number(kpis.activeCompanies)}
+          hint={dx.kpiActiveCompaniesHint}
         />
         <KpiCard
-          label="Revenue"
-          value={formatUsd(kpis.revenueUsd)}
+          label={dx.kpiRevenue}
+          value={t.usd(kpis.revenueUsd)}
           delta={delta(kpis.revenueUsd, prev.revenueUsd)}
         />
         <KpiCard
-          label="Outstanding"
-          value={formatUsd(kpis.outstandingUsd)}
-          hint="open + overdue invoices"
+          label={dx.kpiOutstanding}
+          value={t.usd(kpis.outstandingUsd)}
+          hint={dx.kpiOutstandingHint}
         />
       </div>
 
@@ -131,8 +133,8 @@ export function DashboardView() {
       <div className="mt-4 grid gap-4 xl:grid-cols-2">
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Lead flow</CardTitle>
-            <CardDescription>Enquiries created per period, with conversions.</CardDescription>
+            <CardTitle>{dx.leadFlowTitle}</CardTitle>
+            <CardDescription>{dx.leadFlowDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <LeadsTrendChart data={trend} className="h-64 w-full" />
@@ -140,8 +142,8 @@ export function DashboardView() {
         </Card>
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Revenue</CardTitle>
-            <CardDescription>Cash collected: Pro subscriptions and lead fees.</CardDescription>
+            <CardTitle>{dx.revenueTitle}</CardTitle>
+            <CardDescription>{dx.revenueDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <RevenueTrendChart data={revenue} className="h-64 w-full" />
@@ -153,14 +155,14 @@ export function DashboardView() {
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Pipeline</CardTitle>
-            <CardDescription>Status of leads created in the period.</CardDescription>
+            <CardTitle>{dx.pipelineTitle}</CardTitle>
+            <CardDescription>{dx.pipelineDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             {rangeLeads.length === 0 ? (
               <EmptyState
-                title="No leads in this period"
-                description="Pick a wider date range to see the pipeline."
+                title={dx.pipelineEmptyTitle}
+                description={dx.pipelineEmptyBody}
                 icon={<Inbox className="size-5" aria-hidden />}
                 className="py-8"
               />
@@ -168,7 +170,7 @@ export function DashboardView() {
               <>
                 <DistributionBar
                   segments={LEAD_STATUSES.map((status) => ({
-                    label: LEAD_STATUS_META[status].label,
+                    label: dict.admin.status.lead[status],
                     value: counts[status],
                     colorClassName: LEAD_STATUS_META[status].dotClassName,
                   }))}
@@ -183,14 +185,14 @@ export function DashboardView() {
 
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Top companies</CardTitle>
-            <CardDescription>Most leads received in the period.</CardDescription>
+            <CardTitle>{dx.topCompaniesTitle}</CardTitle>
+            <CardDescription>{dx.topCompaniesDescription}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
             {topCompanies.length === 0 ? (
               <EmptyState
-                title="No assignments yet"
-                description="Leads assigned in this period will rank companies here."
+                title={dx.topCompaniesEmptyTitle}
+                description={dx.topCompaniesEmptyBody}
                 icon={<Building2 className="size-5" aria-hidden />}
                 className="py-8"
               />
@@ -207,11 +209,16 @@ export function DashboardView() {
                       {row.company.mover.name}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      {formatNumber(row.leadsReceived)} leads
-                      {row.feesUsd > 0 ? ` · ${formatUsd(row.feesUsd)} in fees` : " · Pro plan"}
+                      {t.fill(dx.leadsCount, { count: t.number(row.leadsReceived) })}
+                      {row.feesUsd > 0
+                        ? ` · ${t.fill(dx.inFees, { amount: t.usd(row.feesUsd) })}`
+                        : ` · ${dx.proPlan}`}
                     </span>
                   </span>
-                  <StatusBadge meta={COMPANY_STATUS_META[row.company.status]} />
+                  <StatusBadge
+                    meta={COMPANY_STATUS_META[row.company.status]}
+                    label={dict.admin.status.company[row.company.status]}
+                  />
                 </Link>
               ))
             )}
@@ -220,8 +227,8 @@ export function DashboardView() {
 
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Latest entries from the audit log.</CardDescription>
+            <CardTitle>{dx.activityTitle}</CardTitle>
+            <CardDescription>{dx.activityDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <ol className="space-y-3">
@@ -231,7 +238,7 @@ export function DashboardView() {
                   <span className="min-w-0">
                     <span className="block truncate">{entry.detail}</span>
                     <span className="tnum text-xs text-muted-foreground">
-                      {entry.actor} · {formatDateShort(entry.at)}
+                      {entry.actor} · {t.dateShort(entry.at)}
                     </span>
                   </span>
                 </li>
@@ -239,7 +246,7 @@ export function DashboardView() {
             </ol>
             <Button asChild variant="ghost" size="sm" className="mt-3 gap-1.5">
               <Link href="/admin/settings?tab=audit">
-                Full audit log
+                {dx.fullAuditLog}
                 <ArrowRight aria-hidden />
               </Link>
             </Button>

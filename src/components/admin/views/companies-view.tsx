@@ -29,20 +29,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { REGIONS, REGION_ORDER, type RegionId } from "@/lib/geo";
-import { formatNumber, formatUsd } from "@/lib/format";
-import { COMPANY_STATUS_META, PLAN_LABELS } from "@/lib/admin/labels";
+import { REGION_ORDER, type RegionId } from "@/lib/geo";
+import { COMPANY_STATUS_META } from "@/lib/admin/labels";
 import { companyPerformance, type DayRange } from "@/lib/admin/metrics";
 import { presetRange } from "@/lib/admin/date-range";
 import { useAdminData } from "@/lib/admin/store";
 import { COMPANY_STATUSES, type CompanyStatus } from "@/lib/admin/types";
 import type { PlanId } from "@/lib/types";
+import { useI18n } from "@/i18n/provider";
 
 type SortKey = "name" | "rating" | "leads" | "fees" | "joined";
+
+const PLAN_IDS: readonly PlanId[] = ["pro_unlimited", "pay_per_lead", "pay_per_seen"];
 
 export function CompaniesView() {
   const data = useAdminData();
   const router = useRouter();
+  const { dict, t } = useI18n();
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<CompanyStatus | "all">("all");
@@ -96,8 +99,18 @@ export function CompaniesView() {
 
   const buildSheet = () => ({
     headers: [
-      "Company", "Legal name", "Status", "Plan", "HQ", "Joined", "Rating",
-      "Leads (12 mo)", "Fees USD (12 mo)", "Contact", "Email", "Credit USD",
+      dict.admin.companies.colCompany,
+      dict.admin.companies.exportLegalName,
+      dict.admin.companies.colStatus,
+      dict.admin.companies.colPlan,
+      dict.admin.companies.exportHq,
+      dict.admin.companies.colJoined,
+      dict.admin.companies.colRating,
+      dict.admin.companies.colLeads12mo,
+      dict.admin.companies.exportFeesUsd12mo,
+      dict.admin.companies.exportContact,
+      dict.admin.companies.exportEmail,
+      dict.admin.companies.exportCreditUsd,
     ],
     rows: filtered.map((c) => {
       const perf = performance.get(c.mover.id);
@@ -105,7 +118,7 @@ export function CompaniesView() {
         c.mover.name,
         c.mover.legalName,
         c.status,
-        PLAN_LABELS[c.mover.plan],
+        dict.admin.labels.plan[c.mover.plan],
         c.mover.hqCity,
         c.joinedAt,
         c.mover.rating,
@@ -123,8 +136,8 @@ export function CompaniesView() {
   return (
     <div className="animate-rise">
       <PageHeader
-        title="Companies"
-        description="The partner network: plans, coverage, account state and lead volume."
+        title={dict.admin.companies.title}
+        description={dict.admin.companies.description}
         actions={
           <ExportMenu basename="rotamove-companies" buildSheet={buildSheet} />
         }
@@ -139,46 +152,49 @@ export function CompaniesView() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search company, city, contact…"
-            aria-label="Search companies"
+            placeholder={dict.admin.companies.searchPlaceholder}
+            aria-label={dict.admin.companies.searchAria}
             className="w-64 ps-8"
           />
         </div>
 
         <Select value={status} onValueChange={(v) => setStatus(v as CompanyStatus | "all")}>
-          <SelectTrigger className="w-40" aria-label="Filter by account status">
+          <SelectTrigger className="w-40" aria-label={dict.admin.companies.statusFilterAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="all">{dict.admin.common.allStatuses}</SelectItem>
             {COMPANY_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>
-                {COMPANY_STATUS_META[s].label}
+                {dict.admin.status.company[s]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select value={plan} onValueChange={(v) => setPlan(v as PlanId | "all")}>
-          <SelectTrigger className="w-40" aria-label="Filter by plan">
+          <SelectTrigger className="w-40" aria-label={dict.admin.companies.planFilterAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All plans</SelectItem>
-            <SelectItem value="pro_unlimited">{PLAN_LABELS.pro_unlimited}</SelectItem>
-            <SelectItem value="pay_per_lead">{PLAN_LABELS.pay_per_lead}</SelectItem>
+            <SelectItem value="all">{dict.admin.companies.allPlans}</SelectItem>
+            {PLAN_IDS.map((p) => (
+              <SelectItem key={p} value={p}>
+                {dict.admin.labels.plan[p]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         <Select value={region} onValueChange={(v) => setRegion(v as RegionId | "all")}>
-          <SelectTrigger className="w-48" aria-label="Filter by region">
+          <SelectTrigger className="w-48" aria-label={dict.admin.companies.regionFilterAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All regions</SelectItem>
+            <SelectItem value="all">{dict.admin.companies.allRegions}</SelectItem>
             {REGION_ORDER.map((r) => (
               <SelectItem key={r} value={r}>
-                {REGIONS[r].name}
+                {dict.enums.regions[r]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -190,13 +206,13 @@ export function CompaniesView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <SortHead label="Company" sortKey="name" sort={sort} onToggle={toggle} />
-                <TableHead>Plan</TableHead>
-                <SortHead label="Rating" sortKey="rating" sort={sort} onToggle={toggle} />
-                <SortHead label="Leads (12 mo)" sortKey="leads" sort={sort} onToggle={toggle} align="right" />
-                <SortHead label="Fees (12 mo)" sortKey="fees" sort={sort} onToggle={toggle} align="right" />
-                <SortHead label="Joined" sortKey="joined" sort={sort} onToggle={toggle} />
-                <TableHead>Status</TableHead>
+                <SortHead label={dict.admin.companies.colCompany} sortKey="name" sort={sort} onToggle={toggle} />
+                <TableHead>{dict.admin.companies.colPlan}</TableHead>
+                <SortHead label={dict.admin.companies.colRating} sortKey="rating" sort={sort} onToggle={toggle} />
+                <SortHead label={dict.admin.companies.colLeads12mo} sortKey="leads" sort={sort} onToggle={toggle} align="right" />
+                <SortHead label={dict.admin.companies.colFees12mo} sortKey="fees" sort={sort} onToggle={toggle} align="right" />
+                <SortHead label={dict.admin.companies.colJoined} sortKey="joined" sort={sort} onToggle={toggle} />
+                <TableHead>{dict.admin.companies.colStatus}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,28 +234,34 @@ export function CompaniesView() {
                         <span className="min-w-0">
                           <span className="block truncate font-medium">{c.mover.name}</span>
                           <span className="block text-xs text-muted-foreground">
-                            {c.mover.hqCity} · since {c.mover.since}
+                            {t.fill(dict.admin.companies.hqSince, {
+                              city: c.mover.hqCity,
+                              year: c.mover.since,
+                            })}
                           </span>
                         </span>
                       </span>
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-[13px] text-muted-foreground">
-                      {PLAN_LABELS[c.mover.plan]}
+                      {dict.admin.labels.plan[c.mover.plan]}
                     </TableCell>
                     <TableCell>
                       <Stars rating={c.mover.rating} compact />
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px]">
-                      {formatNumber(perf?.leadsReceived ?? 0)}
+                      {t.number(perf?.leadsReceived ?? 0)}
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px]">
-                      {perf && perf.feesUsd > 0 ? formatUsd(perf.feesUsd) : "—"}
+                      {perf && perf.feesUsd > 0 ? t.usd(perf.feesUsd) : "—"}
                     </TableCell>
                     <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
                       {c.joinedAt}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge meta={COMPANY_STATUS_META[c.status]} />
+                      <StatusBadge
+                        meta={COMPANY_STATUS_META[c.status]}
+                        label={dict.admin.status.company[c.status]}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -250,8 +272,8 @@ export function CompaniesView() {
 
         {filtered.length === 0 ? (
           <EmptyState
-            title={hasFilters ? "No companies match these filters" : "No companies yet"}
-            description={hasFilters ? "Loosen the search or clear a filter." : undefined}
+            title={hasFilters ? dict.admin.companies.emptyFiltered : dict.admin.companies.emptyNone}
+            description={hasFilters ? dict.admin.common.loosenFilters : undefined}
             className="m-4"
           />
         ) : (

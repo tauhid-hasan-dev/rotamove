@@ -1,8 +1,11 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, SearchX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { StatusMeta } from "@/lib/admin/labels";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 /* Small shared pieces used on every admin page. */
@@ -45,6 +48,7 @@ export function KpiCard({
   hint?: string;
   className?: string;
 }) {
+  const { dict } = useI18n();
   const showDelta = delta !== undefined && Number.isFinite(delta);
   const up = (delta ?? 0) >= 0;
   return (
@@ -68,18 +72,27 @@ export function KpiCard({
               {`${up ? "+" : ""}${Math.round((delta ?? 0) * 100)}%`}
             </span>
           ) : null}
-          {hint ?? (showDelta ? "vs previous period" : "")}
+          {hint ?? (showDelta ? dict.admin.common.vsPreviousPeriod : "")}
         </p>
       </CardContent>
     </Card>
   );
 }
 
-export function StatusBadge({ meta, className }: { meta: StatusMeta; className?: string }) {
+export function StatusBadge({
+  meta,
+  label,
+  className,
+}: {
+  meta: StatusMeta;
+  /** Localized label; falls back to the meta's English one. */
+  label?: string;
+  className?: string;
+}) {
   return (
     <Badge className={cn("border-transparent", meta.className, className)}>
       <span className={cn("size-1.5 rounded-full", meta.dotClassName)} aria-hidden />
-      {meta.label}
+      {label ?? meta.label}
     </Badge>
   );
 }

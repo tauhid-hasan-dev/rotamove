@@ -11,6 +11,7 @@ import {
   FlaskConical,
   Inbox,
   LayoutDashboard,
+  LockOpen,
   Menu,
   Moon,
   Settings,
@@ -22,20 +23,29 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { AdminLocaleSwitcher } from "@/components/admin/locale-switcher";
+import { useI18n } from "@/i18n/provider";
+import type { Dictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/utils";
 
 /* The admin chrome: sidebar on desktop, sheet menu on mobile, one topbar.
    Uses the same sidebar tokens the rest of the design system defines. */
 
 const NAV = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/leads", label: "Leads", icon: Inbox, exact: false },
-  { href: "/admin/companies", label: "Companies", icon: Building2, exact: false },
-  { href: "/admin/reports", label: "Sales reports", icon: BarChart3, exact: false },
-  { href: "/admin/analytics", label: "Traffic", icon: ChartSpline, exact: false },
-  { href: "/admin/billing", label: "Billing", icon: CreditCard, exact: false },
-  { href: "/admin/settings", label: "Settings", icon: Settings, exact: false },
-] as const;
+  { href: "/admin", key: "dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/leads", key: "leads", icon: Inbox, exact: false },
+  { href: "/admin/unlocks", key: "unlocks", icon: LockOpen, exact: false },
+  { href: "/admin/companies", key: "companies", icon: Building2, exact: false },
+  { href: "/admin/reports", key: "reports", icon: BarChart3, exact: false },
+  { href: "/admin/analytics", key: "analytics", icon: ChartSpline, exact: false },
+  { href: "/admin/billing", key: "billing", icon: CreditCard, exact: false },
+  { href: "/admin/settings", key: "settings", icon: Settings, exact: false },
+] as const satisfies ReadonlyArray<{
+  href: string;
+  key: keyof Dictionary["admin"]["shell"]["nav"];
+  icon: typeof Inbox;
+  exact: boolean;
+}>;
 
 function isActive(pathname: string, href: string, exact: boolean): boolean {
   return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -57,9 +67,10 @@ function Wordmark() {
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { dict } = useI18n();
   return (
-    <nav aria-label="Admin sections" className="flex flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon, exact }) => {
+    <nav aria-label={dict.admin.shell.navAria} className="flex flex-col gap-1">
+      {NAV.map(({ href, key, icon: Icon, exact }) => {
         const active = isActive(pathname, href, exact);
         return (
           <Link
@@ -75,7 +86,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <Icon className={cn("size-4", active ? "" : "opacity-70")} aria-hidden />
-            {label}
+            {dict.admin.shell.nav[key]}
           </Link>
         );
       })}
@@ -84,29 +95,28 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function DemoBadge() {
+  const { dict } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Badge variant="outline" className="gap-1.5 border-dashed text-muted-foreground">
           <FlaskConical aria-hidden />
-          Demo data
+          {dict.admin.shell.demoData}
         </Badge>
       </TooltipTrigger>
-      <TooltipContent className="max-w-60">
-        Every figure here is seeded sample data generated from the product&apos;s own domain
-        model. No live analytics or payment providers are connected.
-      </TooltipContent>
+      <TooltipContent className="max-w-60">{dict.admin.shell.demoTooltip}</TooltipContent>
     </Tooltip>
   );
 }
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { dict } = useI18n();
   return (
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Toggle colour theme"
+      aria-label={dict.common.toggleTheme}
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       <Sun className="hidden dark:block" aria-hidden />
@@ -117,6 +127,7 @@ function ThemeToggle() {
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { dict } = useI18n();
 
   return (
     <div className="flex min-h-dvh">
@@ -127,7 +138,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="mt-auto space-y-3">
           <DemoBadge />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Prototype build. Wire to the NestJS API by replacing the seed in{" "}
+            {dict.admin.shell.prototypeNote}{" "}
             <span className="rounded bg-muted px-1 py-px font-medium">lib/admin</span>.
           </p>
         </div>
@@ -138,7 +149,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur sm:px-6">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                aria-label={dict.admin.shell.openNav}
+              >
                 <Menu aria-hidden />
               </Button>
             </SheetTrigger>
@@ -162,6 +178,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <div className="hidden sm:block">
               <DemoBadge />
             </div>
+            <AdminLocaleSwitcher />
             <ThemeToggle />
             <span
               aria-hidden

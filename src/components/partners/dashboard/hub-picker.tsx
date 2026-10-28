@@ -4,6 +4,7 @@ import { useId, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cityCountry, getCity, searchCityHits } from "@/lib/geo";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,6 +30,8 @@ export function HubPicker({
   exclude?: string | null;
   invalid?: boolean;
 }) {
+  const { dict, t } = useI18n();
+  const hx = dict.partnerDashboard.hub;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,11 +76,11 @@ export function HubPicker({
                 <>
                   {selected.name}
                   <span className="ms-2 text-[12.5px] text-muted-foreground">
-                    {cityCountry(selected).name}
+                    {t.country(selected.country, cityCountry(selected).name)}
                   </span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Search a hub…</span>
+                <span className="text-muted-foreground">{hx.placeholder}</span>
               )}
             </span>
             {selected && <span className="code shrink-0 text-[11.5px]">{selected.code}</span>}
@@ -101,15 +104,15 @@ export function HubPicker({
               ref={inputRef}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="City, country or code"
-              aria-label="Search hubs"
+              placeholder={hx.searchPlaceholder}
+              aria-label={hx.searchAria}
               className="w-full bg-transparent py-1 text-[14.5px] outline-none placeholder:text-muted-foreground/70"
             />
           </div>
 
           {hits.length === 0 ? (
             <p className="px-3 py-5 text-center text-[13.5px] text-muted-foreground">
-              No hub matches “{query}”.
+              {t.fill(hx.noMatch, { query })}
             </p>
           ) : (
             <ul
@@ -131,7 +134,7 @@ export function HubPicker({
                       <span className="min-w-0 flex-1 truncate">
                         <span className="text-[14.5px]">{hit.city.name}</span>
                         <span className="ms-2 text-[12.5px] text-muted-foreground">
-                          {cityCountry(hit.city).name}
+                          {t.country(hit.city.country, cityCountry(hit.city).name)}
                         </span>
                       </span>
                       {active && <Check className="size-3.5 shrink-0 text-brand" strokeWidth={3} />}

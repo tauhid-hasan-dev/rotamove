@@ -22,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCompact, formatNumber, pct } from "@/lib/format";
 import {
   campaignRows,
   channelTotals,
@@ -33,20 +32,22 @@ import {
   type NamedStatsRow,
 } from "@/lib/admin/metrics";
 import { useAdminData } from "@/lib/admin/store";
-import { CHANNEL_LABELS } from "@/lib/admin/types";
+import { useI18n } from "@/i18n/provider";
 
 function StatsTable({ rows, nameHeader }: { rows: NamedStatsRow[]; nameHeader: string }) {
+  const { dict, t } = useI18n();
+  const ax = dict.admin.analytics;
   if (rows.length === 0) {
-    return <EmptyState title="No traffic in this range" className="m-4" />;
+    return <EmptyState title={ax.noTrafficInRange} className="m-4" />;
   }
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>{nameHeader}</TableHead>
-          <TableHead className="text-end">Sessions</TableHead>
-          <TableHead className="text-end">Leads</TableHead>
-          <TableHead className="text-end">Conversion</TableHead>
+          <TableHead className="text-end">{ax.colSessions}</TableHead>
+          <TableHead className="text-end">{ax.colLeads}</TableHead>
+          <TableHead className="text-end">{ax.colConversion}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -54,11 +55,11 @@ function StatsTable({ rows, nameHeader }: { rows: NamedStatsRow[]; nameHeader: s
           <TableRow key={row.id}>
             <TableCell className="text-[13px] font-medium">{row.label}</TableCell>
             <TableCell className="tnum text-end text-[13px]">
-              {formatNumber(row.sessions)}
+              {t.number(row.sessions)}
             </TableCell>
             <TableCell className="tnum text-end text-[13px]">{row.leads}</TableCell>
             <TableCell className="tnum text-end text-[13px]">
-              {pct(row.conversionRate, 1)}
+              {t.percent(row.conversionRate, 1)}
             </TableCell>
           </TableRow>
         ))}
@@ -68,6 +69,8 @@ function StatsTable({ rows, nameHeader }: { rows: NamedStatsRow[]; nameHeader: s
 }
 
 export function AnalyticsView() {
+  const { dict, t } = useI18n();
+  const ax = dict.admin.analytics;
   const data = useAdminData();
   const dateRange = useDateRange(data.anchorMs, "30d");
   const { range } = dateRange;
@@ -86,14 +89,18 @@ export function AnalyticsView() {
     () =>
       channels
         .filter((c) => c.leads > 0)
-        .map((c) => ({ channel: c.channel, label: CHANNEL_LABELS[c.channel], value: c.leads })),
-    [channels],
+        .map((c) => ({
+          channel: c.channel,
+          label: dict.admin.labels.channel[c.channel],
+          value: c.leads,
+        })),
+    [channels, dict],
   );
 
   const buildChannelSheet = () => ({
-    headers: ["Channel", "Sessions", "Visitors", "Leads", "Conversion rate"],
+    headers: [ax.colChannel, ax.colSessions, ax.colVisitors, ax.colLeads, ax.colConversionRate],
     rows: channels.map((c) => [
-      CHANNEL_LABELS[c.channel],
+      dict.admin.labels.channel[c.channel],
       c.sessions,
       c.visitors,
       c.leads,
@@ -104,8 +111,8 @@ export function AnalyticsView() {
   return (
     <div className="animate-rise">
       <PageHeader
-        title="Traffic analytics"
-        description="Where visitors come from and how many become leads."
+        title={ax.title}
+        description={ax.description}
         actions={
           <>
             <DateRangePicker
@@ -123,33 +130,30 @@ export function AnalyticsView() {
 
       <Alert className="mb-4">
         <FlaskConical aria-hidden />
-        <AlertTitle>Simulated traffic</AlertTitle>
-        <AlertDescription>
-          No analytics provider is connected. Sessions are seeded demo data, generated so that
-          lead counts here reconcile exactly with the Leads table for the same period.
-        </AlertDescription>
+        <AlertTitle>{ax.simulatedTitle}</AlertTitle>
+        <AlertDescription>{ax.simulatedBody}</AlertDescription>
       </Alert>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Sessions" value={formatCompact(totals.sessions)} />
-        <KpiCard label="Unique visitors" value={formatCompact(totals.visitors)} />
+        <KpiCard label={ax.kpiSessions} value={t.compact(totals.sessions)} />
+        <KpiCard label={ax.kpiVisitors} value={t.compact(totals.visitors)} />
         <KpiCard
-          label="Leads"
-          value={formatNumber(totals.leads)}
-          hint="same count as the Leads table"
+          label={ax.kpiLeads}
+          value={t.number(totals.leads)}
+          hint={ax.kpiLeadsHint}
         />
         <KpiCard
-          label="Session → lead"
-          value={pct(totals.conversionRate, 2)}
-          hint="conversion across all channels"
+          label={ax.kpiSessionToLead}
+          value={t.percent(totals.conversionRate, 2)}
+          hint={ax.kpiSessionToLeadHint}
         />
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
         <Card className="shadow-soft xl:col-span-2">
           <CardHeader>
-            <CardTitle>Sessions by channel</CardTitle>
-            <CardDescription>Acquisition mix over the period.</CardDescription>
+            <CardTitle>{ax.sessionsByChannelTitle}</CardTitle>
+            <CardDescription>{ax.sessionsByChannelDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             <SessionsChart data={trend} className="h-72 w-full" />
@@ -158,12 +162,12 @@ export function AnalyticsView() {
 
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Lead share</CardTitle>
-            <CardDescription>Leads attributed per channel.</CardDescription>
+            <CardTitle>{ax.leadShareTitle}</CardTitle>
+            <CardDescription>{ax.leadShareDescription}</CardDescription>
           </CardHeader>
           <CardContent>
             {donutData.length === 0 ? (
-              <EmptyState title="No leads in this range" className="py-8" />
+              <EmptyState title={ax.noLeadsInRange} className="py-8" />
             ) : (
               <ChannelDonut data={donutData} className="h-64 w-full" />
             )}
@@ -173,18 +177,18 @@ export function AnalyticsView() {
 
       <Card className="mt-4 gap-0 overflow-hidden py-0 shadow-soft">
         <CardHeader className="pt-6 pb-4">
-          <CardTitle>Channels</CardTitle>
-          <CardDescription>Sessions, visitors and conversion per acquisition channel.</CardDescription>
+          <CardTitle>{ax.channelsTitle}</CardTitle>
+          <CardDescription>{ax.channelsDescription}</CardDescription>
         </CardHeader>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Channel</TableHead>
-                <TableHead className="text-end">Sessions</TableHead>
-                <TableHead className="text-end">Visitors</TableHead>
-                <TableHead className="text-end">Leads</TableHead>
-                <TableHead className="text-end">Conversion</TableHead>
+                <TableHead>{ax.colChannel}</TableHead>
+                <TableHead className="text-end">{ax.colSessions}</TableHead>
+                <TableHead className="text-end">{ax.colVisitors}</TableHead>
+                <TableHead className="text-end">{ax.colLeads}</TableHead>
+                <TableHead className="text-end">{ax.colConversion}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -197,18 +201,18 @@ export function AnalyticsView() {
                         style={{ background: CHANNEL_COLORS[c.channel] }}
                         aria-hidden
                       />
-                      {CHANNEL_LABELS[c.channel]}
+                      {dict.admin.labels.channel[c.channel]}
                     </span>
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
-                    {formatNumber(c.sessions)}
+                    {t.number(c.sessions)}
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
-                    {formatNumber(c.visitors)}
+                    {t.number(c.visitors)}
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">{c.leads}</TableCell>
                   <TableCell className="tnum text-end text-[13px]">
-                    {pct(c.conversionRate, 1)}
+                    {t.percent(c.conversionRate, 1)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -220,26 +224,26 @@ export function AnalyticsView() {
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
           <CardHeader className="pt-6 pb-4">
-            <CardTitle>Campaigns</CardTitle>
-            <CardDescription>Paid search and social.</CardDescription>
+            <CardTitle>{ax.campaignsTitle}</CardTitle>
+            <CardDescription>{ax.campaignsDescription}</CardDescription>
           </CardHeader>
-          <StatsTable rows={campaigns} nameHeader="Campaign" />
+          <StatsTable rows={campaigns} nameHeader={ax.colCampaign} />
         </Card>
 
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
           <CardHeader className="pt-6 pb-4">
-            <CardTitle>Landing pages</CardTitle>
-            <CardDescription>First page of the session.</CardDescription>
+            <CardTitle>{ax.landingPagesTitle}</CardTitle>
+            <CardDescription>{ax.landingPagesDescription}</CardDescription>
           </CardHeader>
-          <StatsTable rows={pages} nameHeader="Page" />
+          <StatsTable rows={pages} nameHeader={ax.colPage} />
         </Card>
 
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
           <CardHeader className="pt-6 pb-4">
-            <CardTitle>Top countries</CardTitle>
-            <CardDescription>Visitor geography.</CardDescription>
+            <CardTitle>{ax.countriesTitle}</CardTitle>
+            <CardDescription>{ax.countriesDescription}</CardDescription>
           </CardHeader>
-          <StatsTable rows={countries} nameHeader="Country" />
+          <StatsTable rows={countries} nameHeader={ax.colCountry} />
         </Card>
       </div>
     </div>

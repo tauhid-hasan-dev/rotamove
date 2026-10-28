@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/i18n/provider";
 
 /* One confirmation pattern for every irreversible-looking admin action. */
 
@@ -33,6 +34,7 @@ export function ConfirmDialog({
   /** Optional extra form content shown between description and footer. */
   children?: ReactNode;
 }) {
+  const { dict } = useI18n();
   const [open, setOpen] = useState(false);
 
   return (
@@ -46,7 +48,7 @@ export function ConfirmDialog({
         {children}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="ghost">Cancel</Button>
+            <Button variant="ghost">{dict.admin.confirm.cancel}</Button>
           </DialogClose>
           <Button
             variant={destructive ? "destructive" : "default"}

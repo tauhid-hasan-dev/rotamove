@@ -127,6 +127,38 @@ export function formatDateRange(locale: Locale, [from, to]: [string, string]): s
   return dateFormat(locale, { day: "numeric", month: "short" }).formatRange(start, end);
 }
 
+export function formatDateTime(locale: Locale, iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return dateFormat(locale, {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+const relativeCache: Cache<Intl.RelativeTimeFormat> = new Map();
+
+/**
+ * "5 min ago" in the reader's language.
+ *
+ * Takes the clock as an argument rather than reading it, for the same reason
+ * the lead board does: the server and the client must render the same string.
+ */
+export function formatRelative(locale: Locale, timestamp: number, now: number): string {
+  let rtf = relativeCache.get(locale);
+  if (!rtf) {
+    rtf = new Intl.RelativeTimeFormat(intlLocale(locale), { numeric: "always", style: "narrow" });
+    relativeCache.set(locale, rtf);
+  }
+  const diffMins = Math.round((timestamp - now) / 60_000);
+  if (Math.abs(diffMins) < 60) return rtf.format(diffMins, "minute");
+  const diffHours = Math.round(diffMins / 60);
+  if (Math.abs(diffHours) < 24) return rtf.format(diffHours, "hour");
+  return rtf.format(Math.round(diffHours / 24), "day");
+}
+
 /* ------------------------------------------------------------------ units -- */
 
 export const formatVolume = (locale: Locale, dict: Dictionary, m3: number) =>

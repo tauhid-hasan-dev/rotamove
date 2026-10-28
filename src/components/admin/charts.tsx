@@ -9,10 +9,10 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { formatCompact } from "@/lib/format";
+import { useI18n } from "@/i18n/provider";
 import type { LeadTrendPoint, RevenuePoint, SessionsPoint } from "@/lib/admin/metrics";
 import type { AcquisitionChannel } from "@/lib/admin/types";
-import { CHANNELS, CHANNEL_LABELS } from "@/lib/admin/types";
+import { CHANNELS } from "@/lib/admin/types";
 
 /* ======================================================================== *
  *  Admin charts.
@@ -53,12 +53,13 @@ function tickInterval(count: number): number {
  * Leads over time — area for volume, line for conversions.
  * ------------------------------------------------------------------ */
 
-const leadsConfig = {
-  leads: { label: "Leads", color: CATEGORICAL.green },
-  converted: { label: "Converted", color: CATEGORICAL.blue },
-} satisfies ChartConfig;
-
 export function LeadsTrendChart({ data, className }: { data: LeadTrendPoint[]; className?: string }) {
+  const { dict } = useI18n();
+  const leadsConfig = {
+    leads: { label: dict.admin.charts.leads, color: CATEGORICAL.green },
+    converted: { label: dict.admin.charts.converted, color: CATEGORICAL.blue },
+  } satisfies ChartConfig;
+
   return (
     <ChartContainer config={leadsConfig} className={className}>
       <AreaChart data={data} margin={{ left: 4, right: 4, top: 8 }}>
@@ -96,12 +97,13 @@ export function LeadsTrendChart({ data, className }: { data: LeadTrendPoint[]; c
  * Revenue — stacked bars: subscriptions vs lead fees.
  * ------------------------------------------------------------------ */
 
-const revenueConfig = {
-  subscriptions: { label: "Subscriptions", color: CATEGORICAL.blue },
-  leadFees: { label: "Lead fees", color: CATEGORICAL.green },
-} satisfies ChartConfig;
-
 export function RevenueTrendChart({ data, className }: { data: RevenuePoint[]; className?: string }) {
+  const { dict, t } = useI18n();
+  const revenueConfig = {
+    subscriptions: { label: dict.admin.charts.subscriptions, color: CATEGORICAL.blue },
+    leadFees: { label: dict.admin.charts.leadFees, color: CATEGORICAL.green },
+  } satisfies ChartConfig;
+
   return (
     <ChartContainer config={revenueConfig} className={className}>
       <BarChart data={data} margin={{ left: 4, right: 4, top: 8 }}>
@@ -112,7 +114,7 @@ export function RevenueTrendChart({ data, className }: { data: RevenuePoint[]; c
           axisLine={false}
           width={42}
           fontSize={11}
-          tickFormatter={(v: number) => `$${formatCompact(v)}`}
+          tickFormatter={(v: number) => `$${t.compact(v)}`}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
@@ -140,14 +142,15 @@ export function RevenueTrendChart({ data, className }: { data: RevenuePoint[]; c
  * Sessions by channel — stacked bars, fixed channel order.
  * ------------------------------------------------------------------ */
 
-const sessionsConfig = Object.fromEntries(
-  CHANNELS.map((channel) => [
-    channel,
-    { label: CHANNEL_LABELS[channel], color: CHANNEL_COLORS[channel] },
-  ]),
-) satisfies ChartConfig;
-
 export function SessionsChart({ data, className }: { data: SessionsPoint[]; className?: string }) {
+  const { dict, t } = useI18n();
+  const sessionsConfig = Object.fromEntries(
+    CHANNELS.map((channel) => [
+      channel,
+      { label: dict.admin.labels.channel[channel], color: CHANNEL_COLORS[channel] },
+    ]),
+  ) satisfies ChartConfig;
+
   return (
     <ChartContainer config={sessionsConfig} className={className}>
       <BarChart data={data} margin={{ left: 4, right: 4, top: 8 }}>
@@ -158,7 +161,7 @@ export function SessionsChart({ data, className }: { data: SessionsPoint[]; clas
           axisLine={false}
           width={40}
           fontSize={11}
-          tickFormatter={(v: number) => formatCompact(v)}
+          tickFormatter={(v: number) => t.compact(v)}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
@@ -228,11 +231,12 @@ export function DistributionBar({
   segments: Array<{ label: string; value: number; colorClassName: string }>;
   className?: string;
 }) {
+  const { t } = useI18n();
   const total = segments.reduce((s, seg) => s + seg.value, 0);
   if (total === 0) return null;
   return (
     <div className={className}>
-      <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label={segments.map((s) => `${s.label}: ${s.value}`).join(", ")}>
+      <div className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full" role="img" aria-label={segments.map((s) => `${s.label}: ${t.number(s.value)}`).join(", ")}>
         {segments
           .filter((s) => s.value > 0)
           .map((s) => (
@@ -248,7 +252,7 @@ export function DistributionBar({
           <span key={s.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className={`size-2 rounded-full ${s.colorClassName}`} aria-hidden />
             {s.label}
-            <span className="tnum font-medium text-foreground">{s.value}</span>
+            <span className="tnum font-medium text-foreground">{t.number(s.value)}</span>
           </span>
         ))}
       </div>

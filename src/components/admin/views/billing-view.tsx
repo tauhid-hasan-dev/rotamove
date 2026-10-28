@@ -47,8 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateShort, formatUsd, formatUsdPrecise } from "@/lib/format";
-import { INVOICE_STATUS_META, PAYMENT_METHOD_LABELS, PLAN_LABELS } from "@/lib/admin/labels";
+import { INVOICE_STATUS_META } from "@/lib/admin/labels";
 import { billingTotals, inRange } from "@/lib/admin/metrics";
 import { useAdminData, useAdminDispatch } from "@/lib/admin/store";
 import {
@@ -57,12 +56,14 @@ import {
   type InvoiceStatus,
   type PaymentMethod,
 } from "@/lib/admin/types";
+import { useI18n } from "@/i18n/provider";
 
 type SortKey = "number" | "issued" | "due" | "total";
 
 export function BillingView() {
   const data = useAdminData();
   const dispatch = useAdminDispatch();
+  const { dict, t } = useI18n();
   const dateRange = useDateRange(data.anchorMs, "90d");
 
   const [query, setQuery] = useState("");
@@ -116,11 +117,21 @@ export function BillingView() {
     : [];
 
   const buildSheet = () => ({
-    headers: ["Invoice", "Company", "Plan", "Period", "Issued", "Due", "Status", "Total USD", "Paid at"],
+    headers: [
+      dict.admin.billing.colInvoice,
+      dict.admin.billing.colCompany,
+      dict.admin.billing.exportPlan,
+      dict.admin.billing.colPeriod,
+      dict.admin.billing.colIssued,
+      dict.admin.billing.colDue,
+      dict.admin.billing.colStatus,
+      dict.admin.billing.exportTotalUsd,
+      dict.admin.billing.exportPaidAt,
+    ],
     rows: filtered.map((invoice) => [
       invoice.number,
       companiesById.get(invoice.companyId)?.mover.name ?? invoice.companyId,
-      PLAN_LABELS[invoice.plan],
+      dict.admin.labels.plan[invoice.plan],
       invoice.periodStart.slice(0, 7),
       invoice.issuedAt,
       invoice.dueAt,
@@ -136,20 +147,20 @@ export function BillingView() {
       payMethod === "credit_balance" &&
       (company?.creditBalanceUsd ?? 0) < invoice.totalUsd
     ) {
-      toast.error("Credit balance does not cover this invoice.");
+      toast.error(dict.admin.billing.creditShortError);
       return;
     }
     dispatch({ type: "invoice/pay", id: invoice.id, method: payMethod });
-    toast.success(`${invoice.number} marked paid`);
+    toast.success(t.fill(dict.admin.billing.markedPaidToast, { number: invoice.number }));
   };
 
   const refund = (invoice: Invoice) => {
     dispatch({
       type: "invoice/refund",
       id: invoice.id,
-      reason: refundReason.trim() || "Refunded from admin console",
+      reason: refundReason.trim() || dict.admin.billing.refundReasonFallback,
     });
-    toast.success(`${invoice.number} refunded`);
+    toast.success(t.fill(dict.admin.billing.refundedToast, { number: invoice.number }));
     setRefundReason("");
   };
 
@@ -158,8 +169,8 @@ export function BillingView() {
   return (
     <div className="animate-rise">
       <PageHeader
-        title="Billing"
-        description="Invoices, payments, refunds and prepaid lead credits across the network."
+        title={dict.admin.billing.title}
+        description={dict.admin.billing.description}
         actions={
           <>
             <DateRangePicker
@@ -177,21 +188,27 @@ export function BillingView() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
-          label="Collected"
-          value={formatUsd(totals.collectedUsd)}
-          hint="in period, net of refunds"
+          label={dict.admin.billing.kpiCollected}
+          value={t.usd(totals.collectedUsd)}
+          hint={dict.admin.billing.kpiCollectedHint}
         />
         <KpiCard
-          label="Outstanding"
-          value={formatUsd(totals.outstandingUsd)}
-          hint={`${totals.openCount + totals.overdueCount} open invoices`}
+          label={dict.admin.billing.kpiOutstanding}
+          value={t.usd(totals.outstandingUsd)}
+          hint={t.fill(dict.admin.billing.kpiOutstandingHint, {
+            n: totals.openCount + totals.overdueCount,
+          })}
         />
         <KpiCard
-          label="Overdue"
-          value={formatUsd(totals.overdueUsd)}
-          hint={`${totals.overdueCount} invoices past due`}
+          label={dict.admin.billing.kpiOverdue}
+          value={t.usd(totals.overdueUsd)}
+          hint={t.fill(dict.admin.billing.kpiOverdueHint, { n: totals.overdueCount })}
         />
-        <KpiCard label="Refunded" value={formatUsd(totals.refundedUsd)} hint="in period" />
+        <KpiCard
+          label={dict.admin.billing.kpiRefunded}
+          value={t.usd(totals.refundedUsd)}
+          hint={dict.admin.billing.kpiRefundedHint}
+        />
       </div>
 
       <div className="mt-4 mb-4 flex flex-wrap items-center gap-2">
@@ -203,20 +220,20 @@ export function BillingView() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search invoice number or company…"
-            aria-label="Search invoices"
+            placeholder={dict.admin.billing.searchPlaceholder}
+            aria-label={dict.admin.billing.searchAria}
             className="w-72 ps-8"
           />
         </div>
         <Select value={status} onValueChange={(v) => setStatus(v as InvoiceStatus | "all")}>
-          <SelectTrigger className="w-36" aria-label="Filter by invoice status">
+          <SelectTrigger className="w-36" aria-label={dict.admin.billing.statusFilterAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="all">{dict.admin.common.allStatuses}</SelectItem>
             {INVOICE_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>
-                {INVOICE_STATUS_META[s].label}
+                {dict.admin.status.invoice[s]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -228,13 +245,13 @@ export function BillingView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <SortHead label="Invoice" sortKey="number" sort={sort} onToggle={toggle} />
-                <TableHead>Company</TableHead>
-                <TableHead>Period</TableHead>
-                <SortHead label="Issued" sortKey="issued" sort={sort} onToggle={toggle} />
-                <SortHead label="Due" sortKey="due" sort={sort} onToggle={toggle} />
-                <SortHead label="Total" sortKey="total" sort={sort} onToggle={toggle} align="right" />
-                <TableHead>Status</TableHead>
+                <SortHead label={dict.admin.billing.colInvoice} sortKey="number" sort={sort} onToggle={toggle} />
+                <TableHead>{dict.admin.billing.colCompany}</TableHead>
+                <TableHead>{dict.admin.billing.colPeriod}</TableHead>
+                <SortHead label={dict.admin.billing.colIssued} sortKey="issued" sort={sort} onToggle={toggle} />
+                <SortHead label={dict.admin.billing.colDue} sortKey="due" sort={sort} onToggle={toggle} />
+                <SortHead label={dict.admin.billing.colTotal} sortKey="total" sort={sort} onToggle={toggle} align="right" />
+                <TableHead>{dict.admin.billing.colStatus}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -260,16 +277,19 @@ export function BillingView() {
                       {invoice.periodStart.slice(0, 7)}
                     </TableCell>
                     <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                      {formatDateShort(invoice.issuedAt)}
+                      {t.dateShort(invoice.issuedAt)}
                     </TableCell>
                     <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                      {formatDateShort(invoice.dueAt)}
+                      {t.dateShort(invoice.dueAt)}
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px] font-semibold">
-                      {formatUsdPrecise(invoice.totalUsd)}
+                      {t.usd(invoice.totalUsd)}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge meta={INVOICE_STATUS_META[invoice.status]} />
+                      <StatusBadge
+                        meta={INVOICE_STATUS_META[invoice.status]}
+                        label={dict.admin.status.invoice[invoice.status]}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -280,9 +300,9 @@ export function BillingView() {
 
         {filtered.length === 0 ? (
           <EmptyState
-            title={hasFilters ? "No invoices match these filters" : "No invoices in this period"}
+            title={hasFilters ? dict.admin.billing.emptyFiltered : dict.admin.billing.emptyNone}
             description={
-              hasFilters ? "Loosen the search or clear a filter." : "Pick a wider date range."
+              hasFilters ? dict.admin.common.loosenFilters : dict.admin.billing.emptyNoneHint
             }
             icon={<Receipt className="size-5" aria-hidden />}
             className="m-4"
@@ -302,25 +322,23 @@ export function BillingView() {
       {/* Credit ledger */}
       <Card className="mt-4 gap-0 overflow-hidden py-0 shadow-soft">
         <CardHeader className="pt-6 pb-4">
-          <CardTitle>Lead credit ledger</CardTitle>
-          <CardDescription>
-            Prepaid credits granted and spent. Grant new credits from a company&apos;s page.
-          </CardDescription>
+          <CardTitle>{dict.admin.billing.ledgerTitle}</CardTitle>
+          <CardDescription>{dict.admin.billing.ledgerDescription}</CardDescription>
         </CardHeader>
         {data.credits.length === 0 ? (
           <CardContent className="pb-6">
-            <EmptyState title="No credit activity" />
+            <EmptyState title={dict.admin.billing.ledgerEmpty} />
           </CardContent>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>By</TableHead>
-                  <TableHead className="text-end">Amount</TableHead>
+                  <TableHead>{dict.admin.billing.colCompany}</TableHead>
+                  <TableHead>{dict.admin.billing.colDate}</TableHead>
+                  <TableHead>{dict.admin.billing.colReason}</TableHead>
+                  <TableHead>{dict.admin.billing.colBy}</TableHead>
+                  <TableHead className="text-end">{dict.admin.billing.colAmount}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -335,7 +353,7 @@ export function BillingView() {
                       </Link>
                     </TableCell>
                     <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                      {formatDateShort(entry.at)}
+                      {t.dateShort(entry.at)}
                     </TableCell>
                     <TableCell className="max-w-72 truncate text-[13px]">{entry.reason}</TableCell>
                     <TableCell className="text-[13px] text-muted-foreground">{entry.by}</TableCell>
@@ -343,7 +361,7 @@ export function BillingView() {
                       className={`tnum text-end text-[13px] font-semibold ${entry.deltaUsd >= 0 ? "text-verify" : "text-destructive"}`}
                     >
                       {entry.deltaUsd >= 0 ? "+" : ""}
-                      {formatUsdPrecise(entry.deltaUsd)}
+                      {t.usd(entry.deltaUsd)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -361,11 +379,17 @@ export function BillingView() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <span className="code text-[15px]">{selected.number}</span>
-                  <StatusBadge meta={INVOICE_STATUS_META[selected.status]} />
+                  <StatusBadge
+                    meta={INVOICE_STATUS_META[selected.status]}
+                    label={dict.admin.status.invoice[selected.status]}
+                  />
                 </DialogTitle>
                 <DialogDescription>
-                  {selectedCompany?.mover.name} · {PLAN_LABELS[selected.plan]} · period{" "}
-                  {selected.periodStart} to {selected.periodEnd}
+                  {selectedCompany?.mover.name} · {dict.admin.labels.plan[selected.plan]} ·{" "}
+                  {t.fill(dict.admin.billing.dialogPeriod, {
+                    start: selected.periodStart,
+                    end: selected.periodEnd,
+                  })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -373,30 +397,32 @@ export function BillingView() {
                 {selected.lines.map((line) => (
                   <div key={line.id} className="flex items-center justify-between gap-3 text-[13px]">
                     <span>{line.description}</span>
-                    <span className="tnum">{formatUsdPrecise(line.amountUsd)}</span>
+                    <span className="tnum">{t.usd(line.amountUsd)}</span>
                   </div>
                 ))}
                 <Separator className="my-2" />
                 <div className="flex items-center justify-between text-[14px] font-semibold">
-                  <span>Total</span>
-                  <span className="tnum">{formatUsdPrecise(selected.totalUsd)}</span>
+                  <span>{dict.admin.billing.total}</span>
+                  <span className="tnum">{t.usd(selected.totalUsd)}</span>
                 </div>
               </div>
 
               <dl className="rounded-lg bg-muted/60 px-3 py-1">
-                <DetailRow label="Issued">{formatDateShort(selected.issuedAt)}</DetailRow>
-                <DetailRow label="Due">{formatDateShort(selected.dueAt)}</DetailRow>
+                <DetailRow label={dict.admin.billing.colIssued}>
+                  {t.dateShort(selected.issuedAt)}
+                </DetailRow>
+                <DetailRow label={dict.admin.billing.colDue}>{t.dateShort(selected.dueAt)}</DetailRow>
                 {selected.paidAt ? (
-                  <DetailRow label="Paid">
-                    {formatDateShort(selected.paidAt)}
+                  <DetailRow label={dict.admin.billing.paidLabel}>
+                    {t.dateShort(selected.paidAt)}
                     {selectedPayments[0]
-                      ? ` · ${PAYMENT_METHOD_LABELS[selectedPayments[0].method]}`
+                      ? ` · ${dict.admin.labels.paymentMethod[selectedPayments[0].method]}`
                       : ""}
                   </DetailRow>
                 ) : null}
                 {selected.refund ? (
-                  <DetailRow label="Refunded">
-                    {formatDateShort(selected.refund.at)} · {selected.refund.reason}
+                  <DetailRow label={dict.admin.billing.refundedLabel}>
+                    {t.dateShort(selected.refund.at)} · {selected.refund.reason}
                   </DetailRow>
                 ) : null}
               </dl>
@@ -404,45 +430,52 @@ export function BillingView() {
               {selected.status === "open" || selected.status === "overdue" ? (
                 <div className="flex flex-wrap items-end gap-2">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pay-method">Record payment</Label>
+                    <Label htmlFor="pay-method">{dict.admin.billing.recordPayment}</Label>
                     <Select value={payMethod} onValueChange={(v) => setPayMethod(v as PaymentMethod)}>
                       <SelectTrigger id="pay-method" className="w-44">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="bank_transfer">Bank transfer</SelectItem>
+                        <SelectItem value="card">{dict.admin.labels.paymentMethod.card}</SelectItem>
+                        <SelectItem value="bank_transfer">
+                          {dict.admin.labels.paymentMethod.bank_transfer}
+                        </SelectItem>
                         <SelectItem value="credit_balance">
-                          Credit balance ({formatUsd(selectedCompany?.creditBalanceUsd ?? 0)})
+                          {dict.admin.labels.paymentMethod.credit_balance} (
+                          {t.usd(selectedCompany?.creditBalanceUsd ?? 0)})
                         </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={() => recordPayment(selected)}>Mark paid</Button>
+                  <Button onClick={() => recordPayment(selected)}>
+                    {dict.admin.billing.markPaid}
+                  </Button>
                 </div>
               ) : null}
 
               {selected.status === "paid" ? (
                 <div className="flex flex-wrap items-end gap-2">
                   <div className="flex-1 space-y-1.5">
-                    <Label htmlFor="refund-reason">Refund reason</Label>
+                    <Label htmlFor="refund-reason">{dict.admin.billing.refundReason}</Label>
                     <Input
                       id="refund-reason"
                       value={refundReason}
                       onChange={(e) => setRefundReason(e.target.value)}
-                      placeholder="e.g. Disputed lead quality"
+                      placeholder={dict.admin.billing.refundReasonPlaceholder}
                     />
                   </div>
                   <Button variant="destructive" className="gap-1.5" onClick={() => refund(selected)}>
                     <Undo2 aria-hidden />
-                    Refund {formatUsdPrecise(selected.totalUsd)}
+                    {t.fill(dict.admin.billing.refundAmount, { amount: t.usd(selected.totalUsd) })}
                   </Button>
                 </div>
               ) : null}
 
               <DialogFooter>
                 <Button asChild variant="ghost">
-                  <Link href={`/admin/companies/${selected.companyId}`}>Open company</Link>
+                  <Link href={`/admin/companies/${selected.companyId}`}>
+                    {dict.admin.billing.openCompany}
+                  </Link>
                 </Button>
               </DialogFooter>
             </>

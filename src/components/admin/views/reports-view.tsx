@@ -23,28 +23,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatNumber, formatUsd, formatUsdPrecise, pct } from "@/lib/format";
-import { PLAN_LABELS } from "@/lib/admin/labels";
-import { formatRangeLabel, type RangePreset } from "@/lib/admin/date-range";
+import { formatUsdPrecise } from "@/lib/format";
+import type { RangePreset } from "@/lib/admin/date-range";
 import {
   companyReport,
   reportRows,
   revenueTrend,
 } from "@/lib/admin/metrics";
 import { useAdminData } from "@/lib/admin/store";
+import { useI18n } from "@/i18n/provider";
 
 /**
  * Period tabs map to presets; the bucket size (day / week / month) follows
  * the span automatically, so "Daily" shows day rows and "Yearly" month rows.
  */
 const PERIODS = [
-  { id: "daily", label: "Daily", preset: "30d" },
-  { id: "weekly", label: "Weekly", preset: "90d" },
-  { id: "monthly", label: "Monthly", preset: "all" },
-  { id: "yearly", label: "Yearly", preset: "this_year" },
-] as const satisfies ReadonlyArray<{ id: string; label: string; preset: Exclude<RangePreset, "custom"> }>;
+  { id: "daily", preset: "30d" },
+  { id: "weekly", preset: "90d" },
+  { id: "monthly", preset: "all" },
+  { id: "yearly", preset: "this_year" },
+] as const satisfies ReadonlyArray<{ id: string; preset: Exclude<RangePreset, "custom"> }>;
 
 export function ReportsView() {
+  const { dict, t } = useI18n();
+  const rx = dict.admin.reports;
   const data = useAdminData();
   const dateRange = useDateRange(data.anchorMs, "30d");
   const [period, setPeriod] = useState<string>("daily");
@@ -74,15 +76,22 @@ export function ReportsView() {
   };
 
   const buildPeriodSheet = () => ({
-    headers: ["Period", "Leads", "Assigned", "Converted", "Revenue USD"],
+    headers: [rx.colPeriod, rx.colLeads, rx.colAssigned, rx.colConverted, rx.colRevenueUsd],
     rows: rows.map((r) => [r.label, r.leads, r.assigned, r.converted, r.revenueUsd]),
   });
 
   const buildCompanySheet = () => ({
-    headers: ["Company", "Plan", "Leads received", "Lead fees USD", "Subscriptions USD", "Total USD"],
+    headers: [
+      rx.colCompany,
+      rx.colPlan,
+      rx.colLeadsReceived,
+      rx.colLeadFeesUsd,
+      rx.colSubscriptionsUsd,
+      rx.colTotalUsd,
+    ],
     rows: byCompany.map((r) => [
       r.company.mover.name,
-      PLAN_LABELS[r.company.mover.plan],
+      dict.admin.labels.plan[r.company.mover.plan],
       r.leadsReceived,
       r.leadFeesUsd,
       r.subscriptionUsd,
@@ -93,15 +102,17 @@ export function ReportsView() {
   return (
     <div className="animate-rise">
       <PageHeader
-        title="Sales reports"
-        description={`Lead volume and collected revenue for ${formatRangeLabel(dateRange.range)}.`}
+        title={rx.title}
+        description={t.fill(rx.description, {
+          range: t.dateRange([dateRange.range.start, dateRange.range.end]),
+        })}
         actions={
           <>
             <Tabs value={period} onValueChange={selectPeriod}>
               <TabsList>
                 {PERIODS.map((p) => (
                   <TabsTrigger key={p.id} value={p.id}>
-                    {p.label}
+                    {rx.periods[p.id]}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -122,24 +133,32 @@ export function ReportsView() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Leads" value={formatNumber(totals.leads)} />
+        <KpiCard label={rx.kpiLeads} value={t.number(totals.leads)} />
         <KpiCard
-          label="Assigned"
-          value={formatNumber(totals.assigned)}
-          hint={totals.leads > 0 ? `${pct(totals.assigned / totals.leads)} of leads` : undefined}
+          label={rx.kpiAssigned}
+          value={t.number(totals.assigned)}
+          hint={
+            totals.leads > 0
+              ? t.fill(rx.ofLeads, { percent: t.percent(totals.assigned / totals.leads) })
+              : undefined
+          }
         />
         <KpiCard
-          label="Converted"
-          value={formatNumber(totals.converted)}
-          hint={totals.leads > 0 ? `${pct(totals.converted / totals.leads, 1)} of leads` : undefined}
+          label={rx.kpiConverted}
+          value={t.number(totals.converted)}
+          hint={
+            totals.leads > 0
+              ? t.fill(rx.ofLeads, { percent: t.percent(totals.converted / totals.leads, 1) })
+              : undefined
+          }
         />
-        <KpiCard label="Revenue" value={formatUsd(totals.revenue)} hint="cash collected, net of refunds" />
+        <KpiCard label={rx.kpiRevenue} value={t.usd(totals.revenue)} hint={rx.kpiRevenueHint} />
       </div>
 
       <Card className="mt-4 shadow-soft">
         <CardHeader>
-          <CardTitle>Revenue trend</CardTitle>
-          <CardDescription>Pro subscriptions and pay-per-lead fees, as collected.</CardDescription>
+          <CardTitle>{rx.revenueTrendTitle}</CardTitle>
+          <CardDescription>{rx.revenueTrendDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <RevenueTrendChart data={revenue} className="h-64 w-full" />
@@ -150,8 +169,8 @@ export function ReportsView() {
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
           <CardHeader className="flex-row items-start justify-between pt-6 pb-4">
             <div className="space-y-1">
-              <CardTitle>By period</CardTitle>
-              <CardDescription>The chart above, row by row.</CardDescription>
+              <CardTitle>{rx.byPeriodTitle}</CardTitle>
+              <CardDescription>{rx.byPeriodDescription}</CardDescription>
             </div>
             <ExportMenu
               basename={`rotamove-report-${dateRange.range.end}`}
@@ -162,11 +181,11 @@ export function ReportsView() {
             <Table>
               <TableHeader className="sticky top-0 bg-card">
                 <TableRow>
-                  <TableHead>Period</TableHead>
-                  <TableHead className="text-end">Leads</TableHead>
-                  <TableHead className="text-end">Assigned</TableHead>
-                  <TableHead className="text-end">Converted</TableHead>
-                  <TableHead className="text-end">Revenue</TableHead>
+                  <TableHead>{rx.colPeriod}</TableHead>
+                  <TableHead className="text-end">{rx.colLeads}</TableHead>
+                  <TableHead className="text-end">{rx.colAssigned}</TableHead>
+                  <TableHead className="text-end">{rx.colConverted}</TableHead>
+                  <TableHead className="text-end">{rx.colRevenue}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,7 +203,7 @@ export function ReportsView() {
               </TableBody>
             </Table>
             {rows.length === 0 ? (
-              <EmptyState title="No data in this range" className="m-4" />
+              <EmptyState title={rx.emptyPeriods} className="m-4" />
             ) : null}
           </div>
         </Card>
@@ -192,8 +211,8 @@ export function ReportsView() {
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
           <CardHeader className="flex-row items-start justify-between pt-6 pb-4">
             <div className="space-y-1">
-              <CardTitle>By company</CardTitle>
-              <CardDescription>Who received leads and what they paid.</CardDescription>
+              <CardTitle>{rx.byCompanyTitle}</CardTitle>
+              <CardDescription>{rx.byCompanyDescription}</CardDescription>
             </div>
             <ExportMenu
               basename={`rotamove-company-report-${dateRange.range.end}`}
@@ -204,11 +223,11 @@ export function ReportsView() {
             <Table>
               <TableHeader className="sticky top-0 bg-card">
                 <TableRow>
-                  <TableHead>Company</TableHead>
-                  <TableHead className="text-end">Leads</TableHead>
-                  <TableHead className="text-end">Lead fees</TableHead>
-                  <TableHead className="text-end">Subscriptions</TableHead>
-                  <TableHead className="text-end">Total</TableHead>
+                  <TableHead>{rx.colCompany}</TableHead>
+                  <TableHead className="text-end">{rx.colLeads}</TableHead>
+                  <TableHead className="text-end">{rx.colLeadFees}</TableHead>
+                  <TableHead className="text-end">{rx.colSubscriptions}</TableHead>
+                  <TableHead className="text-end">{rx.colTotal}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -225,7 +244,7 @@ export function ReportsView() {
                             {r.company.mover.name}
                           </span>
                           <span className="block text-xs text-muted-foreground">
-                            {PLAN_LABELS[r.company.mover.plan]}
+                            {dict.admin.labels.plan[r.company.mover.plan]}
                           </span>
                         </span>
                       </Link>
@@ -245,7 +264,7 @@ export function ReportsView() {
               </TableBody>
             </Table>
             {byCompany.length === 0 ? (
-              <EmptyState title="No company activity in this range" className="m-4" />
+              <EmptyState title={rx.emptyCompanies} className="m-4" />
             ) : null}
           </div>
         </Card>

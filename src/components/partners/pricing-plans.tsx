@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
-import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, PPL_FEATURE_INCLUDED, PRO_MONTHLY_USD } from "@/lib/plans";
+import {
+  LEAD_FEE_CAP_USD,
+  LEAD_FEE_FLOOR_USD,
+  PPL_FEATURE_INCLUDED,
+  PPS_FEATURE_INCLUDED,
+  PRO_MONTHLY_USD,
+} from "@/lib/plans";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { fill, formatUsd } from "@/i18n/format";
@@ -37,10 +43,23 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
         included: PPL_FEATURE_INCLUDED[i] ?? true,
       })),
     },
+    {
+      id: "pay_per_seen",
+      name: dict.plans.ppsName,
+      priceLabel: `${formatUsd(locale, LEAD_FEE_FLOOR_USD)}–${cap}`,
+      priceSuffix: dict.plans.ppsSuffix,
+      priceNote: fill(dict.plans.ppsNote, { cap }),
+      cta: dict.plans.ppsCta,
+      featured: false,
+      features: dict.plans.ppsFeatures.map((label, i) => ({
+        label,
+        included: PPS_FEATURE_INCLUDED[i] ?? true,
+      })),
+    },
   ];
 
   return (
-    <div id="plans" className="mx-auto grid max-w-4xl gap-4 lg:grid-cols-2">
+    <div id="plans" className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-3">
       {plans.map((plan) => (
         <div
           key={plan.id}

@@ -31,14 +31,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useI18n } from "@/i18n/provider";
 import { cityLabel } from "@/lib/geo";
-import { formatDateShort, formatUsdPrecise } from "@/lib/format";
-import { LEAD_STATUS_META, PROPERTY_SIZE_LABELS } from "@/lib/admin/labels";
+import { LEAD_STATUS_META } from "@/lib/admin/labels";
 import { leadsInRange } from "@/lib/admin/metrics";
 import { useAdminData } from "@/lib/admin/store";
 import {
   CHANNELS,
-  CHANNEL_LABELS,
   LEAD_STATUSES,
   type AdminLead,
   type LeadStatus,
@@ -54,6 +53,7 @@ function routeLabel(l: AdminLead): string {
 export function LeadsView() {
   const data = useAdminData();
   const router = useRouter();
+  const { dict, t } = useI18n();
   const dateRange = useDateRange(data.anchorMs, "30d");
 
   const [query, setQuery] = useState("");
@@ -100,9 +100,21 @@ export function LeadsView() {
 
   const buildSheet = () => ({
     headers: [
-      "Lead ID", "Created", "Name", "Email", "Phone", "Route", "Move date",
-      "Property", "Volume m3", "Status", "Channel", "Quality", "Fee USD",
-      "Assigned companies", "Duplicate of",
+      dict.admin.leads.exportHeaders.leadId,
+      dict.admin.leads.exportHeaders.created,
+      dict.admin.leads.exportHeaders.name,
+      dict.admin.leads.exportHeaders.email,
+      dict.admin.leads.exportHeaders.phone,
+      dict.admin.leads.exportHeaders.route,
+      dict.admin.leads.exportHeaders.moveDate,
+      dict.admin.leads.exportHeaders.property,
+      dict.admin.leads.exportHeaders.volumeM3,
+      dict.admin.leads.exportHeaders.status,
+      dict.admin.leads.exportHeaders.channel,
+      dict.admin.leads.exportHeaders.quality,
+      dict.admin.leads.exportHeaders.feeUsd,
+      dict.admin.leads.exportHeaders.assignedCompanies,
+      dict.admin.leads.exportHeaders.duplicateOf,
     ],
     rows: filtered.map((l) => [
       l.lead.id,
@@ -112,10 +124,10 @@ export function LeadsView() {
       l.lead.contact.phone,
       routeLabel(l),
       l.lead.moveDate,
-      PROPERTY_SIZE_LABELS[l.lead.propertySize],
+      dict.enums.propertySize[l.lead.propertySize].label,
       l.lead.volumeM3,
       l.status,
-      CHANNEL_LABELS[l.source.channel],
+      dict.admin.labels.channel[l.source.channel],
       l.qualityScore,
       l.feeUsd,
       l.assignments.length,
@@ -129,8 +141,8 @@ export function LeadsView() {
   return (
     <div className="animate-rise">
       <PageHeader
-        title="Leads"
-        description="Every enquiry that came through the quote wizard, with its pipeline state and deliveries."
+        title={dict.admin.leads.title}
+        description={dict.admin.leads.description}
         actions={
           <>
             <DateRangePicker
@@ -153,46 +165,46 @@ export function LeadsView() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search name, email, route, ID…"
-            aria-label="Search leads"
+            placeholder={dict.admin.leads.searchPlaceholder}
+            aria-label={dict.admin.leads.searchAria}
             className="w-64 ps-8"
           />
         </div>
 
         <Select value={status} onValueChange={(v) => setStatus(v as LeadStatus | "all")}>
-          <SelectTrigger className="w-36" aria-label="Filter by status">
+          <SelectTrigger className="w-36" aria-label={dict.admin.leads.filterStatusAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="all">{dict.admin.leads.allStatuses}</SelectItem>
             {LEAD_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>
-                {LEAD_STATUS_META[s].label}
+                {dict.admin.status.lead[s]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select value={channel} onValueChange={setChannel}>
-          <SelectTrigger className="w-40" aria-label="Filter by channel">
+          <SelectTrigger className="w-40" aria-label={dict.admin.leads.filterChannelAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All channels</SelectItem>
+            <SelectItem value="all">{dict.admin.leads.allChannels}</SelectItem>
             {CHANNELS.map((c) => (
               <SelectItem key={c} value={c}>
-                {CHANNEL_LABELS[c]}
+                {dict.admin.labels.channel[c]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <Select value={companyId} onValueChange={setCompanyId}>
-          <SelectTrigger className="w-48" aria-label="Filter by assigned company">
+          <SelectTrigger className="w-48" aria-label={dict.admin.leads.filterCompanyAria}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All companies</SelectItem>
+            <SelectItem value="all">{dict.admin.leads.allCompanies}</SelectItem>
             {data.companies.map((c) => (
               <SelectItem key={c.mover.id} value={c.mover.id}>
                 {c.mover.name}
@@ -204,7 +216,7 @@ export function LeadsView() {
         <div className="flex items-center gap-2 ps-1">
           <Switch id="dup-only" checked={dupOnly} onCheckedChange={setDupOnly} />
           <Label htmlFor="dup-only" className="text-[13px] font-normal text-muted-foreground">
-            Duplicates only
+            {dict.admin.leads.duplicatesOnly}
           </Label>
         </div>
       </div>
@@ -215,15 +227,15 @@ export function LeadsView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Lead</TableHead>
-                <TableHead>Route</TableHead>
-                <SortHead label="Created" sortKey="created" sort={sort} onToggle={toggle} />
-                <SortHead label="Move date" sortKey="move" sort={sort} onToggle={toggle} />
-                <TableHead>Property</TableHead>
-                <SortHead label="Quality" sortKey="quality" sort={sort} onToggle={toggle} align="right" />
-                <SortHead label="Fee" sortKey="fee" sort={sort} onToggle={toggle} align="right" />
-                <TableHead className="text-end">Assigned</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{dict.admin.leads.colLead}</TableHead>
+                <TableHead>{dict.admin.leads.colRoute}</TableHead>
+                <SortHead label={dict.admin.leads.colCreated} sortKey="created" sort={sort} onToggle={toggle} />
+                <SortHead label={dict.admin.leads.colMoveDate} sortKey="move" sort={sort} onToggle={toggle} />
+                <TableHead>{dict.admin.leads.colProperty}</TableHead>
+                <SortHead label={dict.admin.leads.colQuality} sortKey="quality" sort={sort} onToggle={toggle} align="right" />
+                <SortHead label={dict.admin.leads.colFee} sortKey="fee" sort={sort} onToggle={toggle} align="right" />
+                <TableHead className="text-end">{dict.admin.leads.colAssigned}</TableHead>
+                <TableHead>{dict.admin.leads.colStatus}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -244,7 +256,7 @@ export function LeadsView() {
                         {l.duplicateOf ? (
                           <Badge variant="outline" className="gap-1 border-dashed text-muted-foreground">
                             <Copy aria-hidden />
-                            dup
+                            {dict.admin.leads.dupBadge}
                           </Badge>
                         ) : null}
                       </span>
@@ -259,13 +271,13 @@ export function LeadsView() {
                     </span>
                   </TableCell>
                   <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                    {formatDateShort(l.lead.createdAt)}
+                    {t.dateShort(l.lead.createdAt)}
                   </TableCell>
                   <TableCell className="tnum whitespace-nowrap text-[13px]">
-                    {formatDateShort(l.lead.moveDate)}
+                    {t.dateShort(l.lead.moveDate)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-[13px] text-muted-foreground">
-                    {PROPERTY_SIZE_LABELS[l.lead.propertySize]} · {l.lead.volumeM3} m³
+                    {dict.enums.propertySize[l.lead.propertySize].label} · {t.volume(l.lead.volumeM3)}
                   </TableCell>
                   <TableCell className="text-end">
                     <span
@@ -282,13 +294,13 @@ export function LeadsView() {
                     </span>
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
-                    {formatUsdPrecise(l.feeUsd)}
+                    {t.usd(l.feeUsd)}
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
                     {l.assignments.length}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge meta={LEAD_STATUS_META[l.status]} />
+                    <StatusBadge meta={LEAD_STATUS_META[l.status]} label={dict.admin.status.lead[l.status]} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -298,11 +310,9 @@ export function LeadsView() {
 
         {filtered.length === 0 ? (
           <EmptyState
-            title={hasFilters ? "No leads match these filters" : "No leads in this period"}
+            title={hasFilters ? dict.admin.leads.emptyFilteredTitle : dict.admin.leads.emptyPeriodTitle}
             description={
-              hasFilters
-                ? "Loosen the search or clear a filter to see more."
-                : "Pick a wider date range."
+              hasFilters ? dict.admin.leads.emptyFilteredBody : dict.admin.leads.emptyPeriodBody
             }
             className="m-4"
           />

@@ -5,7 +5,7 @@ import type {
   LeadStatus,
   PaymentMethod,
 } from "@/lib/admin/types";
-import type { DateFlexibility, PropertySize, ServiceLevel } from "@/lib/types";
+import type { DateFlexibility, PlanId, PropertySize, ServiceLevel } from "@/lib/types";
 
 /* Display metadata for every admin enum: one label + one set of badge
    classes per state, built from the existing theme tokens only. */
@@ -145,7 +145,8 @@ export const FLEXIBILITY_LABELS: Record<DateFlexibility, string> = {
   flexible: "Flexible",
 };
 
-export const PLAN_LABELS: Record<"pro_unlimited" | "pay_per_lead", string> = {
+export const PLAN_LABELS: Record<PlanId, string> = {
   pro_unlimited: "Pro Unlimited",
   pay_per_lead: "Pay per lead",
+  pay_per_seen: "Pay per seen",
 };

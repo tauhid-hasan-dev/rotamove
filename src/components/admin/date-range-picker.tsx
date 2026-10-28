@@ -6,17 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RangeCalendar } from "@/components/common/range-calendar";
 import type { DayRange } from "@/lib/admin/metrics";
-import {
-  PRESETS,
-  PRESET_LABELS,
-  formatRangeLabel,
-  presetRange,
-  type RangePreset,
-} from "@/lib/admin/date-range";
+import { PRESETS, presetRange, type RangePreset } from "@/lib/admin/date-range";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 /* The one date filter every metric obeys. Presets for the common asks, the
    existing two-month RangeCalendar for anything custom. */
+
+/** Maps each preset id onto its label key under dict.admin.dateRange. */
+const PRESET_DICT_KEYS = {
+  "7d": "last7",
+  "30d": "last30",
+  "90d": "last90",
+  this_month: "thisMonth",
+  this_year: "thisYear",
+  all: "last12",
+} as const satisfies Record<Exclude<RangePreset, "custom">, string>;
 
 export interface DateRangeState {
   preset: RangePreset;
@@ -47,14 +52,19 @@ export function DateRangePicker({
   onCustom: (range: DayRange) => void;
   align?: "start" | "end";
 }) {
+  const { dict, t } = useI18n();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<{ start: string | null; end: string | null }>({
     start: null,
     end: null,
   });
 
+  const presetLabel = (preset: Exclude<RangePreset, "custom">) =>
+    dict.admin.dateRange[PRESET_DICT_KEYS[preset]];
   const label =
-    value.preset === "custom" ? formatRangeLabel(value.range) : PRESET_LABELS[value.preset];
+    value.preset === "custom"
+      ? `${t.dateLong(value.range.start)} – ${t.dateLong(value.range.end)}`
+      : presetLabel(value.preset);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -81,12 +91,12 @@ export function DateRangePicker({
                   setOpen(false);
                 }}
               >
-                {PRESET_LABELS[preset]}
+                {presetLabel(preset)}
               </Button>
             ))}
           </div>
           <div className="p-3">
-            <p className="eyebrow mb-2">Custom range</p>
+            <p className="eyebrow mb-2">{dict.admin.dateRange.custom}</p>
             <RangeCalendar
               value={draft}
               onChange={(next) => {

@@ -9,6 +9,7 @@ import { RangeCalendar } from "@/components/common/range-calendar";
 import { HubPicker } from "@/components/partners/dashboard/hub-picker";
 import { laneInputSchema, LANE_MODES, type LaneInput, type PartnerLane } from "@/lib/lanes";
 import { daysBetween } from "@/lib/calendar";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 
 const MODE_ICONS = { road: Truck, sea: Ship, air: Plane, rail: Train } as const;
@@ -86,6 +87,8 @@ export function LaneDialog({
   editing: PartnerLane | null;
   onSubmit: (input: LaneInput) => Promise<boolean>;
 }) {
+  const { dict, t } = useI18n();
+  const dx = dict.partnerDashboard.laneDialog;
   const [draft, setDraft] = useState<Draft>(() =>
     editing ? draftFrom(editing) : emptyDraft(),
   );
@@ -114,15 +117,15 @@ export function LaneDialog({
     // Checked before the schema so the message names the thing that is
     // missing. Zod's own "expected string, received null" is true and useless.
     if (!draft.fromCode || !draft.toCode) {
-      setError("Pick both ends of the lane");
+      setError(dx.errBothEnds);
       return;
     }
     if (!draft.capacityM3 || Number(draft.capacityM3) < 1) {
-      setError("Say how much space is free on it");
+      setError(dx.errCapacity);
       return;
     }
     if (dated && !range.start) {
-      setError("Pick the dates the vehicle runs");
+      setError(dx.errDates);
       return;
     }
 
@@ -134,14 +137,14 @@ export function LaneDialog({
       window: dated && range.start ? [range.start, range.end ?? range.start] : null,
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Check the lane details");
+      setError(parsed.error.issues[0]?.message ?? dx.errCheck);
       return;
     }
     setSaving(true);
     const ok = await onSubmit(parsed.data);
     setSaving(false);
     if (ok) onOpenChange(false);
-    else setError("Could not save the lane. Try again.");
+    else setError(dx.errSave);
   };
 
   return (
@@ -149,7 +152,7 @@ export function LaneDialog({
       <DialogContent className="max-h-[calc(100dvh-2rem)] gap-0 overflow-y-auto scrollbar-slim sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle className="text-[20px] tracking-[-0.03em]">
-            {editing ? "Edit lane" : "Add a lane"}
+            {editing ? dx.editTitle : dx.addTitle}
           </DialogTitle>
         </DialogHeader>
 
@@ -160,8 +163,8 @@ export function LaneDialog({
               selected={!dated}
               onSelect={() => update({ dated: false })}
               icon={<Repeat className="size-4" />}
-              title="Scheduled service"
-              hint="You run this lane all year. No dates."
+              title={dx.scheduledTitle}
+              hint={dx.scheduledHint}
             />
             <KindCard
               selected={dated}
@@ -170,15 +173,15 @@ export function LaneDialog({
               // first click as the *end* of a range beginning today.
               onSelect={() => update({ dated: true })}
               icon={<CalendarRange className="size-4" />}
-              title="One run"
-              hint="A vehicle goes once, between two dates."
+              title={dx.oneRunTitle}
+              hint={dx.oneRunHint}
             />
           </div>
 
           {/* route ------------------------------------------------ */}
           <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
             <HubPicker
-              label="From"
+              label={dx.from}
               value={draft.fromCode}
               onChange={(code) => update({ fromCode: code })}
               exclude={draft.toCode}
@@ -186,13 +189,13 @@ export function LaneDialog({
             <button
               type="button"
               onClick={() => update({ fromCode: draft.toCode, toCode: draft.fromCode })}
-              aria-label="Swap the two ends"
+              aria-label={dx.swap}
               className="mb-0.5 hidden size-11 place-items-center rounded-full border text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground sm:grid"
             >
               <ArrowLeftRight className="size-4" />
             </button>
             <HubPicker
-              label="To"
+              label={dx.to}
               value={draft.toCode}
               onChange={(code) => update({ toCode: code })}
               exclude={draft.fromCode}
@@ -202,21 +205,21 @@ export function LaneDialog({
           <SwitchRow
             checked={draft.bothWays}
             onChange={(bothWays) => update({ bothWays })}
-            title="Runs both ways"
-            hint="Match enquiries on the return leg too — the vehicle comes back loaded."
+            title={dx.bothWaysTitle}
+            hint={dx.bothWaysHint}
           />
 
           {/* dates ------------------------------------------------ */}
           {dated && (
             <div className="rounded-2xl border bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-[13.5px] font-medium">When does it run?</span>
+                <span className="text-[13.5px] font-medium">{dx.whenRuns}</span>
                 <span className="text-[12.5px] text-muted-foreground tnum">
                   {span > 1
-                    ? `${span} days`
+                    ? t.fill(dx.daysCount, { n: span })
                     : range.start
-                      ? "Pick the last day"
-                      : "Pick the first day"}
+                      ? dx.pickLast
+                      : dx.pickFirst}
                 </span>
               </div>
               <div className="mt-3">
@@ -228,7 +231,7 @@ export function LaneDialog({
           {/* vehicle and capacity -------------------------------- */}
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <span className="mb-2 block text-[13.5px]">Vehicle</span>
+              <span className="mb-2 block text-[13.5px]">{dx.vehicle}</span>
               <div className="flex gap-2">
                 {(["lorry", "van"] as const).map((vehicle) => (
                   <Chip
@@ -236,7 +239,9 @@ export function LaneDialog({
                     active={draft.vehicle === vehicle}
                     onClick={() => update({ vehicle })}
                   >
-                    {vehicle === "lorry" ? "Lorry" : "Minivan"}
+                    {vehicle === "lorry"
+                      ? dict.partnerDashboard.lanes.lorry
+                      : dict.partnerDashboard.lanes.minivan}
                   </Chip>
                 ))}
               </div>
@@ -244,7 +249,7 @@ export function LaneDialog({
 
             <div>
               <label htmlFor="lane-capacity" className="mb-2 block text-[13.5px]">
-                Space free
+                {dx.spaceFree}
                 <span className="ms-2 text-[12px] text-muted-foreground">m³</span>
               </label>
               <Input
@@ -254,21 +259,21 @@ export function LaneDialog({
                 onChange={(event) =>
                   update({ capacityM3: event.target.value.replace(/[^\d]/g, "").slice(0, 4) })
                 }
-                placeholder="44"
+                placeholder={dx.capacityPlaceholder}
                 className="h-12 rounded-2xl tnum"
               />
             </div>
           </div>
 
           <div>
-            <span className="mb-2 block text-[13.5px]">Mode</span>
+            <span className="mb-2 block text-[13.5px]">{dx.mode}</span>
             <div className="flex flex-wrap gap-2">
               {LANE_MODES.map((mode) => {
                 const Icon = MODE_ICONS[mode];
                 return (
                   <Chip key={mode} active={draft.mode === mode} onClick={() => update({ mode })}>
                     <Icon className="size-3.5" />
-                    <span className="capitalize">{mode}</span>
+                    <span>{dict.enums.modes[mode].label}</span>
                   </Chip>
                 );
               })}
@@ -277,9 +282,9 @@ export function LaneDialog({
 
           <div>
             <label htmlFor="lane-notes" className="mb-2 block text-[13.5px]">
-              Note
+              {dx.note}
               <span className="ms-2 text-[12px] text-muted-foreground">
-                internal — customers never see this
+                {dx.noteHint}
               </span>
             </label>
             <Textarea
@@ -287,7 +292,7 @@ export function LaneDialog({
               rows={2}
               value={draft.notes}
               onChange={(event) => update({ notes: event.target.value.slice(0, 240) })}
-              placeholder="Departs Thursdays, bonded trailer."
+              placeholder={dx.notePlaceholder}
               className="rounded-2xl"
             />
           </div>
@@ -305,7 +310,7 @@ export function LaneDialog({
             onClick={() => onOpenChange(false)}
             className="rounded-full px-4 py-2.5 text-[14px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            Cancel
+            {dx.cancel}
           </button>
           <button
             type="button"
@@ -314,7 +319,7 @@ export function LaneDialog({
             className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-[14.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] disabled:opacity-70"
           >
             {saving && <Loader2 className="size-3.5 animate-spin" />}
-            {editing ? "Save changes" : "Add lane"}
+            {editing ? dx.saveChanges : dx.addLane}
           </button>
         </DialogFooter>
       </DialogContent>

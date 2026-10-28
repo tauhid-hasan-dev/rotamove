@@ -2,35 +2,34 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Box, CalendarDays, Loader2, Lock, Mail, MessageCircle, Phone, Unlock, Users } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Box,
+  CalendarDays,
+  Loader2,
+  Lock,
+  Mail,
+  MessageCircle,
+  Phone,
+  Unlock,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { RouteLine } from "@/components/common/route-line";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { en } from "@/i18n/dictionaries/en";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
-import { formatDateShort, formatRelative, formatUsdPrecise } from "@/lib/format";
 import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
-import type { ContactChannel } from "@/lib/types";
+import type { UnlockRecord } from "@/lib/unlock-store";
+import type { ContactChannel, PlanId } from "@/lib/types";
+import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
-
-const STATUS_META: Record<BoardStatus, { label: string; className: string }> = {
-  new: { label: "New", className: "bg-brand text-ink" },
-  unlocked: { label: "Unlocked", className: "bg-verify/12 text-verify" },
-};
 
 const CHANNEL_ICON: Record<ContactChannel, typeof Phone> = {
   phone: Phone,
   whatsapp: MessageCircle,
   email: Mail,
   all: MessageCircle,
-};
-
-/** "prefers whatsapp" reads wrong when the customer said any of them. */
-const CHANNEL_NOTE: Record<ContactChannel, string> = {
-  phone: "prefers phone",
-  whatsapp: "prefers whatsapp",
-  email: "prefers email",
-  all: "any channel",
 };
 
 /**
@@ -43,20 +42,27 @@ const CHANNEL_NOTE: Record<ContactChannel, string> = {
  * Pro Unlimited partners still press unlock; they are just never charged for
  * it. Keeping the action identical on both plans is what makes the timing
  * comparable across the network.
+ *
+ * Pay-per-seen partners see less before they act: volume, access and the
+ * route stay free, everything else is behind the unlock — and because the
+ * click is the billable event, it goes to the server instead of being a
+ * local reveal.
  */
 export function LeadRow({
   item,
-  isPro,
+  plan,
   unlocked,
   onUnlock,
   now,
 }: {
   item: BoardLead;
-  isPro: boolean;
+  plan: PlanId;
   unlocked: boolean;
   onUnlock: (id: string) => void;
   now: number;
 }) {
+  const { dict, t } = useI18n();
+  const pd = dict.partnerDashboard;
   const [working, setWorking] = useState(false);
   const { lead } = item;
   const from = getCity(lead.origin.cityCode);
@@ -66,17 +72,51 @@ export function LeadRow({
 
   const revealed = unlocked || item.status === "unlocked";
   const status: BoardStatus = revealed ? "unlocked" : "new";
+  // On pay per seen the whole lead is the product: until it is unlocked, only
+  // the volume, the access at both ends and the route are on screen.
+  const masked = plan === "pay_per_seen" && !revealed;
   const ChannelIcon = CHANNEL_ICON[lead.contact.channel];
 
   const unlock = async () => {
     setWorking(true);
+    if (plan === "pay_per_seen") {
+      try {
+        const response = await fetch("/api/partners/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: lead.id }),
+        });
+        if (!response.ok) {
+          const data = (await response.json().catch(() => null)) as { error?: string } | null;
+          toast.error(pd.row.toastError, {
+            description: data?.error ?? pd.row.toastErrorBody,
+          });
+          return;
+        }
+        const { unlock: record } = (await response.json()) as { unlock: UnlockRecord };
+        onUnlock(lead.id);
+        toast.success(pd.row.toastUnlocked, {
+          description: t.fill(pd.row.toastPerSeen, {
+            fee: t.usd(record.feeUsd),
+            email: record.emailTo,
+          }),
+        });
+      } catch {
+        toast.error(pd.row.toastError, { description: pd.row.toastErrorBody });
+      } finally {
+        setWorking(false);
+      }
+      return;
+    }
+
     await new Promise((r) => setTimeout(r, 650));
     setWorking(false);
     onUnlock(lead.id);
-    toast.success("Lead unlocked", {
-      description: isPro
-        ? "Included in Pro Unlimited. Contact details are now visible."
-        : `${formatUsdPrecise(item.feeUsd)} charged to your wallet. Contact details are now visible.`,
+    toast.success(pd.row.toastUnlocked, {
+      description:
+        plan === "pro_unlimited"
+          ? pd.row.toastPro
+          : t.fill(pd.row.toastPerLead, { fee: t.usd(item.feeUsd) }),
     });
   };
 
@@ -98,7 +138,7 @@ export function LeadRow({
         <div className="flex shrink-0 flex-col items-center">
           <ScoreDial score={item.score} />
           <span className="mt-1.5 text-[9.5px] uppercase tracking-[0.12em] text-muted-foreground">
-            quality
+            {pd.row.quality}
           </span>
         </div>
 
@@ -108,13 +148,13 @@ export function LeadRow({
             <span
               className={cn(
                 "rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.14em]",
-                STATUS_META[status].className,
+                revealed ? "bg-verify/12 text-verify" : "bg-brand text-ink",
               )}
             >
-              {STATUS_META[status].label}
+              {status === "unlocked" ? pd.row.statusUnlocked : pd.row.statusNew}
             </span>
             <span className="text-[11px] text-muted-foreground tnum">
-              {formatRelative(now - item.ageMins * 60_000, now)}
+              {t.relative(now - item.ageMins * 60_000, now)}
             </span>
             {item.competitors > 0 && (
               <Tooltip>
@@ -125,7 +165,7 @@ export function LeadRow({
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {item.competitors} other partners have this lead. Speed wins it.
+                  {t.fill(pd.row.competitors, { n: item.competitors })}
                 </TooltipContent>
               </Tooltip>
             )}
@@ -136,30 +176,44 @@ export function LeadRow({
               from={from.code}
               to={to.code}
               mode={mode}
-              modeLabel={en.enums.modes[mode].label}
+              modeLabel={dict.enums.modes[mode].label}
               size="sm"
             />
           </div>
 
           <p className="mt-1.5 truncate text-[13px] text-muted-foreground">
-            {from.name}, {cityCountry(from).name} → {to.name}, {cityCountry(to).name}
+            {t.city(from, cityCountry(from).name)} → {t.city(to, cityCountry(to).name)}
           </p>
 
           <dl className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground tnum">
             <span className="inline-flex items-center gap-1.5">
               <Box className="size-3.5" />
-              {lead.volumeM3} m³
+              {t.volume(lead.volumeM3)}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-3.5" />
-              {formatDateShort(lead.moveDate)}
+              <ArrowUpFromLine className="size-3.5" />
+              {pd.row.collection}: {dict.enums.access[lead.origin.access].label}
             </span>
-            <span className="capitalize">{lead.serviceLevel.replace(/_/g, " ")}</span>
-            {lead.extras.storageWeeks > 0 && <span>storage {lead.extras.storageWeeks}w</span>}
-            {lead.extras.customsClearance && <span>customs</span>}
+            <span className="inline-flex items-center gap-1.5">
+              <ArrowDownToLine className="size-3.5" />
+              {pd.row.delivery}: {dict.enums.access[lead.destination.access].label}
+            </span>
+            {!masked && (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays className="size-3.5" />
+                  {t.dateShort(lead.moveDate)}
+                </span>
+                <span>{dict.enums.serviceLevel[lead.serviceLevel].label}</span>
+                {lead.extras.storageWeeks > 0 && (
+                  <span>{t.fill(pd.row.storageWeeksShort, { n: lead.extras.storageWeeks })}</span>
+                )}
+                {lead.extras.customsClearance && <span>{pd.row.customs}</span>}
+              </>
+            )}
           </dl>
 
-          {lead.notes && (
+          {!masked && lead.notes && (
             <p className="mt-3 border-s-2 border-border ps-3 text-[12.5px] italic leading-relaxed text-muted-foreground">
               “{lead.notes}”
             </p>
@@ -174,35 +228,50 @@ export function LeadRow({
               revealed ? "bg-surface" : "border-dashed bg-muted/40",
             )}
           >
-            <p className="truncate text-[13.5px] font-semibold">{lead.contact.fullName}</p>
-
-            {revealed ? (
-              <>
-                <p className="mt-1 truncate text-[12px] text-muted-foreground tnum">
-                  {lead.contact.phone}
-                </p>
-                <p className="truncate text-[11.5px] text-muted-foreground">
-                  {lead.contact.email}
-                </p>
-                <p className="mt-2 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.12em] text-brand">
-                  <ChannelIcon className="size-3" />
-                  {CHANNEL_NOTE[lead.contact.channel]}
-                </p>
-              </>
-            ) : (
-              <div className="mt-2 flex items-center gap-2.5">
-                <Lock className="size-4 shrink-0 text-muted-foreground" />
+            {masked ? (
+              /* Nothing identifying leaks on pay per seen — not even a name. */
+              <div className="flex items-start gap-2.5">
+                <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <div className="min-w-0">
-                  {/* Masked rather than absent, so the partner can see that a
-                      real number and address are waiting behind the unlock. */}
-                  <p className="truncate text-[12px] text-muted-foreground tnum">
-                    {maskPhone(lead.contact.phone)}
-                  </p>
-                  <p className="truncate text-[11.5px] text-muted-foreground">
-                    {maskEmail(lead.contact.email)}
+                  <p className="text-[13px] font-semibold">{pd.row.maskedTitle}</p>
+                  <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">
+                    {pd.row.maskedBody}
                   </p>
                 </div>
               </div>
+            ) : (
+              <>
+                <p className="truncate text-[13.5px] font-semibold">{lead.contact.fullName}</p>
+
+                {revealed ? (
+                  <>
+                    <p className="mt-1 truncate text-[12px] text-muted-foreground tnum">
+                      {lead.contact.phone}
+                    </p>
+                    <p className="truncate text-[11.5px] text-muted-foreground">
+                      {lead.contact.email}
+                    </p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.12em] text-brand">
+                      <ChannelIcon className="size-3" />
+                      {pd.row.prefers[lead.contact.channel]}
+                    </p>
+                  </>
+                ) : (
+                  <div className="mt-2 flex items-center gap-2.5">
+                    <Lock className="size-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0">
+                      {/* Masked rather than absent, so the partner can see that a
+                          real number and address are waiting behind the unlock. */}
+                      <p className="truncate text-[12px] text-muted-foreground tnum">
+                        {maskPhone(lead.contact.phone)}
+                      </p>
+                      <p className="truncate text-[11.5px] text-muted-foreground">
+                        {maskEmail(lead.contact.email)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -212,10 +281,12 @@ export function LeadRow({
       {!revealed && (
         <div className="mt-3 flex flex-wrap items-center justify-end gap-3 border-t pt-3">
           <p className="me-auto text-[11.5px] text-muted-foreground">
-            {isPro ? (
-              <span className="text-verify">Included in Pro Unlimited</span>
+            {plan === "pro_unlimited" ? (
+              <span className="text-verify">{pd.row.includedInPro}</span>
+            ) : plan === "pay_per_seen" ? (
+              <>{pd.row.unlockHintSeen}</>
             ) : (
-              <>Unlock to reveal the phone number and email</>
+              <>{pd.row.unlockHint}</>
             )}
           </p>
           <button
@@ -227,12 +298,14 @@ export function LeadRow({
             {working ? (
               <>
                 <Loader2 className="size-3.5 animate-spin" />
-                Unlocking…
+                {pd.row.unlocking}
               </>
             ) : (
               <>
                 <Unlock className="size-3.5" />
-                {isPro ? "Unlock" : `Unlock ${formatUsdPrecise(item.feeUsd)}`}
+                {plan === "pro_unlimited"
+                  ? pd.row.unlock
+                  : t.fill(pd.row.unlockFor, { fee: t.usd(item.feeUsd) })}
               </>
             )}
           </button>
@@ -256,10 +329,14 @@ function maskEmail(email: string) {
 }
 
 function ScoreDial({ score }: { score: number }) {
+  const { t, dict } = useI18n();
   const circumference = 2 * Math.PI * 18;
   const tone = score >= 75 ? "var(--verify)" : score >= 50 ? "var(--brand)" : "var(--muted-foreground)";
   return (
-    <span className="relative grid size-12 place-items-center" aria-label={`Quality score ${score}`}>
+    <span
+      className="relative grid size-12 place-items-center"
+      aria-label={`${dict.partnerDashboard.row.quality} ${t.number(score)}`}
+    >
       <svg viewBox="0 0 44 44" className="absolute size-12 -rotate-90">
         <circle cx="22" cy="22" r="18" className="fill-none stroke-border" strokeWidth="3.5" />
         <circle

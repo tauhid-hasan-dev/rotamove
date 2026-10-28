@@ -114,7 +114,7 @@ export type LeadDraft = Omit<Lead, "id" | "createdAt">;
  * Partner (mover)
  * ------------------------------------------------------------------ */
 
-export type PlanId = "pro_unlimited" | "pay_per_lead";
+export type PlanId = "pro_unlimited" | "pay_per_lead" | "pay_per_seen";
 
 export type Certification = "FIDI/FAIM" | "IAM" | "IATA" | "AMÖ" | "ISO 9001" | "TOBB" | "BAR";
 

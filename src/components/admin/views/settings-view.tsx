@@ -35,25 +35,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDateShort } from "@/lib/format";
 import { useAdminData, useAdminDispatch } from "@/lib/admin/store";
 import {
   ADMIN_ROLES,
   PERMISSION_KEYS,
-  PERMISSION_LABELS,
-  ROLE_LABELS,
   type AdminRole,
   type PlatformSettings,
 } from "@/lib/admin/types";
+import { useI18n } from "@/i18n/provider";
 
-function fmtDateTime(iso: string): string {
-  const d = new Date(iso);
-  return `${formatDateShort(iso)}, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
+const OPS_SWITCH_KEYS = [
+  "autoAssignLeads",
+  "notifyNewLead",
+  "notifyOverdueInvoice",
+  "requireTwoFactor",
+] as const;
 
 export function SettingsView({ initialTab }: { initialTab?: string }) {
   const data = useAdminData();
   const dispatch = useAdminDispatch();
+  const { dict, t } = useI18n();
 
   const [tab, setTab] = useState(
     initialTab === "audit" || initialTab === "platform" ? initialTab : "team",
@@ -90,7 +91,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
 
   const saveSettings = () => {
     dispatch({ type: "settings/update", patch: draft });
-    toast.success("Platform settings saved");
+    toast.success(dict.admin.settings.savedToast);
   };
 
   const num = (value: string, fallback: number) => {
@@ -100,33 +101,30 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
 
   return (
     <div className="animate-rise">
-      <PageHeader
-        title="Settings"
-        description="Team access, the audit trail, and platform-wide configuration."
-      />
+      <PageHeader title={dict.admin.settings.title} description={dict.admin.settings.description} />
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-4">
-          <TabsTrigger value="team">Team &amp; roles</TabsTrigger>
-          <TabsTrigger value="audit">Audit log</TabsTrigger>
-          <TabsTrigger value="platform">Platform</TabsTrigger>
+          <TabsTrigger value="team">{dict.admin.settings.tabTeam}</TabsTrigger>
+          <TabsTrigger value="audit">{dict.admin.settings.tabAudit}</TabsTrigger>
+          <TabsTrigger value="platform">{dict.admin.settings.tabPlatform}</TabsTrigger>
         </TabsList>
 
         {/* ---------------- Team & roles ---------------- */}
         <TabsContent value="team" className="space-y-4">
           <Card className="gap-0 overflow-hidden py-0 shadow-soft">
             <CardHeader className="pt-6 pb-4">
-              <CardTitle>Team members</CardTitle>
-              <CardDescription>Who can sign in to this console.</CardDescription>
+              <CardTitle>{dict.admin.settings.teamTitle}</CardTitle>
+              <CardDescription>{dict.admin.settings.teamDescription}</CardDescription>
             </CardHeader>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Invited</TableHead>
-                    <TableHead>Last active</TableHead>
+                    <TableHead>{dict.admin.settings.colMember}</TableHead>
+                    <TableHead>{dict.admin.settings.colRole}</TableHead>
+                    <TableHead>{dict.admin.settings.colInvited}</TableHead>
+                    <TableHead>{dict.admin.settings.colLastActive}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -156,7 +154,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                         {member.role === "owner" ? (
                           <Badge variant="secondary" className="gap-1">
                             <Lock aria-hidden />
-                            Owner
+                            {dict.admin.settings.roles.owner}
                           </Badge>
                         ) : (
                           <Select
@@ -167,16 +165,27 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                                 memberId: member.id,
                                 role: role as AdminRole,
                               });
-                              toast.success(`${member.name} is now ${ROLE_LABELS[role as AdminRole]}`);
+                              toast.success(
+                                t.fill(dict.admin.settings.roleToast, {
+                                  name: member.name,
+                                  role: dict.admin.settings.roles[role as AdminRole],
+                                }),
+                              );
                             }}
                           >
-                            <SelectTrigger size="sm" className="w-36" aria-label={`Role for ${member.name}`}>
+                            <SelectTrigger
+                              size="sm"
+                              className="w-36"
+                              aria-label={t.fill(dict.admin.settings.roleForAria, {
+                                name: member.name,
+                              })}
+                            >
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {ADMIN_ROLES.filter((r) => r !== "owner").map((role) => (
                                 <SelectItem key={role} value={role}>
-                                  {ROLE_LABELS[role]}
+                                  {dict.admin.settings.roles[role]}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -187,7 +196,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                         {member.invitedAt}
                       </TableCell>
                       <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                        {formatDateShort(member.lastActiveAt)}
+                        {t.dateShort(member.lastActiveAt)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -198,20 +207,17 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
 
           <Card className="gap-0 overflow-hidden py-0 shadow-soft">
             <CardHeader className="pt-6 pb-4">
-              <CardTitle>Role permissions</CardTitle>
-              <CardDescription>
-                What each role can see and do. The owner role is fixed; every change lands in the
-                audit log.
-              </CardDescription>
+              <CardTitle>{dict.admin.settings.permissionsTitle}</CardTitle>
+              <CardDescription>{dict.admin.settings.permissionsDescription}</CardDescription>
             </CardHeader>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-44">Permission</TableHead>
+                    <TableHead className="min-w-44">{dict.admin.settings.colPermission}</TableHead>
                     {ADMIN_ROLES.map((role) => (
                       <TableHead key={role} className="text-center">
-                        {ROLE_LABELS[role]}
+                        {dict.admin.settings.roles[role]}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -220,7 +226,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                   {PERMISSION_KEYS.map((permission) => (
                     <TableRow key={permission}>
                       <TableCell className="text-[13px] font-medium">
-                        {PERMISSION_LABELS[permission]}
+                        {dict.admin.settings.permissions[permission]}
                         <span className="block text-[10.5px] text-muted-foreground">
                           {permission}
                         </span>
@@ -230,7 +236,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                           <Checkbox
                             checked={data.roles[role][permission]}
                             disabled={role === "owner"}
-                            aria-label={`${ROLE_LABELS[role]}: ${PERMISSION_LABELS[permission]}`}
+                            aria-label={`${dict.admin.settings.roles[role]}: ${dict.admin.settings.permissions[permission]}`}
                             onCheckedChange={() => {
                               dispatch({ type: "roles/toggle", role, permission });
                             }}
@@ -256,17 +262,17 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
               <Input
                 value={auditQuery}
                 onChange={(e) => setAuditQuery(e.target.value)}
-                placeholder="Search actions, actors, IDs…"
-                aria-label="Search audit log"
+                placeholder={dict.admin.settings.auditSearchPlaceholder}
+                aria-label={dict.admin.settings.auditSearchAria}
                 className="w-64 ps-8"
               />
             </div>
             <Select value={auditEntity} onValueChange={setAuditEntity}>
-              <SelectTrigger className="w-36" aria-label="Filter by entity">
+              <SelectTrigger className="w-36" aria-label={dict.admin.settings.entityFilterAria}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All entities</SelectItem>
+                <SelectItem value="all">{dict.admin.settings.allEntities}</SelectItem>
                 {entities.map((entity) => (
                   <SelectItem key={entity} value={entity}>
                     {entity}
@@ -281,17 +287,17 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>When</TableHead>
-                    <TableHead>Actor</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Detail</TableHead>
+                    <TableHead>{dict.admin.settings.colWhen}</TableHead>
+                    <TableHead>{dict.admin.settings.colActor}</TableHead>
+                    <TableHead>{dict.admin.settings.colAction}</TableHead>
+                    <TableHead>{dict.admin.settings.colDetail}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {auditPagination.pageRows.map((entry) => (
                     <TableRow key={entry.id}>
                       <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
-                        {fmtDateTime(entry.at)}
+                        {t.dateTime(entry.at)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-[13px]">{entry.actor}</TableCell>
                       <TableCell>
@@ -307,8 +313,8 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
             </div>
             {auditRows.length === 0 ? (
               <EmptyState
-                title="No audit entries match"
-                description="Loosen the search or clear the entity filter."
+                title={dict.admin.settings.auditEmptyTitle}
+                description={dict.admin.settings.auditEmptyDescription}
                 className="m-4"
               />
             ) : (
@@ -329,15 +335,13 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
           <div className="grid gap-4 xl:grid-cols-2">
             <Card className="shadow-soft">
               <CardHeader>
-                <CardTitle>Marketplace economics</CardTitle>
-                <CardDescription>
-                  The numbers the pricing and matching engines run on.
-                </CardDescription>
+                <CardTitle>{dict.admin.settings.economicsTitle}</CardTitle>
+                <CardDescription>{dict.admin.settings.economicsDescription}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="fee-floor">Lead fee floor (USD)</Label>
+                    <Label htmlFor="fee-floor">{dict.admin.settings.feeFloor}</Label>
                     <Input
                       id="fee-floor"
                       type="number"
@@ -350,7 +354,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="fee-cap">Lead fee cap (USD)</Label>
+                    <Label htmlFor="fee-cap">{dict.admin.settings.feeCap}</Label>
                     <Input
                       id="fee-cap"
                       type="number"
@@ -363,7 +367,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="pro-monthly">Pro subscription (USD/mo)</Label>
+                    <Label htmlFor="pro-monthly">{dict.admin.settings.proMonthly}</Label>
                     <Input
                       id="pro-monthly"
                       type="number"
@@ -376,7 +380,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="match-count">Default match count</Label>
+                    <Label htmlFor="match-count">{dict.admin.settings.matchCount}</Label>
                     <Input
                       id="match-count"
                       type="number"
@@ -393,7 +397,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="dup-window">Duplicate window (days)</Label>
+                    <Label htmlFor="dup-window">{dict.admin.settings.dupWindow}</Label>
                     <Input
                       id="dup-window"
                       type="number"
@@ -415,40 +419,19 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
 
             <Card className="shadow-soft">
               <CardHeader>
-                <CardTitle>Operations</CardTitle>
-                <CardDescription>Automation and notification switches.</CardDescription>
+                <CardTitle>{dict.admin.settings.operationsTitle}</CardTitle>
+                <CardDescription>{dict.admin.settings.operationsDescription}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {(
-                  [
-                    {
-                      key: "autoAssignLeads",
-                      label: "Auto-assign leads",
-                      hint: "Offer new leads to matching companies without manual review.",
-                    },
-                    {
-                      key: "notifyNewLead",
-                      label: "Notify on new lead",
-                      hint: "Email the ops team when an enquiry lands.",
-                    },
-                    {
-                      key: "notifyOverdueInvoice",
-                      label: "Notify on overdue invoice",
-                      hint: "Daily digest of invoices past their due date.",
-                    },
-                    {
-                      key: "requireTwoFactor",
-                      label: "Require two-factor sign-in",
-                      hint: "Applies to every console account on next sign-in.",
-                    },
-                  ] as const
-                ).map(({ key, label, hint }) => (
+                {OPS_SWITCH_KEYS.map((key) => (
                   <div key={key} className="flex items-start justify-between gap-4">
                     <div>
                       <Label htmlFor={`switch-${key}`} className="text-[13.5px]">
-                        {label}
+                        {dict.admin.settings.switches[key].label}
                       </Label>
-                      <p className="text-xs text-muted-foreground">{hint}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {dict.admin.settings.switches[key].hint}
+                      </p>
                     </div>
                     <Switch
                       id={`switch-${key}`}
@@ -460,10 +443,10 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
               </CardContent>
               <CardFooter className="justify-end gap-2">
                 <Button variant="ghost" disabled={!dirty} onClick={() => setDraft(data.settings)}>
-                  Discard
+                  {dict.admin.settings.discard}
                 </Button>
                 <Button disabled={!dirty} onClick={saveSettings}>
-                  Save changes
+                  {dict.admin.common.saveChanges}
                 </Button>
               </CardFooter>
             </Card>

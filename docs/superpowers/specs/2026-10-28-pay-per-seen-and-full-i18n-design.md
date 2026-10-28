@@ -76,14 +76,19 @@ Two deliverables, shipped together without breaking existing behaviour:
 
 ## 4. Localization everywhere
 
-- **Move the admin under the locale segment:** `src/app/admin` →
-  `src/app/[locale]/admin`; the admin layout stops being a second root
-  layout (no own `<html>`, no own `I18nProvider locale="en"`) and inherits
-  the `[locale]` layout. Remove `admin` from the proxy matcher exclusion
-  (`src/proxy.ts:147`) so `/admin` redirects to `/{locale}/admin` like every
-  other path.
-- Admin nav/breadcrumb hrefs become locale-aware (`useI18n().href`). A
-  `LanguageSwitcher` is added to the admin topbar.
+- **Admin locale comes from the cookie, not the URL** *(amended during
+  implementation)*: the admin keeps its own root layout at `/admin` — nesting
+  it under `[locale]` would leak the public site's `LastCallBar` and skip-link
+  into the admin chrome and change every `/admin` URL for no user-visible
+  gain. Instead `src/app/admin/layout.tsx` reads the same `rotamove.locale`
+  cookie the public switcher writes (`resolveLocale` fallback to English),
+  renders `<html lang={locale} dir={dirFor(locale)}>` with the
+  script-matched font, and feeds `getDictionary(locale)` into the provider.
+  The proxy matcher still excludes `/admin`.
+- A cookie-writing `AdminLocaleSwitcher` (`rememberLocale` +
+  `router.refresh()`) sits in the admin topbar; switching language on the
+  public site also switches the admin, and vice versa — one cookie, one
+  preference, every surface.
 - **Dictionaries:** add `admin` and `partnerDashboard` sections plus the new
   `plans.pps*` keys to `src/i18n/dictionaries/en.ts`; the `Widen` contract
   forces the same shape onto tr/de/fr/it/nl/ru/ar (translations written as

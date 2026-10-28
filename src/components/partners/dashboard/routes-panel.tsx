@@ -42,7 +42,8 @@ const MODE_ICONS = { road: Truck, sea: Ship, air: Plane, rail: Train } as const;
  * carrier to a border with no load.
  */
 export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
-  const { t } = useI18n();
+  const { dict, t } = useI18n();
+  const lx = dict.partnerDashboard.lanes;
   const [lanes, setLanes] = useState(initial);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PartnerLane | null>(null);
@@ -78,19 +79,19 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
         const data = (await response.json().catch(() => null)) as
           | { error?: string; issues?: Array<{ message: string }> }
           | null;
-        toast.error(data?.issues?.[0]?.message ?? data?.error ?? "Could not save the lane");
+        toast.error(data?.issues?.[0]?.message ?? data?.error ?? lx.saveFailed);
         return false;
       }
       const { lane } = (await response.json()) as { lane: PartnerLane };
       replace(lane);
-      toast.success(editingId ? "Lane updated" : "Lane added", {
+      toast.success(editingId ? lx.updated : lx.added, {
         description: lane.window
-          ? `Matching enquiries from ${t.dateRange(lane.window)}.`
-          : "Matching enquiries on this route from now on.",
+          ? t.fill(lx.matchingFrom, { range: t.dateRange(lane.window) })
+          : lx.matchingNow,
       });
       return true;
     } catch {
-      toast.error("Could not reach the server");
+      toast.error(lx.serverUnreachable);
       return false;
     }
   };
@@ -107,14 +108,11 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
       if (!response.ok) throw new Error();
       const { lane: updated } = (await response.json()) as { lane: PartnerLane };
       replace(updated);
-      toast.success(status === "paused" ? "Lane paused" : "Lane live again", {
-        description:
-          status === "paused"
-            ? "It stays on your board but stops matching enquiries."
-            : "It is back in customer search.",
+      toast.success(status === "paused" ? lx.pausedToast : lx.liveToast, {
+        description: status === "paused" ? lx.pausedBody : lx.liveBody,
       });
     } catch {
-      toast.error("Could not update the lane");
+      toast.error(lx.updateFailed);
     } finally {
       setBusyId(null);
     }
@@ -126,9 +124,9 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
       const response = await fetch(`/api/partners/lanes/${lane.id}`, { method: "DELETE" });
       if (!response.ok) throw new Error();
       setLanes((prev) => prev.filter((item) => item.id !== lane.id));
-      toast.success("Lane removed");
+      toast.success(lx.removed);
     } catch {
-      toast.error("Could not remove the lane");
+      toast.error(lx.removeFailed);
     } finally {
       setBusyId(null);
     }
@@ -148,10 +146,11 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
     <div className="mt-8">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
-          <h2 className="text-[20px] tracking-[-0.03em]">Your lanes</h2>
+          <h2 className="text-[20px] tracking-[-0.03em]">{lx.title}</h2>
           <p className="mt-1 text-[13px] text-muted-foreground tnum">
-            {active.length} live
-            {dated > 0 && ` · ${dated} dated`} · {capacity} m³ declared
+            {t.fill(lx.liveCount, { n: active.length })}
+            {dated > 0 && ` · ${t.fill(lx.datedCount, { n: dated })}`} ·{" "}
+            {t.fill(lx.capacityDeclared, { n: t.number(capacity) })}
           </p>
         </div>
 
@@ -161,16 +160,14 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
           className="ms-auto inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985]"
         >
           <Plus className="size-4" strokeWidth={2.5} />
-          Add lane
+          {lx.add}
         </button>
       </div>
 
       {/* The one thing a carrier needs to believe for this screen to be worth
           their time. Said once, at the top, rather than in a help article. */}
       <p className="mt-4 rounded-xl border border-dashed bg-surface/60 p-3.5 text-[13px] leading-relaxed text-muted-foreground">
-        Lanes feed customer search directly. A dated run puts you in front of
-        anyone moving on those dates — even outside the regions on your profile —
-        and the enquiry shows your departure window instead of theirs.
+        {lx.intro}
       </p>
 
       <div className="mt-5 space-y-3">
@@ -191,10 +188,9 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
         {lanes.length === 0 && (
           <div className="rounded-xl border border-dashed p-10 text-center">
             <Route className="mx-auto size-5 text-muted-foreground" />
-            <p className="mt-3 text-[14.5px] font-medium">No lanes yet</p>
+            <p className="mt-3 text-[14.5px] font-medium">{lx.emptyTitle}</p>
             <p className="mx-auto mt-1.5 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
-              Add the routes you run on a timetable, and the one-off runs where a
-              vehicle still has space. Both start matching enquiries straight away.
+              {lx.emptyBody}
             </p>
             <button
               type="button"
@@ -202,7 +198,7 @@ export function RoutesPanel({ initial }: { initial: PartnerLane[] }) {
               className="mt-5 inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[14px] transition-colors hover:bg-muted"
             >
               <Plus className="size-4" />
-              Add your first lane
+              {lx.addFirst}
             </button>
           </div>
         )}
@@ -235,7 +231,8 @@ function LaneCard({
   onToggle: () => void;
   onRemove: () => void;
 }) {
-  const { t } = useI18n();
+  const { dict, t } = useI18n();
+  const lx = dict.partnerDashboard.lanes;
   // Removing a lane is not recoverable, and the button sits next to Edit.
   // One deliberate second click costs a moment; a mis-click costs a run.
   const [confirming, setConfirming] = useState(false);
@@ -264,22 +261,22 @@ function LaneCard({
             {lane.window ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-ink">
                 <CalendarRange className="size-3" />
-                One run
+                {lx.oneRun}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">
                 <Repeat className="size-3" />
-                Scheduled
+                {lx.scheduled}
               </span>
             )}
             {paused && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">
-                Paused
+                {lx.paused}
               </span>
             )}
             {expired && !paused && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">
-                Finished
+                {lx.finished}
               </span>
             )}
           </div>
@@ -295,7 +292,7 @@ function LaneCard({
             <span className="code text-[14px]">{lane.toCode}</span>
             {lane.bothWays && (
               <span className="rounded-full border px-2 py-0.5 text-[10.5px] text-muted-foreground">
-                both ways
+                {lx.bothWays}
               </span>
             )}
           </div>
@@ -307,11 +304,11 @@ function LaneCard({
           <dl className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground tnum">
             <span className="inline-flex items-center gap-1.5">
               <Truck className="size-3.5" />
-              {lane.vehicle === "lorry" ? "Lorry" : "Minivan"}
+              {lane.vehicle === "lorry" ? lx.lorry : lx.minivan}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Box className="size-3.5" />
-              {lane.capacityM3} m³ free
+              {t.fill(lx.capacityFree, { n: t.number(lane.capacityM3) })}
             </span>
             {lane.window && (
               <span className="inline-flex items-center gap-1.5">
@@ -329,18 +326,18 @@ function LaneCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <IconAction label="Edit lane" onClick={onEdit} disabled={busy}>
+          <IconAction label={lx.edit} onClick={onEdit} disabled={busy}>
             <Pencil className="size-3.5" />
           </IconAction>
           <IconAction
-            label={paused ? "Resume lane" : "Pause lane"}
+            label={paused ? lx.resume : lx.pause}
             onClick={onToggle}
             disabled={busy}
           >
             {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
           </IconAction>
           <IconAction
-            label="Remove lane"
+            label={lx.remove}
             onClick={() => setConfirming(true)}
             disabled={busy || confirming}
             destructive
@@ -353,14 +350,14 @@ function LaneCard({
       {confirming && (
         <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3">
           <p className="me-auto text-[12.5px] text-muted-foreground">
-            Remove this lane? It stops matching enquiries immediately.
+            {lx.confirmRemove}
           </p>
           <button
             type="button"
             onClick={() => setConfirming(false)}
             className="rounded-full px-3 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
           >
-            Keep it
+            {lx.keep}
           </button>
           <button
             type="button"
@@ -370,7 +367,7 @@ function LaneCard({
             }}
             className="rounded-full bg-destructive px-4 py-1.5 text-[12.5px] font-medium text-white transition-opacity hover:opacity-90"
           >
-            Remove
+            {lx.removeConfirm}
           </button>
         </div>
       )}
