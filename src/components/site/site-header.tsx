@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Clock3, Menu } from "lucide-react";
+import { AlarmClock, Menu } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
@@ -52,7 +52,13 @@ function LastCallNavLink({
       )}
     >
       <span className="relative grid size-4 place-items-center">
-        <Clock3 className="relative size-4" strokeWidth={2.2} />
+        {/* The clock rings rather than sitting still. This button is the one
+            thing on the page advertising stock that expires in hours, and
+            motion is what earns a glance for it. */}
+        <AlarmClock
+          className="last-call-ring relative size-4 motion-reduce:animate-none"
+          strokeWidth={2.2}
+        />
         {count > 0 && (
           <span
             aria-hidden

@@ -132,6 +132,19 @@ export const nl = {
     ],
   },
 
+  worldMap: {
+    eyebrow: "Waar we rijden",
+    title: "Eén netwerk, op schaal getekend",
+    lede: "Elke lijn op deze kaart is een corridor waar we vandaag voor offreren, getekend uit dezelfde hublijst waarop de zoekfunctie draait. Geen enkele route staat er om indruk te maken.",
+    mapLabel:
+      "Wereldkaart met vrachtcorridors tussen Europa, Türkiye, de Kaukasus, Centraal-Azië en de Golf.",
+    legendHub: "Vertrekhub",
+    legendNote: "Actieve corridors, bijgewerkt zodra er hubs bij komen",
+    statCities: "Bediende steden",
+    statCountries: "Landen",
+    statCorridors: "Benoemde corridors",
+  },
+
   partnerTeaser: {
     eyebrow: "Voor transportbedrijven",
     title: "Koop vraag, geen telefoonnummers.",

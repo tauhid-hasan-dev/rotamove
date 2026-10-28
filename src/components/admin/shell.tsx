@@ -11,7 +11,6 @@ import {
   FlaskConical,
   Inbox,
   LayoutDashboard,
-  LockOpen,
   LogOut,
   Menu,
   Moon,
@@ -44,7 +43,6 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/admin", key: "dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/leads", key: "leads", icon: Inbox, exact: false },
-  { href: "/admin/unlocks", key: "unlocks", icon: LockOpen, exact: false },
   { href: "/admin/companies", key: "companies", icon: Building2, exact: false },
   { href: "/admin/reports", key: "reports", icon: BarChart3, exact: false },
   { href: "/admin/analytics", key: "analytics", icon: ChartSpline, exact: false },

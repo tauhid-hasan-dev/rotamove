@@ -136,6 +136,19 @@ export const tr = {
     ],
   },
 
+  worldMap: {
+    eyebrow: "Nereye taşıyoruz",
+    title: "Tek bir ağ, gerçek ölçeğiyle",
+    lede: "Bu haritadaki her hat, bugün fiyat verdiğimiz bir koridor; aramanın kullandığı merkez listesinden çizildi. Hiçbir rota burada etkileyici görünmek için yok.",
+    mapLabel:
+      "Avrupa, Türkiye, Kafkasya, Orta Asya ve Körfez arasındaki yük koridorlarını gösteren dünya haritası.",
+    legendHub: "Çıkış merkezi",
+    legendNote: "Canlı koridorlar, yeni merkez eklendikçe güncellenir",
+    statCities: "Hizmet verilen şehir",
+    statCountries: "Ülke",
+    statCorridors: "Tanımlı koridor",
+  },
+
   partnerTeaser: {
     eyebrow: "Nakliye firmaları için",
     title: "Telefon numarası değil, talep satın alın.",

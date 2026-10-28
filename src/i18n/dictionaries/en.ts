@@ -150,6 +150,20 @@ export const en = {
     ],
   },
 
+  /* ------------------------------------------------------ coverage map -- */
+  worldMap: {
+    eyebrow: "Where we move",
+    title: "One network, drawn to scale",
+    lede: "Every lane on this map is a corridor we quote today, plotted from the same hub list the search runs on. No route is here to look impressive.",
+    mapLabel:
+      "World map showing freight corridors between Europe, Türkiye, the Caucasus, Central Asia and the Gulf.",
+    legendHub: "Departure hub",
+    legendNote: "Live corridors, updated as hubs are added",
+    statCities: "Cities served",
+    statCountries: "Countries",
+    statCorridors: "Named corridors",
+  },
+
   /* --------------------------------------------------- partner teaser -- */
   partnerTeaser: {
     eyebrow: "For transport companies",

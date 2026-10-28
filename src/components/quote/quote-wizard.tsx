@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Clock3, Loader2, Lock } from "lucide-react";
+import { AlarmClock, ArrowLeft, ArrowRight, Check, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { RouteEditor } from "@/components/quote/route-editor";
 import { CollectionWindow } from "@/components/quote/collection-window";
@@ -112,7 +112,7 @@ export function QuoteWizard({
         <div className="mb-5 rounded-2xl bg-lastcall px-4 py-3 text-lastcall-foreground">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]">
-              <Clock3 className="size-3" />
+              <AlarmClock className="last-call-ring size-3 motion-reduce:animate-none" />
               {dict.dates.lastCallLabel}
             </span>
             <p className="min-w-0 text-[13.5px]">

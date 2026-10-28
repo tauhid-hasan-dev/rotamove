@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Box, Clock3, X } from "lucide-react";
+import { AlarmClock, ArrowRight, Box, X } from "lucide-react";
 import { useLastCall } from "@/components/site/use-last-call";
 import { getCity } from "@/lib/geo";
 import { stripLocale } from "@/i18n/paths";
@@ -119,7 +119,7 @@ export function LastCallPopup() {
                 <span aria-hidden className="last-call-sheen absolute inset-0" />
 
                 <span className="relative inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink">
-                  <Clock3 className="size-3" />
+                  <AlarmClock className="last-call-ring size-3 motion-reduce:animate-none" />
                   {dict.lastCall.badge}
                 </span>
 

@@ -140,7 +140,11 @@ export function PartnerTeaser({ dict, locale }: SectionProps) {
   return (
     <section className="py-24 sm:py-32">
       <Shell>
-        <div className="mx-auto grid max-w-6xl items-center gap-10 rounded-3xl bg-surface px-7 py-12 sm:px-12 sm:py-16 lg:grid-cols-2 lg:gap-16">
+        {/* 35 / 65. The copy needs a readable measure and no more; the three
+            plans need every pixel that leaves over, because each one carries a
+            price, a unit and a sentence. Expressed in fr so the ratio applies
+            to what is left after the gap rather than overflowing by it. */}
+        <div className="mx-auto grid max-w-6xl items-center gap-10 rounded-3xl bg-surface px-7 py-12 sm:px-12 sm:py-16 lg:grid-cols-[35fr_65fr] lg:gap-12">
           <div>
             <p className="eyebrow">{dict.partnerTeaser.eyebrow}</p>
             <h2 className="mt-4 text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.04]">
@@ -164,9 +168,10 @@ export function PartnerTeaser({ dict, locale }: SectionProps) {
             </div>
           </div>
 
-          {/* All three plans. The pair that used to sit here contradicted
-              the pricing page the CTA below leads to. */}
-          <div className="grid gap-3 sm:grid-cols-2">
+          {/* Three plans, three columns — equal width, because ranking them
+              by tile size would contradict the pricing page, where which one
+              wins depends entirely on your volume. */}
+          <div className="grid gap-3 sm:grid-cols-3">
             <PlanTile
               price={formatUsd(locale, PRO_MONTHLY_USD)}
               unit={dict.partnerTeaser.proUnit}
@@ -181,7 +186,6 @@ export function PartnerTeaser({ dict, locale }: SectionProps) {
               body={fill(dict.partnerTeaser.pplBody, { cap })}
             />
             <PlanTile
-              className="sm:col-span-2"
               price={`${formatUsd(locale, 2)}–${cap}`}
               unit={dict.partnerTeaser.ppsUnit}
               title={dict.plans.ppsName}
@@ -212,16 +216,20 @@ function PlanTile({
   return (
     <div
       className={cn(
-        highlight ? "rounded-3xl bg-brand p-6 text-ink" : "rounded-3xl border bg-card p-6",
+        "rounded-3xl p-5",
+        highlight ? "bg-brand text-ink" : "border bg-card",
         className,
       )}
     >
-      <p className="text-[12px] font-medium uppercase tracking-[0.12em] opacity-70">{title}</p>
-      <p className="mt-5 flex items-baseline gap-1.5">
-        <span className="text-[30px] font-semibold tracking-[-0.04em] tnum">{price}</span>
-        <span className="text-[13px] opacity-60">{unit}</span>
+      <p className="text-[11.5px] font-medium uppercase tracking-[0.1em] opacity-70">{title}</p>
+      {/* The price wraps under its unit rather than shrinking it: three
+          columns at this width cannot hold "$2–$12 per unlocked lead" on
+          one line in any language, and a truncated price is useless. */}
+      <p className="mt-4 flex flex-wrap items-baseline gap-x-1.5">
+        <span className="text-[26px] font-semibold tracking-[-0.04em] tnum">{price}</span>
+        <span className="text-[12.5px] opacity-60">{unit}</span>
       </p>
-      <p className="mt-3 text-[14px] leading-relaxed opacity-75">{body}</p>
+      <p className="mt-2.5 text-[13.5px] leading-relaxed opacity-75">{body}</p>
     </div>
   );
 }

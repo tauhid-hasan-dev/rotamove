@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock3 } from "lucide-react";
+import { AlarmClock } from "lucide-react";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Shell } from "@/components/common/section";
@@ -52,7 +52,7 @@ export default async function LastCallPage({ params }: PageProps<"/[locale]/last
         <Shell className="pt-10 pb-20 sm:pt-14">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall px-3 py-1 text-[11.5px] font-medium uppercase tracking-[0.14em] text-lastcall-foreground">
-              <Clock3 className="size-3.5" />
+              <AlarmClock className="last-call-ring size-3.5 motion-reduce:animate-none" />
               {lx.eyebrow}
             </span>
             <h1 className="mt-5 text-[clamp(2rem,4.5vw,3rem)] leading-[1.06] tracking-[-0.04em]">

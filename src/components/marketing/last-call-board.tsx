@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Box, Clock3, Truck } from "lucide-react";
+import { AlarmClock, ArrowRight, Box, Truck } from "lucide-react";
 import { motion } from "motion/react";
 import { RouteLine } from "@/components/common/route-line";
 import { getCity, cityCountry, resolveCorridor } from "@/lib/geo";
@@ -24,7 +24,7 @@ export function LastCallBoard({ offers, now }: { offers: LastCallOffer[]; now: n
   if (offers.length === 0) {
     return (
       <div className="rounded-3xl border border-dashed p-12 text-center">
-        <Clock3 className="mx-auto size-6 text-muted-foreground" />
+        <AlarmClock className="mx-auto size-6 text-lastcall-icon" />
         <p className="mt-4 text-[17px] font-medium tracking-[-0.02em]">{lx.emptyTitle}</p>
         <p className="mx-auto mt-2 max-w-md text-[14.5px] leading-relaxed text-muted-foreground">
           {lx.emptyBody}
@@ -127,7 +127,7 @@ function OfferCard({
     >
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall px-2.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.12em] text-lastcall-foreground">
-          <Clock3 className="size-3" />
+          <AlarmClock className="size-3" />
           {t.fill(lx.hours, { n: offer.hours })}
         </span>
         <span className="ms-auto text-[12px] font-medium text-lastcall-foreground tnum">

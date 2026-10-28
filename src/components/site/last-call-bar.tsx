@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Clock3, X } from "lucide-react";
+import { AlarmClock, ArrowRight, X } from "lucide-react";
 import { PAGE_GUTTER } from "@/components/common/section";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -66,7 +66,11 @@ export function LastCallBar() {
   return (
     <div className="last-call-bar bg-lastcall text-lastcall-foreground">
       <div className={cn(PAGE_GUTTER, "flex items-center gap-x-3 gap-y-1 py-2")}>
-        <Clock3 className="size-3.5 shrink-0 opacity-70" strokeWidth={2.2} aria-hidden />
+        <AlarmClock
+          className="last-call-ring size-4 shrink-0 motion-reduce:animate-none"
+          strokeWidth={2.2}
+          aria-hidden
+        />
 
         <p className="flex min-w-0 flex-wrap items-center gap-x-2 text-[13px]">
           <span className="rounded-full bg-lastcall-accent px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]">

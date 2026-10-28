@@ -27,7 +27,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useI18n } from "@/i18n/provider";
 import { cityLabel } from "@/lib/geo";
-import { DELIVERY_META, LEAD_STATUS_META } from "@/lib/admin/labels";
+import { DELIVERY_META } from "@/lib/admin/labels";
 import { useAdminData, useAdminDispatch } from "@/lib/admin/store";
 
 /** Extra-service ids; their labels live in dict.admin.leadDetail.extras. */
@@ -73,7 +73,10 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
     );
   }
 
-  const { lead, status, source, assignments } = adminLead;
+  // `status` is deliberately not destructured: the pipeline stage is derived
+  // from what carriers do with the lead, and showing it on this page invited
+  // operators to treat it as something they maintain by hand.
+  const { lead, source, assignments } = adminLead;
 
   const specials = Object.entries(lead.specialItems)
     .filter(([, v]) => v)
@@ -111,10 +114,6 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
                 {t.fill(dict.admin.leadDetail.duplicateOf, { id: adminLead.duplicateOf })}
               </Badge>
             ) : null}
-            {/* Status is shown, not set: the pipeline moves on what the
-                carriers actually do with the lead, so an operator picking a
-                stage by hand would only ever be guessing ahead of it. */}
-            <StatusBadge meta={LEAD_STATUS_META[status]} label={dict.admin.status.lead[status]} />
           </>
         }
       />

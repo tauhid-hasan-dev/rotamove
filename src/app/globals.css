@@ -36,6 +36,8 @@
   --color-lastcall: var(--lastcall);
   --color-lastcall-foreground: var(--lastcall-foreground);
   --color-lastcall-accent: var(--lastcall-accent);
+  --color-lastcall-icon: var(--lastcall-icon);
+  --color-map-ink: var(--map-ink);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -94,6 +96,12 @@
   --brand-tint: #f6fdf1;
 
   --ink: #10140e;
+
+  /* The coverage map panel. Dark in both themes on purpose, and therefore
+     not `--ink`: that token is "text that sits on brand green" and flips to
+     near-white in dark mode, which turned the map inside out. A dotted map
+     needs an unlit sky to read against, the same way a radar screen does. */
+  --map-ink: #0d1109;
   --paper: #ffffff;
   --surface: #f6f8f4;
   --line: #e7ebe4;
@@ -107,6 +115,12 @@
   --lastcall: #ffea5c;
   --lastcall-foreground: #4a3c06;
   --lastcall-accent: #f4d12a;
+
+  /* The alarm clock, wherever it sits on a neutral card rather than on the
+     yellow itself. It has to read as the same yellow as the strip while
+     staying legible on white, so it is the strip's hue carried down in
+     lightness rather than a different colour. */
+  --lastcall-icon: #c08a02;
 
   --radius: 0.75rem;
 
@@ -163,6 +177,8 @@
   --lastcall: #302a12;
   --lastcall-foreground: #f2e4ab;
   --lastcall-accent: #4a3f16;
+  /* On a dark card the same yellow can run at full strength. */
+  --lastcall-icon: #ffd84d;
 
   --background: #0f120e;
   --foreground: #f1f4ef;
@@ -510,6 +526,61 @@
 
 .last-call-ping {
   animation: last-call-ping 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* The alarm clock rings, then rests.
+   A bell shakes fast or it does not read as ringing, so the shake itself is
+   quick — but it occupies under a fifth of the cycle, and the long still
+   beat after it is what keeps a permanently-mounted nav item from being
+   the most annoying thing on the page. */
+@keyframes last-call-ring {
+  0%,
+  16%,
+  100% {
+    transform: rotate(0deg);
+  }
+  2%,
+  6%,
+  10%,
+  14% {
+    transform: rotate(-11deg);
+  }
+  4%,
+  8%,
+  12% {
+    transform: rotate(11deg);
+  }
+}
+
+.last-call-ring {
+  animation: last-call-ring 3.4s ease-in-out infinite;
+  transform-origin: 50% 55%;
+}
+
+/* Coverage map ----------------------------------------------------------
+   A short dash chasing a long gap along the lane path: the dash is the
+   shipment, the gap is the wait between departures. Slow — nine seconds end
+   to end — because this sits behind the reader while they read the copy
+   above it, and anything quicker turns a map into a screensaver. */
+@keyframes coverage-pulse {
+  from {
+    stroke-dashoffset: 1200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.coverage-pulse {
+  stroke-dasharray: 26 1174;
+  animation: coverage-pulse 9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The lane itself still reads; only the traffic stops. */
+  .coverage-pulse {
+    display: none;
+  }
 }
 
 @keyframes last-call-sheen {

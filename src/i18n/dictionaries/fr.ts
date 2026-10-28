@@ -133,6 +133,19 @@ export const fr = {
     ],
   },
 
+  worldMap: {
+    eyebrow: "Où nous transportons",
+    title: "Un seul réseau, tracé à l’échelle",
+    lede: "Chaque ligne de cette carte est un corridor que nous cotons aujourd’hui, tracé à partir de la liste de hubs qu’utilise la recherche. Aucune route n’est là pour faire joli.",
+    mapLabel:
+      "Carte du monde montrant les corridors de fret entre l’Europe, la Türkiye, le Caucase, l’Asie centrale et le Golfe.",
+    legendHub: "Hub de départ",
+    legendNote: "Corridors actifs, mis à jour à mesure que des hubs s’ajoutent",
+    statCities: "Villes desservies",
+    statCountries: "Pays",
+    statCorridors: "Corridors nommés",
+  },
+
   partnerTeaser: {
     eyebrow: "Pour les entreprises de transport",
     title: "Achetez de la demande, pas des numéros de téléphone.",

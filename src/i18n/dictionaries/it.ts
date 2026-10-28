@@ -132,6 +132,19 @@ export const it = {
     ],
   },
 
+  worldMap: {
+    eyebrow: "Dove ci muoviamo",
+    title: "Una sola rete, disegnata in scala",
+    lede: "Ogni linea di questa mappa è un corridoio che quotiamo oggi, tracciato dalla stessa lista di hub su cui gira la ricerca. Nessuna rotta è qui per fare scena.",
+    mapLabel:
+      "Mappa del mondo con i corridoi merci fra Europa, Türkiye, Caucaso, Asia centrale e Golfo.",
+    legendHub: "Hub di partenza",
+    legendNote: "Corridoi attivi, aggiornati man mano che si aggiungono hub",
+    statCities: "Città servite",
+    statCountries: "Paesi",
+    statCorridors: "Corridoi nominati",
+  },
+
   partnerTeaser: {
     eyebrow: "Per le aziende di trasporto",
     title: "Compra domanda, non numeri di telefono.",

@@ -7,6 +7,7 @@ import { EmptyState, KpiCard, PageHeader } from "@/components/admin/bits";
 import { RevenueTrendChart } from "@/components/admin/charts";
 import { DateRangePicker, useDateRange } from "@/components/admin/date-range-picker";
 import { ExportMenu } from "@/components/admin/export-menu";
+import { PaginationBar, usePagination } from "@/components/admin/table-bits";
 import { MoverLogo } from "@/components/common/mover-logo";
 import {
   Card,
@@ -70,6 +71,26 @@ function FilterBar({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+/**
+ * Cell rhythm for the two report tables.
+ *
+ * The table defaults to 8px of padding and sits flush against the card edge,
+ * which at full width left the first column tight to the border and ran the
+ * money columns into each other. This gives the outer edges the same 24px
+ * gutter the card header already uses, so the table lines up with the title
+ * above it, and 16px between columns.
+ *
+ * Logical properties, so the gutter stays on the outside in Arabic.
+ */
+const CELLS = [
+  "[&_th]:px-4 [&_td]:px-4 [&_td]:py-3",
+  "[&_th:first-child]:ps-6 [&_td:first-child]:ps-6",
+  "[&_th:last-child]:pe-6 [&_td:last-child]:pe-6",
+].join(" ");
+
+/** Rows per page, matching the other admin tables. */
+const PAGE_SIZE = 10;
 
 export function ReportsView() {
   const { dict, t } = useI18n();
@@ -135,6 +156,9 @@ export function ReportsView() {
     }
     return sorted;
   }, [allCompanyRows, companyQuery, companyPlan, companySort]);
+
+  const periodPages = usePagination(rows, PAGE_SIZE);
+  const companyPages = usePagination(byCompany, PAGE_SIZE);
 
   // KPIs answer for the whole range, so they read off the unfiltered rows —
   // a total that moved when you typed in a search box would be lying about
@@ -250,7 +274,10 @@ export function ReportsView() {
           <FilterBar>
             <Select
               value={periodSort}
-              onValueChange={(v) => setPeriodSort(v as PeriodSort)}
+              onValueChange={(v) => {
+                setPeriodSort(v as PeriodSort);
+                periodPages.setPage(0);
+              }}
             >
               <SelectTrigger className="w-56" aria-label={rx.sortAria}>
                 <SelectValue />
@@ -266,7 +293,10 @@ export function ReportsView() {
 
             <Select
               value={periodActive ? "active" : "all"}
-              onValueChange={(v) => setPeriodActive(v === "active")}
+              onValueChange={(v) => {
+                setPeriodActive(v === "active");
+                periodPages.setPage(0);
+              }}
             >
               <SelectTrigger className="w-48" aria-label={rx.activityFilterAria}>
                 <SelectValue />
@@ -277,17 +307,21 @@ export function ReportsView() {
               </SelectContent>
             </Select>
 
-            <span className="ms-auto text-[13px] text-muted-foreground tnum">
-              {t.fill(rx.showingPeriods, {
-                shown: t.number(rows.length),
-                total: t.number(allRows.length),
-              })}
-            </span>
+            {/* Only worth saying when a filter actually removed something;
+                the page counter below carries the totals otherwise. */}
+            {rows.length !== allRows.length ? (
+              <span className="ms-auto text-[13px] text-muted-foreground tnum">
+                {t.fill(rx.showingPeriods, {
+                  shown: t.number(rows.length),
+                  total: t.number(allRows.length),
+                })}
+              </span>
+            ) : null}
           </FilterBar>
 
-          <div className="max-h-[460px] overflow-auto">
-            <Table>
-              <TableHeader className="sticky top-0 bg-card">
+          <div className="overflow-x-auto">
+            <Table className={CELLS}>
+              <TableHeader>
                 <TableRow>
                   <TableHead>{rx.colPeriod}</TableHead>
                   <TableHead className="text-end">{rx.colLeads}</TableHead>
@@ -295,7 +329,7 @@ export function ReportsView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
+                {periodPages.pageRows.map((r) => (
                   <TableRow key={r.key}>
                     <TableCell className="whitespace-nowrap text-[13px]">{r.label}</TableCell>
                     <TableCell className="tnum text-end text-[13px]">{r.leads}</TableCell>
@@ -306,10 +340,19 @@ export function ReportsView() {
                 ))}
               </TableBody>
             </Table>
-            {rows.length === 0 ? (
-              <EmptyState title={rx.emptyPeriods} className="m-4" />
-            ) : null}
           </div>
+          {rows.length === 0 ? (
+            <EmptyState title={rx.emptyPeriods} className="m-4" />
+          ) : (
+            <PaginationBar
+              page={periodPages.page}
+              pageCount={periodPages.pageCount}
+              from={periodPages.from}
+              to={periodPages.to}
+              total={periodPages.total}
+              onPage={periodPages.setPage}
+            />
+          )}
         </Card>
 
         <Card className="gap-0 overflow-hidden py-0 shadow-soft">
@@ -332,7 +375,10 @@ export function ReportsView() {
               />
               <Input
                 value={companyQuery}
-                onChange={(e) => setCompanyQuery(e.target.value)}
+                onChange={(e) => {
+                  setCompanyQuery(e.target.value);
+                  companyPages.setPage(0);
+                }}
                 placeholder={dict.admin.companies.searchPlaceholder}
                 aria-label={dict.admin.companies.searchAria}
                 className="w-64 ps-8"
@@ -341,7 +387,10 @@ export function ReportsView() {
 
             <Select
               value={companyPlan}
-              onValueChange={(v) => setCompanyPlan(v as PlanId | "all")}
+              onValueChange={(v) => {
+                setCompanyPlan(v as PlanId | "all");
+                companyPages.setPage(0);
+              }}
             >
               <SelectTrigger className="w-44" aria-label={dict.admin.companies.planFilterAria}>
                 <SelectValue />
@@ -358,7 +407,10 @@ export function ReportsView() {
 
             <Select
               value={companySort}
-              onValueChange={(v) => setCompanySort(v as CompanySort)}
+              onValueChange={(v) => {
+                setCompanySort(v as CompanySort);
+                companyPages.setPage(0);
+              }}
             >
               <SelectTrigger className="w-56" aria-label={rx.sortAria}>
                 <SelectValue />
@@ -372,17 +424,19 @@ export function ReportsView() {
               </SelectContent>
             </Select>
 
-            <span className="ms-auto text-[13px] text-muted-foreground tnum">
-              {t.fill(rx.showingCompanies, {
-                shown: t.number(byCompany.length),
-                total: t.number(allCompanyRows.length),
-              })}
-            </span>
+            {byCompany.length !== allCompanyRows.length ? (
+              <span className="ms-auto text-[13px] text-muted-foreground tnum">
+                {t.fill(rx.showingCompanies, {
+                  shown: t.number(byCompany.length),
+                  total: t.number(allCompanyRows.length),
+                })}
+              </span>
+            ) : null}
           </FilterBar>
 
-          <div className="max-h-[460px] overflow-auto">
-            <Table>
-              <TableHeader className="sticky top-0 bg-card">
+          <div className="overflow-x-auto">
+            <Table className={CELLS}>
+              <TableHeader>
                 <TableRow>
                   <TableHead>{rx.colCompany}</TableHead>
                   <TableHead className="text-end">{rx.colLeads}</TableHead>
@@ -392,7 +446,7 @@ export function ReportsView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {byCompany.map((r) => (
+                {companyPages.pageRows.map((r) => (
                   <TableRow key={r.company.mover.id}>
                     <TableCell>
                       <Link
@@ -424,10 +478,19 @@ export function ReportsView() {
                 ))}
               </TableBody>
             </Table>
-            {byCompany.length === 0 ? (
-              <EmptyState title={rx.emptyCompanies} className="m-4" />
-            ) : null}
           </div>
+          {byCompany.length === 0 ? (
+            <EmptyState title={rx.emptyCompanies} className="m-4" />
+          ) : (
+            <PaginationBar
+              page={companyPages.page}
+              pageCount={companyPages.pageCount}
+              from={companyPages.from}
+              to={companyPages.to}
+              total={companyPages.total}
+              onPage={companyPages.setPage}
+            />
+          )}
         </Card>
       </div>
     </div>

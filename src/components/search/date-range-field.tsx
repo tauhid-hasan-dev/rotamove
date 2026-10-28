@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3 } from "lucide-react";
+import { AlarmClock } from "lucide-react";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { RangeCalendar, type DateRange } from "@/components/common/range-calendar";
 import { useI18n } from "@/i18n/provider";
@@ -76,7 +76,9 @@ export function DateRangeField({
                 summary ? "" : "text-muted-foreground",
               )}
             >
-              {lastCall ? <Clock3 className="size-3.5 shrink-0 text-lastcall-accent" /> : null}
+              {lastCall ? (
+                <AlarmClock className="size-3.5 shrink-0 text-lastcall-icon" />
+              ) : null}
               {summary ?? dict.dates.placeholder}
             </span>
           </button>

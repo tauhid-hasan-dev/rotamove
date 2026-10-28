@@ -132,6 +132,19 @@ export const de = {
     ],
   },
 
+  worldMap: {
+    eyebrow: "Wohin wir fahren",
+    title: "Ein Netz, maßstabsgetreu gezeichnet",
+    lede: "Jede Linie auf dieser Karte ist ein Korridor, den wir heute anbieten — gezeichnet aus derselben Hub-Liste, mit der die Suche arbeitet. Keine Route steht hier, um Eindruck zu machen.",
+    mapLabel:
+      "Weltkarte mit Frachtkorridoren zwischen Europa, der Türkei, dem Kaukasus, Zentralasien und dem Golf.",
+    legendHub: "Abfahrts-Hub",
+    legendNote: "Aktive Korridore, ergänzt sobald neue Hubs dazukommen",
+    statCities: "Bediente Städte",
+    statCountries: "Länder",
+    statCorridors: "Benannte Korridore",
+  },
+
   partnerTeaser: {
     eyebrow: "Für Transportunternehmen",
     title: "Kaufen Sie Nachfrage, nicht Telefonnummern.",
