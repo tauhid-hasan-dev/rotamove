@@ -102,24 +102,6 @@ export const formatUsd = (locale: Locale, value: number) =>
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * Read an ISO string the way its shape says it should be read.
- *
- * A bare "yyyy-mm-dd" is a calendar date, not a moment: a move booked for
- * 28 October is the 28th wherever you are reading from. `new Date("2026-10-28")`
- * resolves it to UTC midnight, which then renders as the 27th anywhere west
- * of Greenwich — so date-only strings are built at *local* midnight and stay
- * on the day they name. Anything carrying a time is a real instant and is
- * parsed as one.
- */
-function toDate(iso: string): Date {
-  if (DATE_ONLY.test(iso)) {
-    const [y, m, d] = iso.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-  return new Date(iso);
-}
-
-/**
  * Which clock the dates are rendered against.
  *
  * Instants are shown in the reader's own timezone, which the server cannot
@@ -130,21 +112,41 @@ function toDate(iso: string): Date {
  */
 export type TimeZone = string | undefined;
 
+/**
+ * Read an ISO string the way its shape says it should be read, and say which
+ * clock it should be rendered against.
+ *
+ * The two halves have to agree, which is the whole reason this returns both.
+ * A bare "yyyy-mm-dd" is a calendar date, not a moment: a move booked for
+ * 28 October is the 28th for everyone, so it is parsed *and* formatted in one
+ * fixed zone and names the same day in Los Angeles as in Istanbul. Parsing it
+ * in one zone and formatting it in another is what turns the 28th into the
+ * 27th — the bug this shape exists to prevent.
+ *
+ * Anything carrying a time is a real instant, and follows the reader's clock.
+ */
+function resolve(iso: string, timeZone: TimeZone): { date: Date; zone: TimeZone } {
+  if (DATE_ONLY.test(iso)) {
+    return { date: new Date(`${iso}T00:00:00Z`), zone: "UTC" };
+  }
+  return { date: new Date(iso), zone: timeZone };
+}
+
 export function formatDateLong(locale: Locale, iso: string, timeZone?: TimeZone): string {
-  const date = toDate(iso);
+  const { date, zone } = resolve(iso, timeZone);
   if (Number.isNaN(date.getTime())) return iso;
   return dateFormat(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
-    timeZone,
+    timeZone: zone,
   }).format(date);
 }
 
 export function formatDateShort(locale: Locale, iso: string, timeZone?: TimeZone): string {
-  const date = toDate(iso);
+  const { date, zone } = resolve(iso, timeZone);
   if (Number.isNaN(date.getTime())) return iso;
-  return dateFormat(locale, { day: "numeric", month: "short", timeZone }).format(date);
+  return dateFormat(locale, { day: "numeric", month: "short", timeZone: zone }).format(date);
 }
 
 /**
@@ -176,24 +178,24 @@ export function formatDateRange(
   [from, to]: [string, string],
   timeZone?: TimeZone,
 ): string {
-  const start = toDate(from);
-  const end = toDate(to);
+  const { date: start, zone } = resolve(from, timeZone);
+  const { date: end } = resolve(to, timeZone);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${from} – ${to}`;
   if (from === to) return formatDateShort(locale, from, timeZone);
-  return dateFormat(locale, { day: "numeric", month: "short", timeZone })
+  return dateFormat(locale, { day: "numeric", month: "short", timeZone: zone })
     .formatRange(start, end)
     .replace(THIN_SPACES, " ");
 }
 
 export function formatDateTime(locale: Locale, iso: string, timeZone?: TimeZone): string {
-  const date = toDate(iso);
+  const { date, zone } = resolve(iso, timeZone);
   if (Number.isNaN(date.getTime())) return iso;
   return dateFormat(locale, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone,
+    timeZone: zone,
   }).format(date);
 }
 
