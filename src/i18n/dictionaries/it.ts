@@ -413,8 +413,8 @@ export const it = {
 
   lastCall: {
     badge: "Ultimo minuto",
-    body: "{count} possono ritirare entro 24 ore.",
-    cta: "Trovali",
+    body: "{count} tratte con spazio libero, in partenza entro poche ore.",
+    cta: "Vedile",
     dismiss: "Chiudi",
   },
 
@@ -445,8 +445,10 @@ export const it = {
   },
 
   quote: {
-    lastCallBanner: "Richiesta dell’ultimo minuto — spazio in partenza entro {n} ore.",
-    lastCallExpires: "l’offerta scade {when}",
+    lastCallBanner:
+      "Richiesta dell’ultimo minuto — spazio in partenza entro {n} ore. Va al trasportatore che effettua il viaggio.",
+    lastCallExpiredBody:
+      "Quel viaggio dell’ultimo minuto è già partito. Ti abbineremo ai prossimi mezzi in partenza su questa tratta.",
     steps: {
       home: "Carico",
       services: "Aiuto",
@@ -901,8 +903,11 @@ export const it = {
       oneRun: "Viaggio singolo",
       scheduled: "Di linea",
       lastCall: "Ultimo minuto",
+      lastCallHours: "{n} h",
+      lastCallStarts: "Parte",
+      lastCallEnds: "Scade",
       lastCallLeft: "{n} h rimaste",
-      lastCallEndsAt: "scade {when}",
+      lastCallExpired: "Offerta chiusa",
       paused: "In pausa",
       finished: "Conclusa",
       bothWays: "in entrambe le direzioni",

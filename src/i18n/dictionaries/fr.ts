@@ -415,8 +415,8 @@ export const fr = {
 
   lastCall: {
     badge: "Dernière minute",
-    body: "{count} peuvent enlever sous 24 heures.",
-    cta: "Les trouver",
+    body: "{count} trajets avec de la place, départ dans quelques heures.",
+    cta: "Les voir",
     dismiss: "Fermer",
   },
 
@@ -447,8 +447,10 @@ export const fr = {
   },
 
   quote: {
-    lastCallBanner: "Demande de dernière minute — de la place qui part sous {n} heures.",
-    lastCallExpires: "l’offre expire {when}",
+    lastCallBanner:
+      "Demande de dernière minute — de la place qui part sous {n} heures. Elle va au transporteur qui assure ce départ.",
+    lastCallExpiredBody:
+      "Ce départ de dernière minute a déjà eu lieu. Nous vous mettrons en relation avec les prochains véhicules sur ce trajet.",
     steps: {
       home: "Chargement",
       services: "Aide",
@@ -904,8 +906,11 @@ export const fr = {
       oneRun: "Trajet unique",
       scheduled: "Régulier",
       lastCall: "Dernière minute",
+      lastCallHours: "{n} h",
+      lastCallStarts: "Départ",
+      lastCallEnds: "Expire",
       lastCallLeft: "{n} h restantes",
-      lastCallEndsAt: "expire {when}",
+      lastCallExpired: "Offre clôturée",
       paused: "En pause",
       finished: "Terminée",
       bothWays: "dans les deux sens",

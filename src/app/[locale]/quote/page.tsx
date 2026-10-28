@@ -92,16 +92,23 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/[l
     ? (lastCallParam as LastCallHours)
     : null;
 
-  const liveLane = lastCallHours ? await loadLiveLane(read("lc")) : null;
+  const laneId = read("lc");
+  const liveLane = lastCallHours ? await loadLiveLane(laneId) : null;
+  // The card linked to a run that has since expired. The request still
+  // works — it just falls back to a generic last-call search rather than
+  // silently pre-filling a departure that has already gone.
+  const offerExpired = Boolean(lastCallHours && laneId && !liveLane);
 
   if (lastCallHours) {
-    const departure = liveLane?.lastCall?.startAt.slice(0, 10) ?? todayLocalIso();
-    initial.moveDate = departure;
-    // The whole window is hours wide, so the collection date is the
-    // departure day and there is no flexibility left to offer.
-    initial.flexibility = "exact";
-    // Last call is one specific vehicle: there is no "how many carriers"
-    // decision to make, so the request goes to that carrier alone.
+    initial.moveDate = liveLane?.lastCall?.startAt.slice(0, 10) ?? todayLocalIso();
+    // A specific run departs on one day, so the date is exact. A generic
+    // last-call search has a window as wide as the duration, and the lead
+    // model expresses that as a flexibility band rather than hours.
+    initial.flexibility = liveLane || lastCallHours === 24 ? "exact" : "plus_minus_3";
+    // Last call is one named vehicle, so the carrier-count question is not
+    // put to the customer. Two is the narrowest the model allows: the run
+    // they picked, which ranks first because a dated lane that fits is the
+    // strongest signal matching has, plus one fallback if it is taken.
     initial.preferredMatches = 2;
     if (liveLane) {
       initial.origin = {
@@ -145,7 +152,9 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/[l
               lastCallHours
                 ? {
                     hours: lastCallHours,
+                    startAt: liveLane?.lastCall?.startAt ?? null,
                     endAt: liveLane?.lastCall ? lastCallEndAt(liveLane.lastCall) : null,
+                    expired: offerExpired,
                   }
                 : null
             }

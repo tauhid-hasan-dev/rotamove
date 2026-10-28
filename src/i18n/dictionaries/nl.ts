@@ -413,7 +413,7 @@ export const nl = {
 
   lastCall: {
     badge: "Last minute",
-    body: "{count} kunnen binnen 24 uur ophalen.",
+    body: "{count} routes met ruimte, vertrek binnen enkele uren.",
     cta: "Bekijk ze",
     dismiss: "Sluiten",
   },
@@ -446,8 +446,10 @@ export const nl = {
   },
 
   quote: {
-    lastCallBanner: "Last-minute aanvraag — ruimte die binnen {n} uur vertrekt.",
-    lastCallExpires: "aanbod verloopt {when}",
+    lastCallBanner:
+      "Last-minute aanvraag — ruimte die binnen {n} uur vertrekt. De aanvraag gaat naar de vervoerder die deze rit uitvoert.",
+    lastCallExpiredBody:
+      "Die last-minute rit is al vertrokken. We koppelen u aan de volgende voertuigen die op deze route vertrekken.",
     steps: {
       home: "Lading",
       services: "Hulp",
@@ -901,8 +903,11 @@ export const nl = {
       oneRun: "Eén rit",
       scheduled: "Dienstregeling",
       lastCall: "Last minute",
+      lastCallHours: "{n} uur",
+      lastCallStarts: "Vertrekt",
+      lastCallEnds: "Verloopt",
       lastCallLeft: "nog {n} uur",
-      lastCallEndsAt: "verloopt {when}",
+      lastCallExpired: "Aanbod gesloten",
       paused: "Gepauzeerd",
       finished: "Afgerond",
       bothWays: "beide richtingen",

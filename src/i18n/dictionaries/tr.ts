@@ -415,8 +415,8 @@ export const tr = {
 
   lastCall: {
     badge: "Son çağrı",
-    body: "{count} 24 saat içinde yükleme yapabilir.",
-    cta: "Hemen bul",
+    body: "{count} hatta yer var, saatler içinde kalkıyor.",
+    cta: "Hepsini gör",
     dismiss: "Kapat",
   },
 
@@ -447,8 +447,10 @@ export const tr = {
   },
 
   quote: {
-    lastCallBanner: "Son çağrı talebi — {n} saat içinde kalkacak yer.",
-    lastCallExpires: "teklif {when} sona eriyor",
+    lastCallBanner:
+      "Son çağrı talebi — {n} saat içinde kalkacak yer. Talep, bu seferi yapan taşıyıcıya gider.",
+    lastCallExpiredBody:
+      "O son çağrı seferi çoktan yola çıktı. Sizi bu hatta kalkacak sonraki araçlarla eşleştireceğiz.",
     steps: {
       home: "Yük",
       services: "Yardım",
@@ -901,8 +903,11 @@ export const tr = {
       oneRun: "Tek sefer",
       scheduled: "Tarifeli",
       lastCall: "Son çağrı",
+      lastCallHours: "{n} sa",
+      lastCallStarts: "Kalkış",
+      lastCallEnds: "Bitiş",
       lastCallLeft: "{n} sa kaldı",
-      lastCallEndsAt: "{when} sona eriyor",
+      lastCallExpired: "Teklif kapandı",
       paused: "Duraklatıldı",
       finished: "Tamamlandı",
       bothWays: "çift yön",

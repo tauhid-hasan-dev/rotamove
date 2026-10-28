@@ -6,7 +6,6 @@ import { LastCallBar } from "@/components/site/last-call-bar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LAST_CALL_SCRIPT } from "@/lib/last-call";
-import { lastCallMovers } from "@/lib/movers";
 import { I18nProvider } from "@/i18n/provider";
 import { getDictionary } from "@/i18n/dictionaries";
 import { alternateLanguages, localePath } from "@/i18n/paths";
@@ -114,7 +113,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
 
   const dict = getDictionary(locale);
   const font = FONT_FOR_SCRIPT[SCRIPT_FOR_LOCALE[locale as Locale]];
-  const lastCall = lastCallMovers().length;
 
   return (
     <html
@@ -144,7 +142,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
               >
                 {dict.common.skipToContent}
               </a>
-              <LastCallBar count={lastCall} />
+              <LastCallBar />
               {children}
               <Toaster
                 position={dirFor(locale) === "rtl" ? "bottom-left" : "bottom-right"}

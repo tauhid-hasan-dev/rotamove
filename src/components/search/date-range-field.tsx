@@ -94,45 +94,6 @@ export function DateRangeField({
         onOpenAutoFocus={(e) => e.preventDefault()}
         className="flex max-h-[var(--radix-popover-content-available-height)] w-[min(640px,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl p-5 shadow-float"
       >
-        {/* Mode switch. Choosing last call clears any dates — the two are
-            different answers to the same question, not a date plus a filter. */}
-        <div
-          role="radiogroup"
-          aria-label={dict.dates.modeAria}
-          className="mb-4 inline-flex shrink-0 self-start rounded-full border bg-background p-1"
-        >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={!lastCall}
-            onClick={() => onLastCallChange(null)}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors",
-              !lastCall ? "bg-brand text-ink" : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {dict.dates.modeDates}
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={Boolean(lastCall)}
-            onClick={() => {
-              onChange({ start: null, end: null });
-              onLastCallChange(lastCall ?? 24);
-            }}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors",
-              lastCall
-                ? "bg-lastcall-accent text-ink"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Clock3 className="size-3.5" />
-            {dict.dates.modeLastCall}
-          </button>
-        </div>
-
         {lastCall ? (
           <div className="min-h-0 flex-1 overflow-y-auto scrollbar-slim">
             <p className="text-[13.5px] font-medium">{dict.dates.lastCallPrompt}</p>

@@ -414,8 +414,8 @@ export const de = {
 
   lastCall: {
     badge: "Kurzfristig frei",
-    body: "{count} können innerhalb von 24 Stunden abholen.",
-    cta: "Jetzt finden",
+    body: "{count} Routen mit freiem Platz, Abfahrt in wenigen Stunden.",
+    cta: "Ansehen",
     dismiss: "Schließen",
   },
 
@@ -446,8 +446,10 @@ export const de = {
   },
 
   quote: {
-    lastCallBanner: "Anfrage für kurzfristig freien Laderaum — Abfahrt innerhalb von {n} Stunden.",
-    lastCallExpires: "Angebot läuft {when} ab",
+    lastCallBanner:
+      "Anfrage für kurzfristig freien Laderaum — Abfahrt innerhalb von {n} Stunden. Sie geht an die Spedition, die diese Fahrt durchführt.",
+    lastCallExpiredBody:
+      "Diese kurzfristige Fahrt ist bereits abgefahren. Wir bringen Sie mit den nächsten Fahrzeugen zusammen, die auf dieser Route hinausgehen.",
     steps: {
       home: "Ladung",
       services: "Hilfe",
@@ -904,8 +906,11 @@ export const de = {
       oneRun: "Einzelfahrt",
       scheduled: "Fahrplanmäßig",
       lastCall: "Kurzfristig frei",
+      lastCallHours: "{n} Std.",
+      lastCallStarts: "Abfahrt",
+      lastCallEnds: "Läuft ab",
       lastCallLeft: "noch {n} Std.",
-      lastCallEndsAt: "läuft {when} ab",
+      lastCallExpired: "Angebot geschlossen",
       paused: "Pausiert",
       finished: "Beendet",
       bothWays: "beide Richtungen",

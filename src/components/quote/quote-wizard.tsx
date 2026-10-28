@@ -30,8 +30,12 @@ import { cn } from "@/lib/utils";
  */
 export interface LastCallContext {
   hours: number;
-  /** When the offer expires, if the request came from a specific run. */
+  /** Declared departure, when the request came from a specific run. */
+  startAt: string | null;
+  /** When that run's offer expires. */
   endAt: string | null;
+  /** The run was named in the link but its offer has already run out. */
+  expired: boolean;
 }
 
 export function QuoteWizard({
@@ -105,15 +109,33 @@ export function QuoteWizard({
   return (
     <div className="mx-auto max-w-2xl">
       {lastCall && (
-        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl bg-lastcall px-4 py-3 text-lastcall-foreground">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]">
-            <Clock3 className="size-3" />
-            {dict.dates.lastCallLabel}
-          </span>
-          <p className="min-w-0 text-[13.5px]">
-            {t.fill(dict.quote.lastCallBanner, { n: lastCall.hours })}
-            {lastCall.endAt ? ` · ${t.fill(dict.quote.lastCallExpires, { when: t.dateTime(lastCall.endAt) })}` : ""}
-          </p>
+        <div className="mb-5 rounded-2xl bg-lastcall px-4 py-3 text-lastcall-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.1em]">
+              <Clock3 className="size-3" />
+              {dict.dates.lastCallLabel}
+            </span>
+            <p className="min-w-0 text-[13.5px]">
+              {lastCall.expired
+                ? dict.quote.lastCallExpiredBody
+                : t.fill(dict.quote.lastCallBanner, { n: lastCall.hours })}
+            </p>
+          </div>
+
+          {/* The run's own dates and times, carried over from the card so
+              nobody has to re-enter what they already picked. */}
+          {lastCall.startAt && lastCall.endAt && (
+            <dl className="mt-2.5 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-[12.5px] tnum">
+              <div className="flex items-baseline gap-1.5">
+                <dt className="opacity-70">{dict.lastCallPage.departs}</dt>
+                <dd className="font-medium">{t.dateTime(lastCall.startAt)}</dd>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <dt className="opacity-70">{dict.lastCallPage.expires}</dt>
+                <dd className="font-medium">{t.dateTime(lastCall.endAt)}</dd>
+              </div>
+            </dl>
+          )}
         </div>
       )}
 

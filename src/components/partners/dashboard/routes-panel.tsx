@@ -274,6 +274,9 @@ function LaneCard({
               <span className="inline-flex items-center gap-1.5 rounded-full bg-lastcall-accent px-2.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-ink">
                 <Clock3 className="size-3" />
                 {lx.lastCall}
+                <span className="tnum opacity-80">
+                  · {t.fill(lx.lastCallHours, { n: lane.lastCall.hours })}
+                </span>
               </span>
             ) : lane.window ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-ink">
@@ -327,20 +330,44 @@ function LaneCard({
               <Box className="size-3.5" />
               {t.fill(lx.capacityFree, { n: t.number(lane.capacityM3) })}
             </span>
-            {lane.lastCall ? (
-              <span className="inline-flex items-center gap-1.5 font-medium text-lastcall-foreground">
-                <Clock3 className="size-3.5" />
-                {expired
-                  ? t.fill(lx.lastCallEndsAt, { when: t.dateTime(lastCallEndAt(lane.lastCall)) })
-                  : t.fill(lx.lastCallLeft, { n: lastCallHoursLeft(lane, now) })}
-              </span>
-            ) : lane.window ? (
+            {lane.window && !lane.lastCall ? (
               <span className="inline-flex items-center gap-1.5">
                 <CalendarRange className="size-3.5" />
                 {t.dateRange(lane.window)}
               </span>
             ) : null}
           </dl>
+
+          {/*
+            A last-call run is a promise with a deadline, so the card states
+            all three parts of it: when the vehicle leaves, when the offer
+            dies, and how long that leaves. The end is never typed — it is
+            the start plus the duration — so showing it back is the only way
+            the partner can check what they actually committed to.
+          */}
+          {lane.lastCall && (
+            <dl className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg bg-lastcall/60 px-3 py-2 text-[11.5px] tnum">
+              <div className="flex items-baseline gap-1.5">
+                <dt className="text-muted-foreground">{lx.lastCallStarts}</dt>
+                <dd className="font-medium">{t.dateTime(lane.lastCall.startAt)}</dd>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <dt className="text-muted-foreground">{lx.lastCallEnds}</dt>
+                <dd className="font-medium">{t.dateTime(lastCallEndAt(lane.lastCall))}</dd>
+              </div>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 font-medium",
+                  expired ? "text-muted-foreground" : "text-lastcall-foreground",
+                )}
+              >
+                <Clock3 className="size-3.5" />
+                {expired
+                  ? lx.lastCallExpired
+                  : t.fill(lx.lastCallLeft, { n: lastCallHoursLeft(lane, now) })}
+              </span>
+            </dl>
+          )}
 
           {lane.notes && (
             <p className="mt-3 border-s-2 border-border ps-3 text-[12.5px] italic leading-relaxed text-muted-foreground">

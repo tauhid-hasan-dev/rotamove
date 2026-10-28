@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
-import { ArrowRight, ArrowLeftRight, Loader2, Search } from "lucide-react";
+import { ArrowRight, ArrowLeftRight, CalendarRange, Clock3, Loader2, Search } from "lucide-react";
 import { CityField } from "@/components/search/city-field";
 import { DateRangeField } from "@/components/search/date-range-field";
 import type { DateRange } from "@/components/common/range-calendar";
@@ -85,6 +85,53 @@ export function RouteSearch({
 
   return (
     <div className={cn("w-full", className)}>
+      {/*
+        The two ways to answer "when", side by side above the bar rather than
+        hidden inside the date popover: Last Call is a different kind of
+        search, not a setting on this one, and nobody finds a mode they have
+        to open a calendar to discover.
+      */}
+      <div
+        role="radiogroup"
+        aria-label={dict.dates.modeAria}
+        className="mb-3 inline-flex rounded-full border bg-card p-1 shadow-soft"
+      >
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!lastCall}
+          onClick={() => setLastCall(null)}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-medium transition-colors",
+            !lastCall ? "bg-brand text-ink" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <CalendarRange className="size-3.5" />
+          {dict.dates.modeDates}
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={Boolean(lastCall)}
+          onClick={() => {
+            // Switching mode clears the other mode's answer, so the two can
+            // never both be "set" and disagree about the collection window.
+            setDates({ start: null, end: null });
+            setLastCall(lastCall ?? 24);
+            setActive("dates");
+          }}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] font-medium transition-colors",
+            lastCall
+              ? "bg-lastcall-accent text-ink"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <Clock3 className="size-3.5" />
+          {dict.dates.modeLastCall}
+        </button>
+      </div>
+
       <div
         className={cn(
           "relative flex w-full flex-col gap-1 rounded-3xl border bg-card p-1.5 transition-shadow duration-300 sm:flex-row sm:items-center sm:rounded-full",

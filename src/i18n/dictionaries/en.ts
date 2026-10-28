@@ -437,8 +437,8 @@ export const en = {
 
   lastCall: {
     badge: "Last call",
-    body: "{count} have space to collect within 24 hours.",
-    cta: "Find them",
+    body: "{count} routes with space, leaving within hours.",
+    cta: "See them",
     dismiss: "Dismiss",
   },
 
@@ -470,8 +470,10 @@ export const en = {
   },
 
   quote: {
-    lastCallBanner: "Last-call request — space leaving within {n} hours.",
-    lastCallExpires: "offer expires {when}",
+    lastCallBanner:
+      "Last-call request — space leaving within {n} hours. It goes to the carrier running it.",
+    lastCallExpiredBody:
+      "That last-call run has already left. We will match you against the next vehicles out on this route.",
     steps: {
       home: "Load",
       services: "Help",
@@ -924,8 +926,11 @@ export const en = {
       oneRun: "One run",
       scheduled: "Scheduled",
       lastCall: "Last call",
+      lastCallHours: "{n} h",
+      lastCallStarts: "Departs",
+      lastCallEnds: "Expires",
       lastCallLeft: "{n} h left",
-      lastCallEndsAt: "expires {when}",
+      lastCallExpired: "Offer closed",
       paused: "Paused",
       finished: "Finished",
       bothWays: "both ways",

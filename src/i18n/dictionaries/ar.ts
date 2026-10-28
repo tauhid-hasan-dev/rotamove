@@ -476,8 +476,8 @@ export const ar = {
 
   lastCall: {
     badge: "فرصة أخيرة",
-    body: "{count} يمكنهم التحميل خلال 24 ساعة.",
-    cta: "اعثر عليهم",
+    body: "خطوط بها مساحة: {count} — تغادر خلال ساعات.",
+    cta: "اعرضها",
     dismiss: "إغلاق",
   },
 
@@ -508,8 +508,10 @@ export const ar = {
   },
 
   quote: {
-    lastCallBanner: "طلب فرصة أخيرة — مساحة تغادر خلال {n} ساعة.",
-    lastCallExpires: "ينتهي العرض {when}",
+    lastCallBanner:
+      "طلب فرصة أخيرة — مساحة تغادر خلال {n} ساعة. يصل الطلب إلى الناقل الذي يسيّر هذه الرحلة.",
+    lastCallExpiredBody:
+      "رحلة الفرصة الأخيرة تلك غادرت بالفعل. سنطابقك مع المركبات التالية المغادرة على هذا الخط.",
     steps: {
       home: "الحمولة",
       services: "المساعدة",
@@ -961,8 +963,11 @@ export const ar = {
       oneRun: "رحلة واحدة",
       scheduled: "منتظم",
       lastCall: "فرصة أخيرة",
+      lastCallHours: "{n} س",
+      lastCallStarts: "المغادرة",
+      lastCallEnds: "ينتهي",
       lastCallLeft: "بقيت {n} س",
-      lastCallEndsAt: "ينتهي {when}",
+      lastCallExpired: "انتهى العرض",
       paused: "متوقف مؤقتًا",
       finished: "منتهٍ",
       bothWays: "في الاتجاهين",

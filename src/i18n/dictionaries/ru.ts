@@ -434,8 +434,8 @@ export const ru = {
 
   lastCall: {
     badge: "Срочная загрузка",
-    body: "{count} готовы забрать груз в течение 24 часов.",
-    cta: "Найти их",
+    body: "Маршрутов с местом: {count} — отправление в ближайшие часы.",
+    cta: "Посмотреть",
     dismiss: "Закрыть",
   },
 
@@ -466,8 +466,10 @@ export const ru = {
   },
 
   quote: {
-    lastCallBanner: "Заявка на срочную загрузку — машина уходит в ближайшие {n} ч.",
-    lastCallExpires: "предложение сгорает {when}",
+    lastCallBanner:
+      "Заявка на срочную загрузку — машина уходит в ближайшие {n} ч. Она уйдёт перевозчику, который выполняет этот рейс.",
+    lastCallExpiredBody:
+      "Этот срочный рейс уже ушёл. Подберём вам следующие машины, уходящие по этому маршруту.",
     steps: {
       home: "Груз",
       services: "Помощь",
@@ -920,8 +922,11 @@ export const ru = {
       oneRun: "Разовый рейс",
       scheduled: "По расписанию",
       lastCall: "Срочная загрузка",
+      lastCallHours: "{n} ч",
+      lastCallStarts: "Отправление",
+      lastCallEnds: "Сгорает",
       lastCallLeft: "осталось {n} ч",
-      lastCallEndsAt: "сгорает {when}",
+      lastCallExpired: "Предложение закрыто",
       paused: "Приостановлен",
       finished: "Завершён",
       bothWays: "в обе стороны",
