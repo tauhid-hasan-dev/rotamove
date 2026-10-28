@@ -744,6 +744,7 @@ export const de = {
     submit: "Anmelden",
     signingIn: "Anmeldung läuft …",
     demoTitle: "Demo-Konto",
+    demoPassword: "Passwort für alle drei: {password}",
     demoBody: "Dies ist eine Demo — nur diese Zugangsdaten funktionieren.",
     demoFill: "Demo-Zugangsdaten einsetzen",
     error: "Diese Zugangsdaten passen nicht zum Demo-Konto.",

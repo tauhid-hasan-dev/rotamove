@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { signedInPartner, unauthorised } from "@/lib/partner-auth";
-import { DEMO_PARTNER } from "@/lib/partner-session";
+import { signedInAccount, unauthorised } from "@/lib/partner-auth";
 import { planRepository } from "@/lib/plan-store";
 import { PLAN_IDS } from "@/lib/plans";
 
@@ -25,17 +24,17 @@ const planInputSchema = z.object({
 });
 
 export async function GET() {
-  const moverId = await signedInPartner();
-  if (!moverId) return unauthorised();
+  const account = await signedInAccount();
+  if (!account) return unauthorised();
 
   return Response.json({
-    subscription: planRepository.get(moverId, DEMO_PARTNER.plan, Date.now()),
+    subscription: planRepository.get(account.mover.id, account.plan, Date.now()),
   });
 }
 
 export async function POST(request: NextRequest) {
-  const moverId = await signedInPartner();
-  if (!moverId) return unauthorised();
+  const account = await signedInAccount();
+  if (!account) return unauthorised();
 
   let body: unknown;
   try {
@@ -51,8 +50,8 @@ export async function POST(request: NextRequest) {
 
   return Response.json({
     subscription: planRepository.requestChange(
-      moverId,
-      DEMO_PARTNER.plan,
+      account.mover.id,
+      account.plan,
       parsed.data.plan,
       Date.now(),
     ),
@@ -61,10 +60,10 @@ export async function POST(request: NextRequest) {
 
 /** Withdraw a queued change. The plan in force is untouched. */
 export async function DELETE() {
-  const moverId = await signedInPartner();
-  if (!moverId) return unauthorised();
+  const account = await signedInAccount();
+  if (!account) return unauthorised();
 
   return Response.json({
-    subscription: planRepository.cancelChange(moverId, DEMO_PARTNER.plan, Date.now()),
+    subscription: planRepository.cancelChange(account.mover.id, account.plan, Date.now()),
   });
 }

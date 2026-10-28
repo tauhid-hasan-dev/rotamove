@@ -740,6 +740,7 @@ export const it = {
     submit: "Accedi",
     signingIn: "Accesso in corso…",
     demoTitle: "Account dimostrativo",
+    demoPassword: "Password per tutti e tre: {password}",
     demoBody: "Questa è una demo: funzionano solo queste credenziali.",
     demoFill: "Usa le credenziali demo",
     error: "Queste credenziali non corrispondono all’account dimostrativo.",

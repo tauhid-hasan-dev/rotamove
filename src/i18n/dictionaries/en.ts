@@ -766,6 +766,7 @@ export const en = {
     submit: "Sign in",
     signingIn: "Signing in…",
     demoTitle: "Demo account",
+    demoPassword: "Password for all three: {password}",
     demoBody: "This is a demo — these are the only credentials that work.",
     demoFill: "Use demo credentials",
     error: "Those credentials don't match the demo account.",

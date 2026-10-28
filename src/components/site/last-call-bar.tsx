@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlarmClock, ArrowRight, X } from "lucide-react";
 import { PAGE_GUTTER } from "@/components/common/section";
+import { stripLocale } from "@/i18n/paths";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
 import { LAST_CALL_DISMISSED, LAST_CALL_FLAG } from "@/lib/last-call";
@@ -27,8 +29,14 @@ import { LAST_CALL_DISMISSED, LAST_CALL_FLAG } from "@/lib/last-call";
  */
 export function LastCallBar() {
   const { dict, t, href } = useI18n();
+  const pathname = usePathname();
   const [dismissed, setDismissed] = useState(false);
   const [count, setCount] = useState(0);
+
+  // The partner workspace has its own bar and no marketing chrome; a
+  // yellow strip selling spare capacity above a carrier's lead board is
+  // addressed to the wrong person.
+  const inWorkspace = stripLocale(pathname).startsWith("/partners/dashboard");
 
   useEffect(() => {
     let live = true;
@@ -50,7 +58,7 @@ export function LastCallBar() {
     };
   }, []);
 
-  if (count <= 0 || dismissed) return null;
+  if (count <= 0 || dismissed || inWorkspace) return null;
 
   const dismiss = () => {
     try {
@@ -64,8 +72,16 @@ export function LastCallBar() {
   };
 
   return (
-    <div className="last-call-bar bg-lastcall text-lastcall-foreground">
-      <div className={cn(PAGE_GUTTER, "flex items-center gap-x-3 gap-y-1 py-2")}>
+    <div className="last-call-bar relative overflow-hidden bg-lastcall text-lastcall-foreground">
+      {/* The same travelling pulse the map lanes use, run along the strip.
+          Behind the content and non-interactive, so it reads as the bar
+          being live rather than as something to click. */}
+      <span
+        aria-hidden
+        className="last-call-run pointer-events-none absolute inset-0 motion-reduce:hidden"
+      />
+
+      <div className={cn(PAGE_GUTTER, "relative flex items-center gap-x-3 gap-y-1 py-2")}>
         <AlarmClock
           className="last-call-ring size-4 shrink-0 motion-reduce:animate-none"
           strokeWidth={2.2}

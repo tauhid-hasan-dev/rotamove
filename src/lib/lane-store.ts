@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { addDaysIso, todayLocalIso } from "@/lib/calendar";
-import { DEMO_PARTNER } from "@/lib/partner-session";
+import { DEFAULT_ACCOUNT } from "@/lib/partner-session";
 import {
   lastCallActive,
   lastCallEndAt,
@@ -133,7 +133,7 @@ const lane = (
     Partial<Pick<PartnerLane, "notes" | "status" | "lastCall">>,
 ): PartnerLane => ({
   id,
-  moverId: DEMO_PARTNER.id,
+  moverId: DEFAULT_ACCOUNT.mover.id,
   notes: "",
   status: "active",
   lastCall: null,
@@ -156,7 +156,7 @@ function lastCallLane(
   > & { notes?: string },
   hours: LastCallHours,
   startOffsetHours: number,
-  moverId: string = DEMO_PARTNER.id,
+  moverId: string = DEFAULT_ACCOUNT.mover.id,
 ): PartnerLane {
   const startAt = new Date(Date.now() + startOffsetHours * 3_600_000).toISOString();
   const lastCall = { hours, startAt };
@@ -254,7 +254,7 @@ function seedLanes(): PartnerLane[] {
       },
       48,
       6,
-      MOVERS[3]?.id ?? DEMO_PARTNER.id,
+      MOVERS[3]?.id ?? DEFAULT_ACCOUNT.mover.id,
     ),
     lastCallLane(
       "ln_lc_ams",
@@ -269,7 +269,7 @@ function seedLanes(): PartnerLane[] {
       },
       72,
       12,
-      MOVERS[6]?.id ?? DEMO_PARTNER.id,
+      MOVERS[6]?.id ?? DEFAULT_ACCOUNT.mover.id,
     ),
     lastCallLane(
       "ln_lc_sof",
@@ -284,7 +284,7 @@ function seedLanes(): PartnerLane[] {
       },
       24,
       5,
-      MOVERS[9]?.id ?? DEMO_PARTNER.id,
+      MOVERS[9]?.id ?? DEFAULT_ACCOUNT.mover.id,
     ),
   ];
 }

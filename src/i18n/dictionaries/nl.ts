@@ -742,6 +742,7 @@ export const nl = {
     submit: "Inloggen",
     signingIn: "Bezig met inloggen…",
     demoTitle: "Demo-account",
+    demoPassword: "Wachtwoord voor alle drie: {password}",
     demoBody: "Dit is een demo — alleen deze gegevens werken.",
     demoFill: "Demogegevens gebruiken",
     error: "Deze gegevens horen niet bij het demo-account.",

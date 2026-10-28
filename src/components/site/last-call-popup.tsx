@@ -20,8 +20,13 @@ const APPEAR_AFTER_MS = 900;
  * request. Someone who has just pressed Send request has taken the offer —
  * putting the same offer back in front of them is interrupting a conversion
  * to advertise the thing they are already doing.
+ *
+ * The partner workspace too. Last call sells spare capacity to people
+ * moving house; a carrier signed in to work their lead board is the wrong
+ * audience, and a modal over a tool is an interruption rather than an
+ * offer. (The admin console sits outside this layout and never sees it.)
  */
-const SILENT_PATHS = ["/last-call", "/quote", "/results"];
+const SILENT_PATHS = ["/last-call", "/quote", "/results", "/partners/dashboard"];
 
 /**
  * The last-call offer popup.

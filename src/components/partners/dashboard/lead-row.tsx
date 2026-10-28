@@ -21,7 +21,6 @@ import { RouteLine } from "@/components/common/route-line";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
 import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
-import { DEMO_EMAIL } from "@/lib/partner-session";
 import { seesMaskedLeads } from "@/lib/plans";
 import type { UnlockRecord } from "@/lib/unlock-store";
 import type { ContactChannel, PlanId } from "@/lib/types";
@@ -57,12 +56,15 @@ export function LeadRow({
   unlocked,
   onUnlock,
   now,
+  email,
 }: {
   item: BoardLead;
   plan: PlanId;
   unlocked: boolean;
   onUnlock: (id: string) => void;
   now: number;
+  /** The signed-in partner's registered address — where leads are sent. */
+  email: string;
 }) {
   const { dict, t } = useI18n();
   const pd = dict.partnerDashboard;
@@ -296,7 +298,7 @@ export function LeadRow({
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
           <MailCheck className="size-3.5 shrink-0 text-verify" aria-hidden />
           <p className="min-w-0 text-[11.5px] text-muted-foreground">
-            {t.fill(pd.row.autoEmailed, { email: DEMO_EMAIL })}
+            {t.fill(pd.row.autoEmailed, { email })}
           </p>
           {plan === "pro_unlimited" ? (
             <span className="ms-auto text-[11.5px] text-verify">{pd.row.includedInPro}</span>

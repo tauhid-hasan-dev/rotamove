@@ -743,6 +743,7 @@ export const tr = {
     submit: "Giriş yap",
     signingIn: "Giriş yapılıyor…",
     demoTitle: "Demo hesabı",
+    demoPassword: "Üçü için de parola: {password}",
     demoBody: "Bu bir demodur — yalnızca bu bilgiler çalışır.",
     demoFill: "Demo bilgilerini kullan",
     error: "Bu bilgiler demo hesabıyla eşleşmiyor.",

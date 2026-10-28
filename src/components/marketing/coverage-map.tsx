@@ -7,121 +7,110 @@ import type { Locale } from "@/i18n/config";
 /**
  * The coverage map.
  *
- * A dotted world, with the corridors the network actually runs drawn across
- * it and a pulse travelling each one. Everything here is plotted from the
- * same city coordinates the search uses, so the picture cannot drift away
- * from the product: if a hub is added to `geo.ts` it appears here.
+ * The corridors the network actually runs, drawn over a dotted land mask,
+ * with a pulse travelling each lane. Everything is plotted from the same
+ * city coordinates the search uses, so the picture cannot drift away from
+ * the product: add a hub to `geo.ts` and it appears here.
  *
- * Deliberately not a globe of worldwide arcs. The network is Europe,
- * Türkiye, the Caucasus, Central Asia and the Gulf; drawing traffic across
- * the Pacific to look bigger is the kind of flourish a freight buyer checks
- * and stops trusting you over.
+ * It was a whole-world map and is now a map of the world this network
+ * works in — Europe, North Africa, the Levant and Gulf, the Caucasus and
+ * Central Asia. Showing the Pacific to prove we are global was spending
+ * two thirds of the canvas on an argument the lanes themselves refute,
+ * and squeezing every corridor into the remaining third is what had the
+ * arcs stacked on top of each other.
  *
- * Rendered on the server: no clock, no randomness, no interaction, so there
- * is nothing for the client to disagree with.
+ * Rendered on the server: no clock, no randomness, no interaction, so
+ * there is nothing for the client to disagree with.
  */
 
 /* ------------------------------------------------------------- the world -- */
 
 /**
- * Land, as longitude spans per 5° parallel, from 80°N down to 55°S.
+ * Land, as longitude spans per 2° parallel, from 70°N down to 10°N.
  *
- * A coarse hand mask rather than a shapefile: at this dot pitch the outline
- * is suggestion, not cartography, and 2 kB of spans beats shipping a
- * topology the page would only throw away. Antarctica is cut — it carries no
- * freight and squashes everything that does into the top two thirds.
+ * A hand mask, at twice the resolution of the whole-world version it
+ * replaces — the frame is a third as wide, so the same dot pitch would
+ * have rendered Italy as two dots. Still a suggestion of coastline rather
+ * than cartography: at this scale the Bosphorus is a third of a dot.
  */
 const LAND: Array<[lat: number, spans: Array<[number, number]>]> = [
-  [75, [[-120, -20], [15, 25], [50, 60], [90, 105], [135, 145]]],
-  [70, [[-165, -20], [18, 180]]],
-  [65, [[-165, -55], [-50, -25], [-22, -15], [5, 180]]],
-  [60, [[-165, -55], [-48, -42], [5, 180]]],
-  [55, [[-160, -55], [-10, -2], [8, 180]]],
-  [50, [[-128, -55], [-6, 180]]],
-  [45, [[-125, -60], [-2, 30], [37, 180]]],
-  [40, [[-124, -74], [-9, 3], [8, 20], [23, 45], [47, 52], [55, 122], [126, 142]]],
-  [35, [[-120, -76], [-9, -1], [3, 11], [24, 26], [28, 60], [62, 122], [127, 140]]],
-  [30, [[-118, -82], [-10, 32], [36, 122], [130, 141]]],
-  [25, [[-112, -97], [-85, -74], [-16, 34], [36, 60], [68, 122]]],
-  [20, [[-106, -97], [-78, -70], [-17, 38], [40, 57], [70, 88], [92, 108], [120, 122]]],
-  [15, [[-93, -86], [-17, 44], [45, 52], [73, 82], [96, 108], [120, 122]]],
-  [10, [[-85, -61], [-15, 45], [76, 80], [98, 107], [122, 126]]],
-  [5, [[-80, -60], [-10, 45], [80, 82], [98, 104], [113, 118], [122, 126]]],
-  [0, [[-80, -45], [8, 42], [98, 104], [109, 119], [120, 126]]],
-  [-5, [[-78, -35], [11, 40], [100, 106], [110, 117], [130, 140]]],
-  [-10, [[-78, -35], [13, 40], [105, 116], [119, 125], [130, 150]]],
-  [-15, [[-75, -38], [12, 40], [44, 50], [122, 142]]],
-  [-20, [[-70, -40], [13, 36], [44, 48], [114, 148]]],
-  [-25, [[-71, -45], [15, 33], [44, 47], [113, 152]]],
-  [-30, [[-72, -50], [17, 32], [114, 153]]],
-  [-35, [[-73, -56], [18, 27], [115, 150], [172, 176]]],
-  [-40, [[-74, -62], [143, 148], [172, 177]]],
+  [70, [[18, 41], [44, 70], [73, 79], [84, 96]]],
+  [68, [[13, 69], [75, 96]]],
+  [66, [[-24, -13], [12, 69], [76, 96]]],
+  [64, [[-24, -14], [7, 19], [22, 96]]],
+  [62, [[-8, -6], [5, 18], [21, 96]]],
+  [60, [[-2, -1], [5, 18], [21, 96]]],
+  [58, [[-7, -2], [8, 19], [22, 96]]],
+  [56, [[-10, -6], [-5, -1], [8, 16], [21, 96]]],
+  [54, [[-10, -6], [-5, 0], [7, 96]]],
+  [52, [[-10, -6], [-5, 2], [4, 96]]],
+  [50, [[-5, 1], [2, 96]]],
+  [48, [[-5, 96]]],
+  [46, [[-2, 31], [33, 36], [38, 48], [52, 96]]],
+  [44, [[-9, 12], [15, 28], [41, 47], [53, 96]]],
+  [42, [[-9, 3], [8, 10], [11, 16], [19, 28], [41, 47], [53, 96]]],
+  [40, [[-9, 3], [8, 10], [13, 18], [20, 24], [26, 44], [45, 50], [54, 96]]],
+  [38, [[-9, 0], [8, 10], [13, 16], [20, 24], [26, 49], [54, 96]]],
+  [36, [[-6, -1], [0, 11], [12, 15], [22, 26], [27, 96]]],
+  [34, [[-9, 11], [32, 34], [35, 96]]],
+  [32, [[-9, 96]]],
+  [30, [[-10, 34], [35, 48], [50, 96]]],
+  [28, [[-14, 33], [36, 50], [51, 96]]],
+  [26, [[-16, 33], [37, 50], [51, 96]]],
+  [24, [[-17, 34], [38, 52], [53, 96]]],
+  [22, [[-17, 35], [39, 52], [53, 59], [68, 96]]],
+  [20, [[-17, 36], [40, 52], [53, 58], [70, 88], [92, 96]]],
+  [18, [[-17, 37], [41, 52], [72, 85], [93, 96]]],
+  [16, [[-17, 40], [42, 53], [73, 82], [94, 96]]],
+  [14, [[-17, 44], [45, 52], [74, 81]]],
+  [12, [[-15, 48], [75, 80]]],
+  [10, [[-11, 51], [76, 79]]],
 ];
 
-const STEP = 5;
+const STEP = 2;
 
-/**
- * Vertical crop.
- *
- * Above 75°N and below 40°S there is almost nothing but a scatter of islands
- * and the tip of Patagonia, which bought two bands of near-empty canvas at
- * the top and bottom of the panel. Cutting them widens the aspect and lets
- * the inhabited world fill the frame.
- *
- * The bounds sit a parallel outside the outermost row of dots so the top
- * and bottom rows are not sliced in half by the panel's edge.
- */
-const LAT_TOP = 80;
-const LAT_BOTTOM = -45;
+/** The frame: Iberia to the Tian Shan, the Nordics to the Horn. */
+const LON_W = -24;
+const LON_E = 96;
+const LAT_N = 70;
+const LAT_S = 10;
 
-/**
- * Central meridian.
- *
- * Not Greenwich. A world map centred on 0° puts this network in its
- * top-right corner and three quarters of the canvas on an empty Pacific —
- * the composition said "mostly nowhere" about a business whose whole
- * argument is density. Re-centring on 45°E is ordinary cartographic
- * practice (Pacific-centred maps do the same thing the other way) and puts
- * the corridors where the eye already is.
- */
-const CENTER_LON = 45;
+/** 2:1, which is what the frame is. Big, because it was asked to be. */
+const VIEW_W = 1400;
+const VIEW_H = (VIEW_W * (LAT_N - LAT_S)) / (LON_E - LON_W);
 
-/** Equirectangular, cropped to the inhabited band. 1000 wide keeps it square. */
-const VIEW_W = 1000;
-const VIEW_H = ((LAT_TOP - LAT_BOTTOM) / 360) * VIEW_W;
-
-/** Longitude relative to the central meridian, wrapped into [-180, 180). */
-function offsetLon(lon: number): number {
-  return ((((lon - CENTER_LON) % 360) + 540) % 360) - 180;
-}
-
-const projectX = (lon: number) => ((offsetLon(lon) + 180) / 360) * VIEW_W;
-const projectY = (lat: number) => ((LAT_TOP - lat) / 360) * VIEW_W;
+const projectX = (lon: number) => ((lon - LON_W) / (LON_E - LON_W)) * VIEW_W;
+const projectY = (lat: number) => ((LAT_N - lat) / (LAT_N - LAT_S)) * VIEW_H;
 
 /**
  * How far a hub's reach is drawn, as an ellipse in degrees.
  *
- * Measured on the map rather than on the ground, and that is deliberate.
+ * Measured on the map rather than on the ground, and deliberately tight.
  * Scaling longitude by cos(latitude) is the physically correct way to turn
- * degrees into kilometres, but it also means a hub at 64°N throws a halo
- * twenty degrees wide — which lit up the middle of Greenland on the
- * strength of Reykjavík, somewhere this network has never collected a
- * pallet. On a map whose own caption promises no flattery, a tight halo
- * that understates the reach is the right error to make.
+ * degrees into kilometres, but a hub at 60°N would then throw a halo wide
+ * enough to light up places this network has never collected a pallet in.
+ * On a map whose own caption promises no flattery, understating the reach
+ * is the right error to make.
+ *
+ * Tightened again when the frame narrowed to this region: with 91 hubs
+ * across it, a generous radius merged every halo into one solid green
+ * rectangle, which says nothing. A short radius leaves a band you can
+ * actually trace — and each dot still stands for somewhere a real hub
+ * collects from.
  */
-const REACH_LAT = 5.5;
-const REACH_LON = 7;
+const REACH_LAT = 3;
+const REACH_LON = 4;
 
 function landDots(): Array<{ x: number; y: number; covered: boolean }> {
   const dots: Array<{ x: number; y: number; covered: boolean }> = [];
   for (const [lat, spans] of LAND) {
     for (const [from, to] of spans) {
-      const start = Math.ceil(from / STEP) * STEP;
-      for (let lon = start; lon <= to; lon += STEP) {
+      const start = Math.max(LON_W, Math.ceil(from / STEP) * STEP);
+      for (let lon = start; lon <= Math.min(to, LON_E); lon += STEP) {
         const covered = CITIES.some((c) => {
           const dLat = (c.lat - lat) / REACH_LAT;
           if (Math.abs(dLat) > 1) return false;
-          const dLon = (offsetLon(c.lon) - offsetLon(lon)) / REACH_LON;
+          const dLon = (c.lon - lon) / REACH_LON;
           return dLat * dLat + dLon * dLon <= 1;
         });
         dots.push({ x: projectX(lon), y: projectY(lat), covered });
@@ -134,49 +123,53 @@ function landDots(): Array<{ x: number; y: number; covered: boolean }> {
 /* ------------------------------------------------------------- the routes -- */
 
 /**
- * Six real lanes, chosen to show the shape of the network rather than to
- * fill the canvas: the Türkiye–Europe spine, the Central Asia legs, and the
- * Gulf run. Each is a pair of city codes resolved against `geo.ts`.
+ * Six real lanes.
+ *
+ * Chosen to fan rather than to bundle: the previous set had five of six
+ * ending at Istanbul, which drew five arcs through the same square inch
+ * and read as a knot. `bow` is how hard each one curves and which side it
+ * curves to, so the two that still share an endpoint arrive from opposite
+ * directions instead of lying on top of each other.
  */
-const ROUTES: Array<[from: string, to: string]> = [
-  ["IST", "LON"],
-  ["IST", "BER"],
-  ["IST", "MAD"],
-  ["TAS", "IST"],
-  ["ALA", "MOW"],
-  ["DXB", "IST"],
+const ROUTES: Array<{ from: string; to: string; bow: number }> = [
+  { from: "LON", to: "IST", bow: 0.2 },
+  { from: "STO", to: "IST", bow: -0.17 },
+  { from: "MAD", to: "DXB", bow: -0.14 },
+  { from: "BER", to: "TAS", bow: 0.15 },
+  { from: "MOW", to: "ALA", bow: 0.22 },
+  { from: "IST", to: "DXB", bow: 0.26 },
 ];
 
 /**
  * Where each hub's name sits relative to its dot.
  *
- * Placed by hand rather than by a rule: Tashkent and Almaty are 21px apart
- * at this scale and London and Berlin 38px, so any single offset collides
- * somewhere. Only hubs listed here are named — the rest stay as dots.
+ * Placed by hand: Tashkent and Almaty are the closest pair on the map, so
+ * one takes its label to the left and the other to the right. Istanbul's
+ * sits below, clear of the three lanes that meet there.
  */
 const LABELS: Record<string, { dx: number; dy: number; anchor: "start" | "middle" | "end" }> = {
-  LON: { dx: -11, dy: 4, anchor: "end" },
-  BER: { dx: 11, dy: 0, anchor: "start" },
-  MAD: { dx: -11, dy: 4, anchor: "end" },
-  IST: { dx: 0, dy: 21, anchor: "middle" },
-  MOW: { dx: 11, dy: 4, anchor: "start" },
-  TAS: { dx: 0, dy: 22, anchor: "middle" },
-  ALA: { dx: 11, dy: -6, anchor: "start" },
-  DXB: { dx: 11, dy: 4, anchor: "start" },
+  LON: { dx: -14, dy: 5, anchor: "end" },
+  MAD: { dx: -14, dy: 5, anchor: "end" },
+  BER: { dx: 14, dy: 5, anchor: "start" },
+  STO: { dx: 14, dy: 5, anchor: "start" },
+  MOW: { dx: 14, dy: 5, anchor: "start" },
+  IST: { dx: 0, dy: 28, anchor: "middle" },
+  DXB: { dx: 14, dy: 5, anchor: "start" },
+  TAS: { dx: -14, dy: 5, anchor: "end" },
+  ALA: { dx: 14, dy: 5, anchor: "start" },
 };
 
 /**
  * A route as a bowed arc.
  *
- * The control point is pushed perpendicular to the chord so every lane
- * curves the same way regardless of its direction, and the lift scales with
- * length — a short hop stays nearly flat, a continental run arcs properly.
+ * The control point is pushed perpendicular to the chord, so the sign of
+ * `bow` picks which side the lane curves to and its size how far.
  */
-function arcPath(x1: number, y1: number, x2: number, y2: number): string {
+function arcPath(x1: number, y1: number, x2: number, y2: number, bow: number): string {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const length = Math.hypot(dx, dy) || 1;
-  const lift = Math.min(length * 0.28, 120);
+  const lift = length * bow;
   const cx = (x1 + x2) / 2 + (dy / length) * lift;
   const cy = (y1 + y2) / 2 - (dx / length) * lift;
   return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
@@ -188,12 +181,12 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
   const wm = dict.worldMap;
   const dots = landDots();
 
-  const lanes = ROUTES.map(([fromCode, toCode]) => {
-    const from = getCity(fromCode);
-    const to = getCity(toCode);
+  const lanes = ROUTES.map((route) => {
+    const from = getCity(route.from);
+    const to = getCity(route.to);
     if (!from || !to) return null;
     return {
-      id: `${fromCode}-${toCode}`,
+      id: `${route.from}-${route.to}`,
       from,
       to,
       d: arcPath(
@@ -201,12 +194,15 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
         projectY(from.lat),
         projectX(to.lon),
         projectY(to.lat),
+        route.bow,
       ),
     };
   }).filter((lane) => lane !== null);
 
-  // Every city on a drawn lane gets a node; hubs get a name beside it.
-  const nodes = [...new Map(lanes.flatMap((l) => [[l.from.code, l.from], [l.to.code, l.to]])).values()];
+  // Every city on a drawn lane gets a node; the named ones get a label.
+  const nodes = [
+    ...new Map(lanes.flatMap((l) => [[l.from.code, l.from], [l.to.code, l.to]])).values(),
+  ];
 
   const countries = new Set(CITIES.map((c) => c.country)).size;
   const stats = [
@@ -225,30 +221,27 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
         </div>
 
         <figure className="relative mt-12 overflow-hidden rounded-3xl bg-map-ink">
-          {/* A single wash behind the busiest part of the network, so the eye
-              lands on the corridors rather than on the empty Pacific. */}
+          {/* One wash behind the densest part of the network, so the eye
+              lands on the corridors rather than on the empty Atlantic. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-60"
+            className="pointer-events-none absolute inset-0 opacity-70"
             style={{
               background:
-                "radial-gradient(34% 48% at 50% 28%, color-mix(in oklab, var(--brand) 16%, transparent), transparent 74%)",
+                "radial-gradient(44% 58% at 46% 46%, color-mix(in oklab, var(--brand) 17%, transparent), transparent 74%)",
             }}
           />
 
           {/*
-            On a phone the whole world across 345px turns the network into a
-            smudge and the hub names into noise. Rather than ship a second
-            SVG, the panel is given a fixed height below `sm` and the image
-            is told to cover it: the aspect mismatch crops the empty Pacific
-            and Atlantic edges away and leaves the Old World at roughly
-            twice the scale. `xMidYMin` keeps the crop on the northern half,
-            where every corridor is.
+            On a phone the frame is still too wide to read at 345px, so the
+            panel takes a fixed height and the map is told to cover it. The
+            aspect mismatch crops a little off each end — ocean, mostly —
+            and leaves the network at nearly twice the scale.
           */}
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-            preserveAspectRatio="xMidYMin slice"
-            className="relative block h-[240px] w-full sm:h-auto"
+            preserveAspectRatio="xMidYMid slice"
+            className="relative block h-[260px] w-full sm:h-auto"
             role="img"
             aria-label={wm.mapLabel}
           >
@@ -266,20 +259,20 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
               {dots
                 .filter((d) => !d.covered)
                 .map((d, i) => (
-                  <circle key={i} cx={d.x} cy={d.y} r="2.1" />
+                  <circle key={i} cx={d.x} cy={d.y} r="3" />
                 ))}
             </g>
             <g fill="var(--brand)" fillOpacity="0.85">
               {dots
                 .filter((d) => d.covered)
                 .map((d, i) => (
-                  <circle key={i} cx={d.x} cy={d.y} r="2.5" />
+                  <circle key={i} cx={d.x} cy={d.y} r="3.4" />
                 ))}
             </g>
 
             {lanes.map((lane, i) => (
               <g key={lane.id}>
-                <path d={lane.d} fill="none" stroke="url(#lane)" strokeWidth="1.6" />
+                <path d={lane.d} fill="none" stroke="url(#lane)" strokeWidth="2" />
                 {/* The pulse. A short dash chasing a long gap along the same
                     path reads as something moving between two cities without
                     costing a second element to animate. */}
@@ -288,7 +281,7 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
                   d={lane.d}
                   fill="none"
                   stroke="var(--brand-glow)"
-                  strokeWidth="3"
+                  strokeWidth="3.6"
                   strokeLinecap="round"
                   style={{ animationDelay: `${i * 1.15}s` }}
                 />
@@ -301,23 +294,23 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
               const label = LABELS[city.code];
               return (
                 <g key={city.code}>
-                  <circle cx={x} cy={y} r="10" fill="var(--brand)" fillOpacity="0.18" />
-                  <circle cx={x} cy={y} r="3.6" fill="var(--brand)" />
+                  <circle cx={x} cy={y} r="13" fill="var(--brand)" fillOpacity="0.16" />
+                  <circle cx={x} cy={y} r="4.6" fill="var(--brand)" />
                   {label && (
                     <text
                       x={x + label.dx}
                       y={y + label.dy}
                       textAnchor={label.anchor}
                       fill="#ffffff"
-                      fillOpacity="0.9"
-                      fontSize="13.5"
+                      fillOpacity="0.92"
+                      fontSize="17"
                       fontWeight="500"
                       // Names sit over dots and lanes; a dark rim painted
                       // under the glyphs keeps them readable without a
                       // plate behind every one.
                       stroke="#0b0e0a"
-                      strokeWidth="3"
-                      strokeOpacity="0.75"
+                      strokeWidth="3.5"
+                      strokeOpacity="0.8"
                       paintOrder="stroke"
                       // The map is a picture, not a reading order; the names
                       // are already in the caption's description.

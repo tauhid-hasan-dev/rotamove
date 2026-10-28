@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CreditCard,
+  ChevronDown,
   Filter,
   Inbox,
   Check,
@@ -14,6 +15,15 @@ import {
 } from "lucide-react";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { PAGE_GUTTER } from "@/components/common/section";
+import { Logo } from "@/components/site/logo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
 import { PlanPanel } from "@/components/partners/dashboard/plan-panel";
 import { RoutesPanel } from "@/components/partners/dashboard/routes-panel";
@@ -27,10 +37,11 @@ import {
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import type { PartnerLane } from "@/lib/lanes";
 import type { PlanSubscription } from "@/lib/plan-store";
-import type { PlanId } from "@/lib/types";
+import type { Mover, PlanId } from "@/lib/types";
 import { REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
 import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, AVG_LEAD_FEE_USD, PRO_MONTHLY_USD } from "@/lib/plans";
-import { DEMO_PARTNER, DEMO_PARTNER_ID, PARTNER_COOKIE } from "@/lib/partner-session";
+import { MOVERS } from "@/lib/movers";
+import { PARTNER_COOKIE } from "@/lib/partner-session";
 import { useI18n } from "@/i18n/provider";
 import { regionName } from "@/i18n/geo-labels";
 import { cn } from "@/lib/utils";
@@ -53,12 +64,21 @@ const SECTION_IDS: SectionId[] = ["inbox", "lanes", "billing"];
  * to sit here were invented — Rotamove never learns whether a partner won the
  * job — so what remains is lead flow, response speed and spend.
  */
+/** Who is signed in. Resolved from the session cookie on the server. */
+export interface PartnerAccount {
+  name: string;
+  email: string;
+  partnerId: string;
+  moverId: string;
+}
+
 export function PartnerDashboard({
   board,
   now,
   lanes,
   initialUnlocked,
   subscription,
+  account,
 }: {
   board: BoardLead[];
   now: number;
@@ -67,6 +87,7 @@ export function PartnerDashboard({
   initialUnlocked: string[];
   /** The plan in force, plus any change queued for next month. */
   subscription: PlanSubscription;
+  account: PartnerAccount;
 }) {
   const { dict, href, t } = useI18n();
   const pd = dict.partnerDashboard;
@@ -113,56 +134,43 @@ export function PartnerDashboard({
     [unlocked, board, plan],
   );
 
+  // The mover record behind the signed-in account, for its logo and accent.
+  const mover = useMemo(
+    () => MOVERS.find((m) => m.id === account.moverId) ?? MOVERS[0],
+    [account.moverId],
+  );
+
+  const copyPartnerId = () => {
+    void navigator.clipboard?.writeText(account.partnerId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 1800);
+  };
+
   const signOut = () => {
     document.cookie = `${PARTNER_COOKIE}=; path=/; max-age=0; samesite=lax`;
     router.push(href("/partners/login"));
   };
 
   return (
-    <div className={cn(PAGE_GUTTER, "flex flex-col gap-8 py-8 lg:flex-row lg:gap-10")}>
+    <>
+      {/* The workspace's own bar. Logo left, account right — the identity
+          block used to sit at the top of the sidebar, which put the company
+          name in the same column as the navigation and left the top of the
+          page to a marketing header the partner has no use for. */}
+      <DashboardBar
+        account={account}
+        mover={mover}
+        plan={plan}
+        copiedId={copiedId}
+        onCopyId={copyPartnerId}
+        onSignOut={signOut}
+      />
+
+      <div className={cn(PAGE_GUTTER, "flex flex-col gap-8 py-8 lg:flex-row lg:gap-10")}>
       {/* sidebar ------------------------------------------------- */}
       <aside className="lg:w-[228px] lg:shrink-0">
         <div className="lg:sticky lg:top-24">
-          <div className="flex items-center gap-3">
-            <MoverLogo mover={DEMO_PARTNER} size="md" />
-            <div className="min-w-0">
-              <p className="truncate text-[14.5px] font-semibold tracking-[-0.02em]">
-                {DEMO_PARTNER.name}
-              </p>
-              <p className="truncate text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                {pd.planNames[plan]}
-              </p>
-            </div>
-          </div>
-
-          {/* The account number. Partners quote this to support, so it is
-              one click to copy rather than something to read off a screen. */}
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard?.writeText(DEMO_PARTNER_ID);
-              setCopiedId(true);
-              setTimeout(() => setCopiedId(false), 1800);
-            }}
-            className="group mt-4 flex w-full items-center gap-2 rounded-xl border bg-surface px-3 py-2.5 text-start transition-colors hover:border-foreground/25"
-            aria-label={`${pd.partnerId} ${DEMO_PARTNER_ID}`}
-          >
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                {pd.partnerId}
-              </span>
-              <span className="code mt-0.5 block truncate text-[13px] font-semibold">
-                {DEMO_PARTNER_ID}
-              </span>
-            </span>
-            {copiedId ? (
-              <Check className="size-3.5 shrink-0 text-verify" strokeWidth={3} />
-            ) : (
-              <Copy className="size-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
-            )}
-          </button>
-
-          <nav className="mt-6 flex gap-1 lg:flex-col" aria-label={pd.navAria}>
+          <nav className="flex gap-1 lg:flex-col" aria-label={pd.navAria}>
             {SECTION_IDS.map((id) => {
               const active = section === id;
               const Icon = SECTION_ICONS[id];
@@ -191,16 +199,11 @@ export function PartnerDashboard({
             })}
           </nav>
 
+          {/* Sign-out moved into the account menu in the bar; what is left
+              here is the plan, which belongs beside the navigation because
+              it changes what the sections show. */}
           <div className="mt-6 hidden border-t pt-6 lg:block">
             <PlanPanel subscription={subscription} />
-            <button
-              type="button"
-              onClick={signOut}
-              className="mt-4 inline-flex items-center gap-2 px-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <LogOut className="size-3.5 rtl:-scale-x-100" />
-              {dict.login.signOut}
-            </button>
           </div>
         </div>
       </aside>
@@ -209,14 +212,6 @@ export function PartnerDashboard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3 lg:hidden">
           <PlanPanel subscription={subscription} compact />
-          <button
-            type="button"
-            onClick={signOut}
-            className="ms-auto inline-flex items-center gap-2 text-[13px] text-muted-foreground"
-          >
-            <LogOut className="size-3.5 rtl:-scale-x-100" />
-            {dict.login.signOut}
-          </button>
         </div>
 
         {/* kpis ------------------------------------------------- */}
@@ -292,6 +287,7 @@ export function PartnerDashboard({
                   unlocked={unlocked.has(item.lead.id)}
                   onUnlock={(id) => setUnlocked((prev) => new Set(prev).add(id))}
                   now={now}
+                  email={account.email}
                 />
               ))}
               {visible.length === 0 && (
@@ -315,11 +311,117 @@ export function PartnerDashboard({
           />
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
 /* ---------------------------------------------------------------- */
+
+/**
+ * The dashboard's own top bar.
+ *
+ * Logo on the left, account on the right, nothing in between — a signed-in
+ * workspace does not need the marketing nav, and a partner reading a lead
+ * does not need eight ways to leave the page.
+ *
+ * The company, its plan and the account number all live behind the avatar,
+ * which is where someone looks for "who am I signed in as". Sign-out is in
+ * there too, rather than loose at the bottom of the sidebar.
+ */
+function DashboardBar({
+  account,
+  mover,
+  plan,
+  copiedId,
+  onCopyId,
+  onSignOut,
+}: {
+  account: PartnerAccount;
+  mover: Mover;
+  plan: PlanId;
+  copiedId: boolean;
+  onCopyId: () => void;
+  onSignOut: () => void;
+}) {
+  const { dict } = useI18n();
+  const pd = dict.partnerDashboard;
+
+  return (
+    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+      <div className={cn(PAGE_GUTTER, "flex h-16 items-center gap-4")}>
+        {/* `Logo` is already a link home with its own label. Wrapping it in
+            another one nested an <a> inside an <a>, which the HTML parser
+            unpicks on the server and React then refuses to hydrate. */}
+        <Logo className="shrink-0" />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className="ms-auto flex items-center gap-2.5 rounded-full p-1 ps-2.5 outline-ring/40 transition-colors hover:bg-muted">
+            {/* The name and plan are hidden on phones; the avatar is the
+                affordance, and the menu holds everything either way. */}
+            <span className="hidden min-w-0 text-end sm:block">
+              <span className="block truncate text-[13.5px] font-medium leading-tight">
+                {mover.name}
+              </span>
+              <span className="block truncate text-[10.5px] uppercase tracking-[0.12em] leading-tight text-muted-foreground">
+                {pd.planNames[plan]}
+              </span>
+            </span>
+            <MoverLogo mover={mover} size="sm" />
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuLabel className="font-normal">
+              <span className="block truncate text-[13.5px] font-medium">{mover.name}</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {account.email}
+              </span>
+              <span className="mt-1.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                {pd.planNames[plan]}
+              </span>
+            </DropdownMenuLabel>
+
+            <DropdownMenuSeparator />
+
+            {/* The account number. Partners quote this to support, so it is
+                one click to copy rather than something to read off a screen.
+                `onSelect` is prevented so copying does not close the menu
+                before the confirmation tick is visible. */}
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                onCopyId();
+              }}
+              className="gap-2"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  {pd.partnerId}
+                </span>
+                <span className="code mt-0.5 block truncate text-[13px] font-semibold">
+                  {account.partnerId}
+                </span>
+              </span>
+              {copiedId ? (
+                <Check className="size-3.5 shrink-0 text-verify" strokeWidth={3} />
+              ) : (
+                <Copy className="size-3.5 shrink-0 text-muted-foreground" />
+              )}
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem onSelect={onSignOut} className="gap-2">
+              <LogOut className="size-4 rtl:-scale-x-100" aria-hidden />
+              {dict.login.signOut}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+}
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (

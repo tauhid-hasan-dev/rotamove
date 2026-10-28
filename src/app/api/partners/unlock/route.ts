@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { generateLeadBoard } from "@/lib/demo-leads";
-import { signedInPartner, unauthorised } from "@/lib/partner-auth";
-import { DEMO_EMAIL, DEMO_PARTNER, DEMO_PARTNER_ID } from "@/lib/partner-session";
+import { signedInAccount, signedInPartner, unauthorised } from "@/lib/partner-auth";
+import { planRepository } from "@/lib/plan-store";
+import { seesMaskedLeads } from "@/lib/plans";
 import { unlockRepository } from "@/lib/unlock-store";
 
 export const runtime = "nodejs";
@@ -30,8 +31,19 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const moverId = await signedInPartner();
-  if (!moverId) return unauthorised();
+  const account = await signedInAccount();
+  if (!account) return unauthorised();
+
+  // Only the per-unlock plan has anything to unlock. The other two are
+  // billed when the lead is matched, so charging them again here would be
+  // billing twice for one lead — and the client asking nicely is not a
+  // reason to do it.
+  if (!seesMaskedLeads(planRepository.get(account.mover.id, account.plan, Date.now()).plan)) {
+    return Response.json(
+      { error: "Your plan already includes this lead in full" },
+      { status: 409 },
+    );
+  }
 
   let body: unknown;
   try {
@@ -64,14 +76,15 @@ export async function POST(request: NextRequest) {
   }
 
   const { record, created } = await unlockRepository.record({
-    partnerId: moverId,
-    partnerName: DEMO_PARTNER.name,
-    partnerPublicId: DEMO_PARTNER_ID,
+    partnerId: account.mover.id,
+    partnerName: account.mover.name,
+    partnerPublicId: account.partnerId,
     leadId: item.lead.id,
     routeLabel: item.routeLabel,
     volumeM3: item.lead.volumeM3,
     feeUsd: item.feeUsd,
-    emailTo: DEMO_EMAIL,
+    // The address the full lead goes to — this account's, not a constant.
+    emailTo: account.email,
   });
 
   return Response.json({ unlock: record, created }, { status: created ? 201 : 200 });

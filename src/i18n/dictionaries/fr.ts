@@ -744,6 +744,7 @@ export const fr = {
     submit: "Se connecter",
     signingIn: "Connexion…",
     demoTitle: "Compte de démonstration",
+    demoPassword: "Mot de passe pour les trois : {password}",
     demoBody: "Ceci est une démo — seuls ces identifiants fonctionnent.",
     demoFill: "Utiliser les identifiants de démo",
     error: "Ces identifiants ne correspondent pas au compte de démonstration.",
