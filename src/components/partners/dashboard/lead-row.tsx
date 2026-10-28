@@ -10,6 +10,7 @@ import {
   Loader2,
   Lock,
   Mail,
+  MailCheck,
   MessageCircle,
   Phone,
   Unlock,
@@ -20,6 +21,8 @@ import { RouteLine } from "@/components/common/route-line";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
 import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
+import { DEMO_EMAIL } from "@/lib/partner-session";
+import { seesMaskedLeads } from "@/lib/plans";
 import type { UnlockRecord } from "@/lib/unlock-store";
 import type { ContactChannel, PlanId } from "@/lib/types";
 import { useI18n } from "@/i18n/provider";
@@ -70,54 +73,49 @@ export function LeadRow({
   const corridor = from && to ? resolveCorridor(from, to) : null;
   const mode = corridor?.modes[0] ?? "road";
 
-  const revealed = unlocked || item.status === "unlocked";
+  /**
+   * Who has to pay to see this, and who already has it.
+   *
+   * Pro and Pay Per Lead are billed on the match, so the lead is theirs the
+   * moment it lands: nothing is hidden, there is no button to press, and a
+   * copy is already in their inbox. Only Pay Per Seen is billed on the open,
+   * and only there does masking mean anything — hiding a lead someone has
+   * already been charged for is just making them click.
+   */
+  const paysToOpen = seesMaskedLeads(plan);
+  const revealed = !paysToOpen || unlocked || item.status === "unlocked";
   const status: BoardStatus = revealed ? "unlocked" : "new";
-  // On pay per seen the whole lead is the product: until it is unlocked, only
-  // the volume, the access at both ends and the route are on screen.
-  const masked = plan === "pay_per_seen" && !revealed;
+  const masked = paysToOpen && !revealed;
   const ChannelIcon = CHANNEL_ICON[lead.contact.channel];
 
   const unlock = async () => {
     setWorking(true);
-    if (plan === "pay_per_seen") {
-      try {
-        const response = await fetch("/api/partners/unlock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadId: lead.id }),
+    try {
+      const response = await fetch("/api/partners/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId: lead.id }),
+      });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        toast.error(pd.row.toastError, {
+          description: data?.error ?? pd.row.toastErrorBody,
         });
-        if (!response.ok) {
-          const data = (await response.json().catch(() => null)) as { error?: string } | null;
-          toast.error(pd.row.toastError, {
-            description: data?.error ?? pd.row.toastErrorBody,
-          });
-          return;
-        }
-        const { unlock: record } = (await response.json()) as { unlock: UnlockRecord };
-        onUnlock(lead.id);
-        toast.success(pd.row.toastUnlocked, {
-          description: t.fill(pd.row.toastPerSeen, {
-            fee: t.usd(record.feeUsd),
-            email: record.emailTo,
-          }),
-        });
-      } catch {
-        toast.error(pd.row.toastError, { description: pd.row.toastErrorBody });
-      } finally {
-        setWorking(false);
+        return;
       }
-      return;
+      const { unlock: record } = (await response.json()) as { unlock: UnlockRecord };
+      onUnlock(lead.id);
+      toast.success(pd.row.toastUnlocked, {
+        description: t.fill(pd.row.toastPerSeen, {
+          fee: t.usd(record.feeUsd),
+          email: record.emailTo,
+        }),
+      });
+    } catch {
+      toast.error(pd.row.toastError, { description: pd.row.toastErrorBody });
+    } finally {
+      setWorking(false);
     }
-
-    await new Promise((r) => setTimeout(r, 650));
-    setWorking(false);
-    onUnlock(lead.id);
-    toast.success(pd.row.toastUnlocked, {
-      description:
-        plan === "pro_unlimited"
-          ? pd.row.toastPro
-          : t.fill(pd.row.toastPerLead, { fee: t.usd(item.feeUsd) }),
-    });
   };
 
   if (!from || !to) return null;
@@ -241,36 +239,21 @@ export function LeadRow({
               </div>
             ) : (
               <>
+                {/* Reached only when the lead is revealed — on the two
+                    match-billed plans that is immediately, and on pay per
+                    seen it is after the unlock. Either way the contact is
+                    paid for, so it is shown in full. */}
                 <p className="truncate text-[13.5px] font-semibold">{lead.contact.fullName}</p>
-
-                {revealed ? (
-                  <>
-                    <p className="mt-1 truncate text-[12px] text-muted-foreground tnum">
-                      {lead.contact.phone}
-                    </p>
-                    <p className="truncate text-[11.5px] text-muted-foreground">
-                      {lead.contact.email}
-                    </p>
-                    <p className="mt-2 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.12em] text-brand">
-                      <ChannelIcon className="size-3" />
-                      {pd.row.prefers[lead.contact.channel]}
-                    </p>
-                  </>
-                ) : (
-                  <div className="mt-2 flex items-center gap-2.5">
-                    <Lock className="size-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0">
-                      {/* Masked rather than absent, so the partner can see that a
-                          real number and address are waiting behind the unlock. */}
-                      <p className="truncate text-[12px] text-muted-foreground tnum">
-                        {maskPhone(lead.contact.phone)}
-                      </p>
-                      <p className="truncate text-[11.5px] text-muted-foreground">
-                        {maskEmail(lead.contact.email)}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                <p className="mt-1 truncate text-[12px] text-muted-foreground tnum">
+                  {lead.contact.phone}
+                </p>
+                <p className="truncate text-[11.5px] text-muted-foreground">
+                  {lead.contact.email}
+                </p>
+                <p className="mt-2 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.12em] text-brand">
+                  <ChannelIcon className="size-3" />
+                  {pd.row.prefers[lead.contact.channel]}
+                </p>
               </>
             )}
           </div>
@@ -278,55 +261,59 @@ export function LeadRow({
       </div>
 
       {/* action ------------------------------------------------- */}
-      {!revealed && (
-        <div className="mt-3 flex flex-wrap items-center justify-end gap-3 border-t pt-3">
-          <p className="me-auto text-[11.5px] text-muted-foreground">
-            {plan === "pro_unlimited" ? (
-              <span className="text-verify">{pd.row.includedInPro}</span>
-            ) : plan === "pay_per_seen" ? (
-              <>{pd.row.unlockHintSeen}</>
-            ) : (
-              <>{pd.row.unlockHint}</>
-            )}
+      {/* Only pay per seen has anything to press. The other two were
+          charged when the lead was matched, so an unlock button there was
+          a paywall in front of something already bought. */}
+      {paysToOpen ? (
+        !revealed && (
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-3 border-t pt-3">
+            <p className="me-auto text-[11.5px] text-muted-foreground">
+              {pd.row.unlockHintSeen}
+            </p>
+            <button
+              type="button"
+              onClick={unlock}
+              disabled={working}
+              className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[13.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] disabled:opacity-70"
+            >
+              {working ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  {pd.row.unlocking}
+                </>
+              ) : (
+                <>
+                  <Unlock className="size-3.5" />
+                  {t.fill(pd.row.unlockFor, { fee: t.usd(item.feeUsd) })}
+                </>
+              )}
+            </button>
+          </div>
+        )
+      ) : (
+        /* Instead of a button, the fact that matters: it is already in
+           their inbox, so they know not to wait for this screen. */
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+          <MailCheck className="size-3.5 shrink-0 text-verify" aria-hidden />
+          <p className="min-w-0 text-[11.5px] text-muted-foreground">
+            {t.fill(pd.row.autoEmailed, { email: DEMO_EMAIL })}
           </p>
-          <button
-            type="button"
-            onClick={unlock}
-            disabled={working}
-            className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[13.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] disabled:opacity-70"
-          >
-            {working ? (
-              <>
-                <Loader2 className="size-3.5 animate-spin" />
-                {pd.row.unlocking}
-              </>
-            ) : (
-              <>
-                <Unlock className="size-3.5" />
-                {plan === "pro_unlimited"
-                  ? pd.row.unlock
-                  : t.fill(pd.row.unlockFor, { fee: t.usd(item.feeUsd) })}
-              </>
-            )}
-          </button>
+          {plan === "pro_unlimited" ? (
+            <span className="ms-auto text-[11.5px] text-verify">{pd.row.includedInPro}</span>
+          ) : (
+            <span className="ms-auto text-[11.5px] text-muted-foreground tnum">
+              {t.fill(pd.row.billedPerLead, { fee: t.usd(item.feeUsd) })}
+            </span>
+          )}
         </div>
       )}
     </motion.article>
   );
 }
 
-/** "+90 532 111 22 33" → "+90 532 ••• •• ••" */
-function maskPhone(phone: string) {
-  const visible = phone.slice(0, Math.min(8, phone.length));
-  return `${visible}${phone.slice(visible.length).replace(/\d/g, "•")}`;
-}
-
-/** "elif@example.com" → "e•••@example.com" */
-function maskEmail(email: string) {
-  const [user, domain] = email.split("@");
-  if (!domain) return "•••";
-  return `${user.slice(0, 1)}${"•".repeat(Math.max(2, user.length - 1))}@${domain}`;
-}
+/* The partial-contact maskers that used to live here are gone. They existed
+   to tease a phone number at partners who had already been billed for it;
+   now the only plan that hides anything hides all of it. */
 
 function ScoreDial({ score }: { score: number }) {
   const { t, dict } = useI18n();

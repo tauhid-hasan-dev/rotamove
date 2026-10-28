@@ -7,6 +7,7 @@ import { PartnerDashboard } from "@/components/partners/dashboard/dashboard";
 import { generateLeadBoard } from "@/lib/demo-leads";
 import { laneRepository } from "@/lib/lane-store";
 import { unlockRepository } from "@/lib/unlock-store";
+import { planRepository } from "@/lib/plan-store";
 import { DEMO_PARTNER, PARTNER_COOKIE } from "@/lib/partner-session";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
 import { localePath } from "@/i18n/paths";
@@ -52,6 +53,9 @@ export default async function PartnerDashboardPage({
   // Pay-per-seen unlocks are billable server events; replaying them here is
   // what makes an unlocked lead stay unlocked across a refresh.
   const unlocks = await unlockRepository.listForPartner(DEMO_PARTNER.id);
+  // Reading this is also what promotes a queued plan change whose start date
+  // has passed — the sweep a scheduled job would do in a deployed system.
+  const subscription = planRepository.get(DEMO_PARTNER.id, DEMO_PARTNER.plan, now);
 
   return (
     <>
@@ -62,6 +66,7 @@ export default async function PartnerDashboardPage({
           now={now}
           lanes={lanes}
           initialUnlocked={unlocks.map((u) => u.leadId)}
+          subscription={subscription}
         />
       </main>
       <SiteFooter />

@@ -4,24 +4,19 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CreditCard,
-  Eye,
   Filter,
   Inbox,
   Check,
   Copy,
-  Infinity as InfinityIcon,
   LogOut,
   Route,
-  Ticket,
   Wallet,
 } from "lucide-react";
-import { motion } from "motion/react";
-import { toast } from "sonner";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { PAGE_GUTTER } from "@/components/common/section";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
+import { PlanPanel } from "@/components/partners/dashboard/plan-panel";
 import { RoutesPanel } from "@/components/partners/dashboard/routes-panel";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -31,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import type { PartnerLane } from "@/lib/lanes";
+import type { PlanSubscription } from "@/lib/plan-store";
 import type { PlanId } from "@/lib/types";
 import { REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
 import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, AVG_LEAD_FEE_USD, PRO_MONTHLY_USD } from "@/lib/plans";
@@ -62,17 +58,23 @@ export function PartnerDashboard({
   now,
   lanes,
   initialUnlocked,
+  subscription,
 }: {
   board: BoardLead[];
   now: number;
   lanes: PartnerLane[];
   /** Server-recorded pay-per-seen unlocks, so a refresh keeps them revealed. */
   initialUnlocked: string[];
+  /** The plan in force, plus any change queued for next month. */
+  subscription: PlanSubscription;
 }) {
   const { dict, href, t } = useI18n();
   const pd = dict.partnerDashboard;
   const router = useRouter();
-  const [plan, setPlan] = useState<PlanId>("pro_unlimited");
+  // Not state. The plan is a billing fact held on the server; the dashboard
+  // renders it and asks the API to change it, rather than owning a copy
+  // that a refresh would silently discard.
+  const plan = subscription.plan;
   const [section, setSection] = useState<SectionId>("inbox");
   const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set(initialUnlocked));
   const [region, setRegion] = useState<string>("all");
@@ -190,7 +192,7 @@ export function PartnerDashboard({
           </nav>
 
           <div className="mt-6 hidden border-t pt-6 lg:block">
-            <PlanSwitch plan={plan} onChange={setPlan} />
+            <PlanPanel subscription={subscription} />
             <button
               type="button"
               onClick={signOut}
@@ -206,7 +208,7 @@ export function PartnerDashboard({
       {/* content ------------------------------------------------- */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3 lg:hidden">
-          <PlanSwitch plan={plan} onChange={setPlan} />
+          <PlanPanel subscription={subscription} compact />
           <button
             type="button"
             onClick={signOut}
@@ -304,7 +306,13 @@ export function PartnerDashboard({
         {section === "lanes" && <RoutesPanel initial={lanes} now={now} />}
 
         {section === "billing" && (
-          <BillingPanel plan={plan} walletSpent={walletSpent} metrics={metrics} now={now} />
+          <BillingPanel
+            plan={plan}
+            walletSpent={walletSpent}
+            metrics={metrics}
+            now={now}
+            subscription={subscription}
+          />
         )}
       </div>
     </div>
@@ -325,59 +333,18 @@ function Kpi({ label, value, sub }: { label: string; value: string; sub: string 
   );
 }
 
-function PlanSwitch({ plan, onChange }: { plan: PlanId; onChange: (v: PlanId) => void }) {
-  const { dict } = useI18n();
-  const pd = dict.partnerDashboard;
-  const options: Array<{ id: PlanId; label: string; icon: typeof InfinityIcon }> = [
-    { id: "pro_unlimited", label: pd.planSwitch.pro, icon: InfinityIcon },
-    { id: "pay_per_lead", label: pd.planSwitch.perLead, icon: Ticket },
-    { id: "pay_per_seen", label: pd.planSwitch.perSeen, icon: Eye },
-  ];
-  return (
-    <div
-      role="radiogroup"
-      aria-label={pd.planSwitch.aria}
-      className="inline-flex rounded-full border bg-background p-1"
-    >
-      {options.map((option) => {
-        const active = option.id === plan;
-        return (
-          <button
-            key={option.id}
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(option.id)}
-            className={cn(
-              "relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
-              active ? "text-ink" : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {active && (
-              <motion.span
-                layoutId="plan-pill"
-                className="absolute inset-0 rounded-full bg-brand"
-                transition={{ type: "spring", stiffness: 440, damping: 34 }}
-              />
-            )}
-            <option.icon className="relative size-3.5" />
-            <span className="relative">{option.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function BillingPanel({
   plan,
   walletSpent,
   metrics,
   now,
+  subscription,
 }: {
   plan: PlanId;
   walletSpent: number;
   metrics: ReturnType<typeof generatePartnerMetrics>;
   now: number;
+  subscription: PlanSubscription;
 }) {
   const { dict, t } = useI18n();
   const pd = dict.partnerDashboard;
@@ -452,24 +419,11 @@ function BillingPanel({
           </div>
         </dl>
 
-        <Button
-          className="mt-7"
-          variant={isPro ? "outline" : "default"}
-          onClick={() =>
-            toast.success(
-              isPro ? pd.billing.downgradeTitle : pd.billing.upgradeTitle,
-              {
-                description: isPro
-                  ? t.fill(pd.billing.downgradeBody, { plan: pd.planNames.pay_per_lead })
-                  : t.fill(pd.billing.upgradeBody, { amount: t.usd(PRO_MONTHLY_USD) }),
-              },
-            )
-          }
-        >
-          {isPro
-            ? pd.billing.switchToPpl
-            : t.fill(pd.billing.upgradeToPro, { amount: t.usd(PRO_MONTHLY_USD) })}
-        </Button>
+        {/* The real control, not the toast-only button that used to sit
+            here claiming an upgrade had happened. */}
+        <div className="mt-7 border-t pt-6">
+          <PlanPanel subscription={subscription} />
+        </div>
       </div>
 
       <div className="rounded-2xl border bg-card p-6">

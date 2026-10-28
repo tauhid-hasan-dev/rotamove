@@ -134,11 +134,15 @@ function ThemeToggle() {
 }
 
 function AccountMenu() {
-  const { dict } = useI18n();
+  const { dict, href } = useI18n();
   const router = useRouter();
 
   const signOut = () => {
     document.cookie = `${ADMIN_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    // Out of the console entirely, not back to its sign-in screen. Refreshing
+    // in place left the operator looking at a login form on /admin/billing,
+    // which reads as "your session broke" rather than "you signed out".
+    router.push(href("/"));
     router.refresh();
   };
 

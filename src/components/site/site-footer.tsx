@@ -78,10 +78,14 @@ export function SiteFooter() {
         <div className="mt-14 flex flex-col gap-4 border-t pt-8 text-[13px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {dict.footer.rights}</p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <Link href="#" className="hover:text-foreground">
+            {/* These were `href="#"` placeholders. They are the two links a
+                freight buyer checks before handing over a phone number, so
+                they now go to real pages — and through `href()`, like every
+                other link here, so they keep the reader's language. */}
+            <Link href={href("/privacy")} className="hover:text-foreground">
               {dict.footer.privacy}
             </Link>
-            <Link href="#" className="hover:text-foreground">
+            <Link href={href("/terms")} className="hover:text-foreground">
               {dict.footer.terms}
             </Link>
             <span>{dict.footer.offices}</span>

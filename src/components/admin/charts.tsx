@@ -94,9 +94,12 @@ export function LeadsTrendChart({ data, className }: { data: LeadTrendPoint[]; c
 
 export function RevenueTrendChart({ data, className }: { data: RevenuePoint[]; className?: string }) {
   const { dict, t } = useI18n();
+  // One series per plan. Pay-per-seen used to be folded into "lead fees",
+  // which named it after the plan it is not.
   const revenueConfig = {
     subscriptions: { label: dict.admin.charts.subscriptions, color: CATEGORICAL.blue },
     leadFees: { label: dict.admin.charts.leadFees, color: CATEGORICAL.green },
+    unlockFees: { label: dict.admin.charts.unlockFees, color: CATEGORICAL.ochre },
   } satisfies ChartConfig;
 
   return (
@@ -113,6 +116,13 @@ export function RevenueTrendChart({ data, className }: { data: RevenuePoint[]; c
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
+        <Bar
+          dataKey="unlockFees"
+          stackId="revenue"
+          fill="var(--color-unlockFees)"
+          stroke="var(--background)"
+          strokeWidth={1}
+        />
         <Bar
           dataKey="leadFees"
           stackId="revenue"

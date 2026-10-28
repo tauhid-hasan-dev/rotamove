@@ -17,21 +17,31 @@ import { cn } from "@/lib/utils";
  */
 
 /**
- * The convoy holds its ground; the road moves.
+ * The convoy drives, on a loop.
  *
- * Vehicles used to cross the band end to end, which meant the scene was
- * mostly empty road and the composition changed every second. Planting them
- * and animating the world instead — sliding tarmac, turning wheels, a faint
- * bob — reads as driving while keeping the band a fixed, legible picture at
- * every moment. It is also how a side-on vehicle shot is filmed.
+ * An earlier version parked the vehicles and moved the road under them —
+ * cheaper, and it is how a side-on vehicle shot is filmed, but on a page
+ * this still reads as three stickers with spinning wheels. They travel for
+ * real now: one set of vehicles laid out across half the track, the same
+ * set again across the other half, and the whole track slid left-to-right
+ * by exactly one set per cycle. Because the halves are identical, the
+ * wrap lands on an identical frame and the loop is seamless.
  *
- * `x` is where each one sits across the band; `xSm` is the narrower
+ * What stays constant is each vehicle's size and its height on the road —
+ * the thing that made the old crossing version feel unsettled was the
+ * composition changing every second, not the movement itself.
+ *
+ * The road no longer slides. With the vehicles genuinely moving, animating
+ * the ground as well would have them driving on a treadmill in a wind
+ * tunnel.
+ *
+ * `x` is where each one sits within its set; `xSm` is the narrower
  * arrangement for phones, where three abreast would overlap.
  */
 const CONVOY = [
-  { kind: "van", scale: 0.6, x: "28%", xSm: null },
-  { kind: "lorry", scale: 1, x: "52%", xSm: "35%" },
-  { kind: "van", scale: 0.72, x: "80%", xSm: "82%" },
+  { kind: "van", scale: 0.6, x: "18%", xSm: null },
+  { kind: "lorry", scale: 1, x: "52%", xSm: "30%" },
+  { kind: "van", scale: 0.72, x: "84%", xSm: "80%" },
 ] as const;
 
 /** Distance from the band's floor to the road surface, in px. */
@@ -70,8 +80,8 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
                 strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
               />
-              {/* Centre markings sliding the other way. This is what sells the
-                  movement — the vehicles barely need to travel. */}
+              {/* Centre markings. Static: the road is the one thing in this
+                  picture that is genuinely standing still. */}
               <line
                 x1="0"
                 y1="1"
@@ -82,7 +92,6 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
                 strokeDasharray="14 10"
                 strokeOpacity="0.38"
                 vectorEffect="non-scaling-stroke"
-                className="motion-safe:animate-[tarmac_1.1s_linear_infinite]"
               />
             </svg>
 
@@ -98,13 +107,13 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
                 rtl && "-scale-x-100",
               )}
             >
-              {CONVOY.map((vehicle, i) => (
-                <Traveller key={i} {...vehicle} />
-              ))}
-              {/* Speed lines trailing each vehicle, drifting backwards. The
-                  wheels say "turning"; these say "fast". */}
-              <span aria-hidden className="journey-draft" style={{ bottom: ROAD + 14 }} />
-              <span aria-hidden className="journey-draft" style={{ bottom: ROAD + 30 }} />
+              {/* Two identical halves on a track twice the lane's width.
+                  Sliding it by one half per cycle returns the picture to
+                  where it started, so the loop has no seam to hide. */}
+              <div className="journey-track motion-reduce:animate-none">
+                <ConvoySet />
+                <ConvoySet />
+              </div>
             </div>
           </div>
 
@@ -126,6 +135,17 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
   );
 }
 
+/** One pass of the convoy. Rendered twice, side by side, to make the loop. */
+function ConvoySet() {
+  return (
+    <div className="relative h-full w-1/2 shrink-0">
+      {CONVOY.map((vehicle, i) => (
+        <Traveller key={i} {...vehicle} />
+      ))}
+    </div>
+  );
+}
+
 function Endpoint({
   title,
   hint,
@@ -144,11 +164,11 @@ function Endpoint({
 }
 
 /**
- * One parked vehicle.
+ * One vehicle, placed within its set.
  *
- * Position comes from plain CSS rather than an animation, so nothing special
- * has to happen under `prefers-reduced-motion`: the wheels and the road stop,
- * the convoy stays exactly where it was.
+ * Its position within the set is plain CSS, not an animation — the travel
+ * belongs to the track above it. Under `prefers-reduced-motion` the track
+ * stops and the convoy simply stands on the road where it was.
  *
  * Wheel speed is tied to scale. A smaller vehicle has smaller wheels, and
  * smaller wheels turn faster to cover the same ground — getting that backwards

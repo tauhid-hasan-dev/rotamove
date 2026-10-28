@@ -390,10 +390,31 @@
 }
 
 /* --- hero journey scene ------------------------------------------------- *
- * The convoy is parked and the world moves: sliding tarmac, turning wheels,
- * drifting speed lines. Nothing about the vehicles' position is animated,
- * which is why the band looks the same at every moment and why reduced
- * motion needs no special case — the scene simply stops.                     */
+ * The convoy drives left to right on a seamless loop, over a road that
+ * stays put. Two identical halves ride a track twice the lane's width;
+ * sliding the track by one half per cycle lands on a frame identical to
+ * the first, so there is no jump to disguise.                               */
+
+.journey-track {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  display: flex;
+  width: 200%;
+  /* The wrap point. -50% puts the second half under the lane, 0% puts the
+     first half there; since they are the same picture, the reset is
+     invisible. */
+  animation: convoy 26s linear infinite;
+}
+
+@keyframes convoy {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
 
 .journey-vehicle {
   left: var(--x-sm);
@@ -402,17 +423,6 @@
 @media (min-width: 640px) {
   .journey-vehicle {
     left: var(--x);
-  }
-}
-
-/* Road markings sliding the other way — the cheap trick that sells motion
-   without needing the vehicles themselves to move at all. */
-@keyframes tarmac {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: -24;
   }
 }
 
@@ -429,37 +439,6 @@
   transform-box: fill-box;
   transform-origin: center;
   animation: roll var(--roll, 0.95s) linear infinite;
-}
-
-/* Thin streaks sliding backwards past the convoy. Short, faint and far
-   apart — at any more they stop reading as air and start reading as rain. */
-@keyframes draft {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: -220px 0;
-  }
-}
-
-.journey-draft {
-  position: absolute;
-  inset-inline: 0;
-  height: 1px;
-  pointer-events: none;
-  /* Short and far apart, and much fainter than the road itself — at the
-     tarmac's weight they read as a second carriageway in mid-air. */
-  background-image: repeating-linear-gradient(
-    to right,
-    color-mix(in oklab, var(--muted-foreground) 18%, transparent) 0 18px,
-    transparent 18px 220px
-  );
-  animation: draft 1.5s linear infinite;
-}
-
-.journey-draft:nth-of-type(even) {
-  animation-duration: 2.1s;
-  opacity: 0.55;
 }
 
 /* A sub-pixel bob. Any more reads as a cartoon. */

@@ -2,18 +2,23 @@ import { isCoreCorridor, resolveCorridor, getCity, cityRegion } from "@/lib/geo"
 import type { Lead, PlanId } from "@/lib/types";
 
 /**
- * Partner monetisation.
- *
- * Two ways to buy demand, deliberately kept to two:
+ * Partner monetisation. Three ways to buy demand:
  *
  *  1. Pro Unlimited — $100 / month. Unlimited international *and* domestic
  *     leads, and the only tier that appears as an instant match in the
  *     customer's results board. Instant availability is what makes the search
  *     feel like a product rather than a contact form.
  *
- *  2. Pay Per Lead — $0 / month, pay only for leads you unlock. Priced per
- *     lead by corridor value and job size, hard-capped at $7 so a partner can
- *     never be surprised by an invoice.
+ *  2. Pay Per Lead — $0 / month, billed per lead assigned. Priced by corridor
+ *     value and job size, hard-capped at $7 so a partner can never be
+ *     surprised by an invoice.
+ *
+ *  3. Pay Per Seen — $0 / month, billed per lead opened. Leads arrive masked;
+ *     the fee lands on the unlock, not the match.
+ *
+ * The first two are billed on the match, so those partners get the lead in
+ * full the moment it arrives. Only the third has anything to unlock — see
+ * `seesMaskedLeads`.
  *
  * Platform billing is USD. Customers are never shown a price of any kind.
  */
@@ -44,6 +49,23 @@ export const PPS_OPEN_RATE = 0.35;
  * existed.
  */
 export const paysPerUnlock = (plan: PlanId): boolean => plan !== "pro_unlimited";
+
+/**
+ * Every plan, in the order they are presented everywhere.
+ *
+ * Exported so the plan API can validate against the same list the UI offers,
+ * rather than a second copy that drifts the day a fourth plan appears.
+ */
+export const PLAN_IDS = ["pro_unlimited", "pay_per_lead", "pay_per_seen"] as const;
+
+/**
+ * Does this plan see leads masked until it pays to open one?
+ *
+ * Pro and Pay Per Lead are billed on the match itself, so the lead is theirs
+ * the moment it arrives and nothing is hidden. Pay Per Seen is billed on the
+ * open, so the lead has to stay masked for the open to mean anything.
+ */
+export const seesMaskedLeads = (plan: PlanId): boolean => plan === "pay_per_seen";
 
 /** Leads a partner must close before Pro Unlimited is the cheaper option. */
 export const BREAK_EVEN_LEADS = Math.ceil(PRO_MONTHLY_USD / AVG_LEAD_FEE_USD);

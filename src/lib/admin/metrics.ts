@@ -164,10 +164,21 @@ export function revenueInRange(data: Pick<AdminDataset, "payments" | "invoices">
   return Math.round((paid - refunded) * 100) / 100;
 }
 
+/**
+ * Revenue split by where it came from — one series per plan.
+ *
+ * It used to be two: Pro subscriptions, and everything else lumped as
+ * "lead fees". That was accurate while there were two plans and quietly
+ * wrong once there were three, because it buried pay-per-seen inside a
+ * series named after pay-per-lead. The two charge on different events —
+ * one on assignment, one on unlock — and an operator deciding whether the
+ * third plan is worth keeping could not see it at all.
+ */
 export interface RevenuePoint extends SeriesPoint {
   revenue: number;
   subscriptions: number;
   leadFees: number;
+  unlockFees: number;
 }
 
 export function revenueTrend(data: Pick<AdminDataset, "payments" | "invoices">, range: DayRange): RevenuePoint[] {
@@ -176,7 +187,7 @@ export function revenueTrend(data: Pick<AdminDataset, "payments" | "invoices">, 
   const points = new Map<string, RevenuePoint>(
     bucketKeys(range, bucket).map((p) => [
       p.key,
-      { ...p, revenue: 0, subscriptions: 0, leadFees: 0 },
+      { ...p, revenue: 0, subscriptions: 0, leadFees: 0, unlockFees: 0 },
     ]),
   );
   for (const payment of data.payments) {
@@ -184,9 +195,10 @@ export function revenueTrend(data: Pick<AdminDataset, "payments" | "invoices">, 
     const point = points.get(bucketKey(payment.at.slice(0, 10), bucket));
     if (!point) continue;
     point.revenue += payment.amountUsd;
-    const invoice = invoiceById.get(payment.invoiceId);
-    if (invoice?.plan === "pro_unlimited") point.subscriptions += payment.amountUsd;
-    else point.leadFees += payment.amountUsd;
+    const plan = invoiceById.get(payment.invoiceId)?.plan;
+    if (plan === "pay_per_seen") point.unlockFees += payment.amountUsd;
+    else if (plan === "pay_per_lead") point.leadFees += payment.amountUsd;
+    else point.subscriptions += payment.amountUsd;
   }
   for (const invoice of data.invoices) {
     if (!invoice.refund || !inRange(invoice.refund.at, range)) continue;
@@ -197,6 +209,7 @@ export function revenueTrend(data: Pick<AdminDataset, "payments" | "invoices">, 
     point.revenue = Math.round(point.revenue * 100) / 100;
     point.subscriptions = Math.round(point.subscriptions * 100) / 100;
     point.leadFees = Math.round(point.leadFees * 100) / 100;
+    point.unlockFees = Math.round(point.unlockFees * 100) / 100;
   }
   return [...points.values()];
 }

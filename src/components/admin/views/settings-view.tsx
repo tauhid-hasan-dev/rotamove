@@ -93,6 +93,8 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
   const [userRoleId, setUserRoleId] = useState<string>(data.roles[0]?.id ?? "");
   const [userError, setUserError] = useState<string | null>(null);
   const [deactivateUser, setDeactivateUser] = useState<TeamMember | null>(null);
+  // Restoring access is as much a decision as withdrawing it, so it asks too.
+  const [reactivateUser, setReactivateUser] = useState<TeamMember | null>(null);
 
   const openCreateUser = () => {
     setUserName("");
@@ -336,16 +338,7 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                                 variant="ghost"
                                 size="icon-sm"
                                 aria-label={t.fill(sx.reactivateUserAria, { name: member.name })}
-                                onClick={() => {
-                                  dispatch({
-                                    type: "team/active",
-                                    memberId: member.id,
-                                    active: true,
-                                  });
-                                  toast.success(
-                                    t.fill(sx.userReactivatedToast, { name: member.name }),
-                                  );
-                                }}
+                                onClick={() => setReactivateUser(member)}
                               >
                                 <UserCheck aria-hidden />
                               </Button>
@@ -827,6 +820,23 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
           dispatch({ type: "team/active", memberId: deactivateUser.id, active: false });
           toast.success(t.fill(sx.userDeactivatedToast, { name: deactivateUser.name }));
           setDeactivateUser(null);
+        }}
+      />
+
+      {/* Not `destructive`: this one gives access back. */}
+      <ConfirmDialog
+        open={reactivateUser !== null}
+        onOpenChange={(open) => !open && setReactivateUser(null)}
+        title={t.fill(sx.reactivateUserTitle, { name: reactivateUser?.name ?? "" })}
+        description={t.fill(sx.reactivateUserDescription, {
+          role: reactivateUser ? (roleById.get(reactivateUser.roleId)?.name ?? "") : "",
+        })}
+        confirmLabel={sx.reactivateUserConfirm}
+        onConfirm={() => {
+          if (!reactivateUser) return;
+          dispatch({ type: "team/active", memberId: reactivateUser.id, active: true });
+          toast.success(t.fill(sx.userReactivatedToast, { name: reactivateUser.name }));
+          setReactivateUser(null);
         }}
       />
 

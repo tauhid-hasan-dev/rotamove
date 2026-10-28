@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { ArrowRight, Loader2, Lock, Mail, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Lock, Mail, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -24,7 +25,7 @@ import { cn } from "@/lib/utils";
  * form on purpose — same reasoning as the partner login.
  */
 export function AdminLoginForm() {
-  const { dict } = useI18n();
+  const { dict, href } = useI18n();
   const ax = dict.admin.auth;
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -164,6 +165,17 @@ export function AdminLoginForm() {
             </button>
           </div>
         </div>
+
+        {/* A way out. Without it the only exit from a gated /admin URL is the
+            browser's back button, and anyone who arrived here by typing the
+            path has nowhere to go. */}
+        <Link
+          href={href("/")}
+          className="mt-5 inline-flex w-full items-center justify-center gap-1.5 text-[13.5px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden />
+          {ax.backToSite}
+        </Link>
       </form>
     </main>
   );
