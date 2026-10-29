@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { LaneDialog } from "@/components/partners/dashboard/lane-dialog";
+import { PANEL_ROW } from "@/components/partners/dashboard/surface";
 import {
   laneExpired,
   lastCallEndAt,
@@ -262,7 +263,8 @@ function LaneCard({
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "overflow-hidden rounded-xl border bg-card p-4 transition-shadow duration-300 hover:shadow-soft",
+        "overflow-hidden p-4",
+        PANEL_ROW,
         dormant && "bg-muted/30",
         busy && "opacity-60",
       )}

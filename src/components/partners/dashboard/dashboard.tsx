@@ -17,7 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { MoverLogo } from "@/components/common/mover-logo";
-import { PAGE_GUTTER } from "@/components/common/section";
+import { DASHBOARD_GUTTER, PANEL } from "@/components/partners/dashboard/surface";
 import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { Logo } from "@/components/site/logo";
 import {
@@ -171,7 +171,7 @@ export function PartnerDashboard({
         onSignOut={signOut}
       />
 
-      <div className={cn(PAGE_GUTTER, "flex flex-col gap-8 py-8 lg:flex-row lg:gap-10")}>
+      <div className={cn(DASHBOARD_GUTTER, "flex flex-col gap-8 py-8 lg:flex-row lg:gap-10")}>
       {/* sidebar ------------------------------------------------- */}
       <aside className="lg:w-[228px] lg:shrink-0">
         <div className="lg:sticky lg:top-24">
@@ -346,7 +346,7 @@ function DashboardBar({
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-      <div className={cn(PAGE_GUTTER, "flex h-16 items-center gap-4")}>
+      <div className={cn(DASHBOARD_GUTTER, "flex h-16 items-center gap-4")}>
         {/* `Logo` is already a link home with its own label. Wrapping it in
             another one nested an <a> inside an <a>, which the HTML parser
             unpicks on the server and React then refuses to hydrate. */}
@@ -578,7 +578,7 @@ function OverviewPanel({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {/* corridors ------------------------------------------- */}
-        <section className="rounded-2xl border bg-card p-6">
+        <section className={cn(PANEL, "p-6")}>
           <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             {ov.corridorsTitle}
           </h3>
@@ -596,7 +596,7 @@ function OverviewPanel({
 
         {/* routes + billing ------------------------------------ */}
         <div className="grid gap-4">
-          <section className="rounded-2xl border bg-card p-6">
+          <section className={cn(PANEL, "p-6")}>
             <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
               {pd.sections.lanes}
             </h3>
@@ -623,7 +623,7 @@ function OverviewPanel({
             </button>
           </section>
 
-          <section className="rounded-2xl border bg-card p-6">
+          <section className={cn(PANEL, "p-6")}>
             <div className="flex items-center gap-2.5">
               <Sparkles className="size-4 text-brand" aria-hidden />
               <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -670,7 +670,7 @@ function OverviewPanel({
       {/* A preview, not a second lead board: route, age and status only.
           Anything that costs money to reveal stays on the board itself,
           where the price is next to the button that charges it. */}
-      <section className="mt-4 rounded-2xl border bg-card p-6">
+      <section className={cn(PANEL, "mt-4 p-6")}>
         <div className="flex flex-wrap items-center gap-3">
           <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             {ov.latestTitle}
@@ -751,7 +751,7 @@ function Bars({
 
 function Kpi({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className={cn(PANEL, "p-5")}>
       <p className="eyebrow">{label}</p>
       <p className="mt-2.5 text-[26px] font-medium leading-none tracking-[-0.035em] tnum">
         {value}
@@ -797,7 +797,7 @@ function BillingPanel({
 
   return (
     <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-      <div className="rounded-2xl border bg-card p-6">
+      <div className={cn(PANEL, "p-6")}>
         <div className="flex items-center gap-2.5">
           <Wallet className="size-4 text-brand" />
           <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -854,7 +854,7 @@ function BillingPanel({
         </div>
       </div>
 
-      <div className="rounded-2xl border bg-card p-6">
+      <div className={cn(PANEL, "p-6")}>
         <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
           {pd.billing.invoices}
         </h3>

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { quote, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { cn } from "@/lib/utils";
 
 type SectionProps = { dict: Dictionary; locale: Locale };
 
@@ -47,24 +48,67 @@ export function HowItWorks({ dict, locale }: SectionProps) {
           {dict.how.title}
         </h2>
 
-        <ol className="mx-auto mt-14 grid max-w-5xl gap-4 sm:grid-cols-3">
+        {/*
+          Three steps, drawn as a sequence rather than as three boxes.
+
+          The old version was three identical bordered cards with a 10px
+          number buried between the icon and the title — which said "here are
+          three features", not "here is what happens, in order". Two things
+          carry the order now: a rail running behind the icons on desktop,
+          turning down the left on a phone where the list is vertical; and a
+          large ghosted numeral watermarked into each card, which is legible
+          as a step count from across the room.
+
+          The surface is the brand tint rather than plain card, so the band
+          reads as one group. In dark mode the tint is darker than the card
+          colour and would sink instead of lift, so the card colour stands.
+        */}
+        <ol className="relative mx-auto mt-14 grid max-w-5xl gap-5 sm:grid-cols-3 sm:gap-6">
+          {/* The rail, at the icons' centre line. The cards are opaque, so
+              what actually shows is a short connector in each gap — which is
+              the same gesture the stacked phone layout makes vertically, and
+              reads as "then" either way. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-[16.6%] top-[calc(1.75rem+1.5rem)] hidden h-px bg-brand/35 sm:block"
+          />
+
           {dict.how.steps.map((step, i) => {
             const Icon = STEP_ICONS[i] ?? Search;
+            const numeral = new Intl.NumberFormat(`${locale}-u-nu-latn`, {
+              minimumIntegerDigits: 2,
+            }).format(i + 1);
+
             return (
               <li
                 key={step.title}
-                className="rounded-3xl border bg-card p-7 transition-shadow duration-300 hover:shadow-soft"
+                className={cn(
+                  "group relative overflow-hidden rounded-3xl border border-brand/20 bg-brand-tint p-7",
+                  "shadow-soft transition-shadow duration-300 hover:shadow-float",
+                  "dark:border-border dark:bg-card",
+                  // The vertical connector between stacked steps on a phone.
+                  // Drawn from under this card to the top of the next, and
+                  // suppressed on the last one, which has nothing to connect to.
+                  "after:absolute after:bottom-[-1.25rem] after:start-[2.75rem] after:h-5 after:w-px after:bg-brand/35",
+                  "last:after:hidden sm:after:hidden",
+                )}
               >
-                <span className="grid size-11 place-items-center rounded-full bg-brand text-ink">
-                  <Icon className="size-[18px]" strokeWidth={2} />
+                {/* Fully inside the card. Bled off the top edge it looked
+                    like a clipping bug rather than a watermark — the eye
+                    reads a cut numeral as a mistake, not as a crop. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute end-6 top-5 select-none text-[64px] font-semibold leading-none tracking-[-0.06em] text-brand/25 tnum dark:text-brand/15"
+                >
+                  {numeral}
                 </span>
-                <p className="mt-6 text-[11.5px] font-medium tabular-nums text-muted-foreground">
-                  {new Intl.NumberFormat(`${locale}-u-nu-latn`, {
-                    minimumIntegerDigits: 2,
-                  }).format(i + 1)}
-                </p>
-                <h3 className="mt-1 text-[21px]">{step.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+
+                <span className="relative grid size-12 place-items-center rounded-2xl bg-brand text-ink shadow-soft transition-transform duration-300 group-hover:scale-105">
+                  <Icon className="size-5" strokeWidth={2} />
+                </span>
+
+                <h3 className="relative mt-7 text-[21px]">{step.title}</h3>
+                <p className="relative mt-2 text-[15px] leading-relaxed text-muted-foreground">
                   {step.body}
                 </p>
               </li>

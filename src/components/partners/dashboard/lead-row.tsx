@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { RouteLine } from "@/components/common/route-line";
+import { PANEL_ROW } from "@/components/partners/dashboard/surface";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cityCountry, getCity, resolveCorridor } from "@/lib/geo";
 import type { BoardLead, BoardStatus } from "@/lib/demo-leads";
@@ -129,7 +130,8 @@ export function LeadRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "group rounded-xl border bg-card p-4 transition-shadow duration-300 hover:shadow-soft",
+        "group p-4",
+        PANEL_ROW,
         !revealed && "border-brand/70",
       )}
     >

@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PANEL } from "@/components/partners/dashboard/surface";
 import { useI18n } from "@/i18n/provider";
 import type { PlanSubscription } from "@/lib/plan-store";
 import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, PLAN_IDS, PRO_MONTHLY_USD } from "@/lib/plans";
@@ -93,7 +94,7 @@ export function PlanPanel({
    * the button spans the same width as both.
    */
   return (
-    <div className="rounded-2xl border bg-card p-4">
+    <div className={cn(PANEL, "p-4")}>
       <p className="flex items-center gap-2 text-[14px] font-medium">
         <Icon className="size-4 shrink-0 text-brand" aria-hidden />
         <span className="min-w-0 truncate">{pd.planNames[plan]}</span>
