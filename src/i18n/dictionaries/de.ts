@@ -164,6 +164,7 @@ export const de = {
     mapLabel:
       "Weltkarte mit Frachtkorridoren zwischen Europa, der Türkei, dem Kaukasus, Zentralasien und dem Golf.",
     legendHub: "Abfahrts-Hub",
+    legendServed: "Länder, die wir bedienen",
     legendNote: "Aktive Korridore, ergänzt sobald neue Hubs dazukommen",
     statCities: "Bediente Städte",
     statCountries: "Länder",

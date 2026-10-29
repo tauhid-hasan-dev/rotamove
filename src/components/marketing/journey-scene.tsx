@@ -35,13 +35,30 @@ import { cn } from "@/lib/utils";
  * the ground as well would have them driving on a treadmill in a wind
  * tunnel.
  *
- * `x` is where each one sits within its set; `xSm` is the narrower
- * arrangement for phones, where three abreast would overlap.
+ * The convoy rebalances rather than stretches.
+ *
+ * The band used to stop at 64rem and carry the same three vehicles at the
+ * same three positions from a tablet all the way up, so a desktop got a
+ * short road marooned in the middle of a wide page and two long empty gaps
+ * either side of the lorry. The road now runs the full page gutter, and
+ * each width gets its own convoy: two vehicles on a phone, three through
+ * the tablet range, four once there is a desktop's worth of road. The
+ * positions are per tier as well, so the spacing between vehicles stays
+ * roughly constant instead of growing with the screen.
+ *
+ * `x` is where each one sits within its set, per tier: `sm` under 640px,
+ * `md` through the tablet range, `lg` from 1024px up. `null` drops that
+ * vehicle from the tier entirely.
+ *
+ * The gaps within a set and the gap across the seam are deliberately the
+ * same size — the wrap happens in the middle of open road, and a convoy
+ * that bunched up every cycle would give it away.
  */
 const CONVOY = [
-  { kind: "van", scale: 0.6, x: "18%", xSm: null },
-  { kind: "lorry", scale: 1, x: "52%", xSm: "30%" },
-  { kind: "van", scale: 0.72, x: "84%", xSm: "80%" },
+  { kind: "van", scale: 0.62, x: { sm: "26%", md: "22%", lg: "14%" } },
+  { kind: "lorry", scale: 1, x: { sm: "74%", md: "55%", lg: "39%" } },
+  { kind: "van", scale: 0.74, x: { sm: null, md: "86%", lg: "63%" } },
+  { kind: "lorry", scale: 0.86, x: { sm: null, md: null, lg: "87%" } },
 ] as const;
 
 /** Distance from the band's floor to the road surface, in px. */
@@ -55,8 +72,14 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
       </h2>
 
       <Shell>
-        <div className="relative mx-auto max-w-5xl">
-          <div className="relative h-[120px] sm:h-[164px]">
+        {/* `journey-scene` carries `--fit`, the one number that says how big
+            this picture should be at this width. Everything in the band —
+            vehicles and destinations alike — is drawn at its natural size
+            and scaled by it, so the whole composition grows and shrinks
+            together instead of a fixed-size lorry rattling around a road
+            that got wider. */}
+        <div className="journey-scene relative mx-auto w-full max-w-[1440px]">
+          <div className="relative h-[120px] sm:h-[164px] lg:h-[180px]">
             {/* --- the two destinations, one at each end ------------------- */}
             <Destination className="absolute start-0" />
             <Destination className="absolute end-0" flip />
@@ -101,9 +124,11 @@ export function JourneyScene({ dict, rtl }: { dict: Dictionary; rtl: boolean }) 
             {/* Authored left-to-right and mirrored wholesale for Arabic, so
                 everything inside uses physical directions — mixing those with
                 logical ones here would flip twice and cancel out. */}
+            {/* The inset clears the destinations at each end, and widens with
+                them as `--fit` grows. */}
             <div
               className={cn(
-                "absolute inset-y-0 inset-x-[56px] overflow-hidden sm:inset-x-[76px]",
+                "absolute inset-y-0 inset-x-[48px] overflow-hidden sm:inset-x-[72px] lg:inset-x-[80px] 2xl:inset-x-[90px]",
                 rtl && "-scale-x-100",
               )}
             >
@@ -178,25 +203,31 @@ function Traveller({
   kind,
   scale,
   x,
-  xSm,
 }: {
   kind: "lorry" | "van";
   scale: number;
-  /** Centre position across the band. */
-  x: string;
-  /** Centre on phones, or `null` to drop this one when space is tight. */
-  xSm: string | null;
+  /** Centre position across the band, per width tier. `null` drops it. */
+  x: { sm: string | null; md: string | null; lg: string | null };
 }) {
+  // The first tier that wants this vehicle is where it appears; below that
+  // it is not rendered at all rather than parked off-screen, so a phone
+  // never pays for a lorry it cannot see.
+  const firstTier = x.sm !== null ? "sm" : x.md !== null ? "md" : "lg";
+
   return (
     <span
       className={cn(
         "journey-vehicle absolute -translate-x-1/2",
-        xSm === null && "hidden sm:block",
+        firstTier === "md" && "hidden sm:block",
+        firstTier === "lg" && "hidden lg:block",
       )}
       style={{
         bottom: ROAD,
-        ["--x" as string]: x,
-        ["--x-sm" as string]: xSm ?? x,
+        // Each tier falls back to the one below it, so a vehicle that only
+        // appears at `lg` still has somewhere to be in the cascade.
+        ["--x-sm" as string]: x.sm ?? x.md ?? x.lg ?? "50%",
+        ["--x-md" as string]: x.md ?? x.lg ?? x.sm ?? "50%",
+        ["--x-lg" as string]: x.lg ?? x.md ?? x.sm ?? "50%",
       }}
     >
       {/*
@@ -204,11 +235,18 @@ function Traveller({
         `transform`, and the keyframed one silently wins — which flattened
         every vehicle to the same size. origin-bottom keeps the wheels on the
         road as the scale changes.
+
+        The vehicle's own scale is multiplied by the band's `--fit`, so the
+        relative sizes of lorry and vans are fixed by this file and only the
+        overall size answers to the viewport.
       */}
-      <span className="block origin-bottom" style={{ transform: `scale(${scale})` }}>
+      <span
+        className="block origin-bottom"
+        style={{ transform: `scale(calc(${scale} * var(--fit, 1)))` }}
+      >
         <span
           className="block text-foreground motion-safe:animate-[jiggle_1.6s_ease-in-out_infinite]"
-          style={{ ["--roll" as string]: `${(0.95 * scale).toFixed(2)}s` }}
+          style={{ ["--roll" as string]: `calc(${(0.95 * scale).toFixed(2)}s * var(--fit, 1))` }}
         >
           {kind === "lorry" ? <Lorry /> : <Van />}
         </span>
@@ -326,7 +364,14 @@ function Van() {
  */
 function Destination({ className, flip }: { className?: string; flip?: boolean }) {
   return (
-    <span className={cn("block text-muted-foreground", className)} style={{ bottom: ROAD }}>
+    <span
+      className={cn("block origin-bottom text-muted-foreground", className)}
+      // Scaled about its own base, like the vehicles, so the gateway keeps
+      // its feet on the road at every width. Centred rather than anchored to
+      // the outer edge: `origin-bottom` is direction-agnostic, and the few
+      // pixels it gains at the widest tier are spent inside the gutter.
+      style={{ bottom: ROAD, transform: "scale(var(--fit, 1))" }}
+    >
       <svg
         width="72"
         height="78"

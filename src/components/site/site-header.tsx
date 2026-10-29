@@ -43,12 +43,13 @@ function LastCallNavLink({
   return (
     <Link
       href={target}
+      aria-label={label}
       className={cn(
-        "group relative inline-flex items-center gap-2 font-medium transition-all duration-200",
+        "group relative inline-flex items-center gap-2 whitespace-nowrap font-medium transition-all duration-200",
         "bg-lastcall text-lastcall-foreground hover:brightness-[0.97]",
         mobile
           ? "rounded-xl px-3 py-3 text-[16px]"
-          : "rounded-full px-3.5 py-1.5 text-[14px]",
+          : "rounded-full px-2.5 py-1.5 text-[14px] 2xl:px-3.5",
       )}
     >
       <span className="relative grid size-4 place-items-center">
@@ -66,7 +67,13 @@ function LastCallNavLink({
           />
         )}
       </span>
-      {label}
+      {/* The word goes when the bar is tight, the clock and the count stay.
+          Dropping the label rather than the whole pill keeps the one item
+          advertising expiring stock on screen at every desktop width; the
+          clock carries the meaning and the count carries the urgency.
+          `aria-label` on the link is what names it either way, so the pill
+          reads the same to a screen reader whether the word is painted. */}
+      <span className={cn(mobile ? "inline" : "hidden xl:inline")}>{label}</span>
       {count > 0 && (
         <span className="rounded-full bg-lastcall-accent px-1.5 py-0.5 text-[10.5px] font-semibold text-ink tnum">
           {count}
@@ -115,10 +122,32 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
           : "border-b border-transparent",
       )}
     >
-      <div className={cn(PAGE_GUTTER, "flex h-16 items-center gap-8")}>
+      {/*
+        The bar is sized to the longest translation, not to English.
+
+        It used to show the full desktop navigation from `md` and let flexbox
+        sort out the overflow, which it did by breaking every label across two
+        or three lines: "How it works" became a three-line stack at 768px, and
+        French and Russian were still wrapping at 1440. Nothing here wraps now
+        — every label is `nowrap`, so the bar either has room for an item or
+        does not show it at all — and the breakpoints below were measured
+        against all eight locales rather than guessed.
+
+        What appears when:
+          < deck  the drawer. Three links, a pill, two controls and a button
+                  do not fit in 819px in French, and 1024px screens leave
+                  exactly that inside the gutter.
+          deck    links + the last-call pill, compact; language, theme, CTA.
+          xl      the last-call pill gets its word back.
+          2xl     partner login joins the row, and the gaps open up.
+      */}
+      <div className={cn(PAGE_GUTTER, "flex h-16 items-center gap-4 2xl:gap-6")}>
         <Logo />
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label={dict.nav.main}>
+        <nav
+          className="hidden items-center gap-4 deck:flex 2xl:gap-6"
+          aria-label={dict.nav.main}
+        >
           {nav.map((item) => {
             const active = current.startsWith(item.path);
             return (
@@ -126,7 +155,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
                 key={item.path}
                 href={href(item.path)}
                 className={cn(
-                  "text-[14.5px] transition-colors hover:text-foreground",
+                  "whitespace-nowrap text-[14px] transition-colors hover:text-foreground 2xl:text-[14.5px]",
                   active ? "text-foreground" : "text-muted-foreground",
                 )}
               >
@@ -145,15 +174,18 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
         <div className="ms-auto flex items-center gap-1">
           <LanguageSwitcher className="hidden sm:inline-flex" />
           <ThemeToggle className="hidden rounded-full sm:inline-flex" />
+          {/* Last in, first out: partner login is the only item here that is
+              also one tap away inside the dashboard, so it is the one the bar
+              can afford to hold back until there is genuinely room. */}
           <Link
             href={href("/partners/login")}
-            className="hidden rounded-full px-4 py-2 text-[14px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:inline-flex"
+            className="hidden whitespace-nowrap rounded-full px-4 py-2 text-[14px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground 2xl:inline-flex"
           >
             {dict.common.partnerLogin}
           </Link>
           <Link
             href={href("/")}
-            className="ms-1 hidden rounded-full bg-brand px-5 py-2.5 text-[14.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] sm:inline-flex"
+            className="ms-1 hidden whitespace-nowrap rounded-full bg-brand px-4 py-2.5 text-[14.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] sm:inline-flex 2xl:px-5"
           >
             {dict.common.startSearch}
           </Link>
@@ -161,7 +193,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <button
-                className="grid size-10 place-items-center rounded-full transition-colors hover:bg-muted md:hidden"
+                className="grid size-10 place-items-center rounded-full transition-colors hover:bg-muted deck:hidden"
                 aria-label={dict.common.openMenu}
               >
                 <Menu className="size-5" />

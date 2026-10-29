@@ -10,6 +10,20 @@
    backgrounds. Generous air. Everything else gets out of the way.
    ========================================================================== */
 
+/*
+ * One extra breakpoint, and it exists for a measured reason.
+ *
+ * The header swaps its drawer for the full navigation here. Not at `lg`:
+ * the bar carries a logo, three links, the last-call pill, a language menu,
+ * a theme toggle and a call to action, and in French that needs 874px of the
+ * 819px a 1024px screen leaves inside the page gutter. 1120px is the width
+ * at which the longest of the eight translations fits with room to spare —
+ * see `site-header.tsx`.
+ */
+@theme {
+  --breakpoint-deck: 70rem;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -395,16 +409,37 @@
  * sliding the track by one half per cycle lands on a frame identical to
  * the first, so there is no jump to disguise.                               */
 
+/*
+ * `--fit` is how big the picture is at this width, and the only thing that
+ * changes with the viewport. The vehicles and the two destinations are all
+ * drawn at their natural size and multiplied by it, which is what keeps a
+ * lorry looking like a lorry next to a gateway on a 390px phone and on a
+ * 2560px display.
+ */
+.journey-scene {
+  --fit: 0.78;
+}
+
 .journey-track {
   position: absolute;
   inset-block: 0;
-  inset-inline-start: 0;
+  /*
+   * `left`, not `inset-inline-start`.
+   *
+   * The lane is mirrored wholesale for Arabic, so everything inside it is
+   * authored left-to-right and flipped once. A logical offset flips a second
+   * time: in RTL it anchored the double-width track to the lane's right edge,
+   * the mirror threw the whole thing off the other side, and the convoy spent
+   * every cycle entirely outside the clip. The road was there, the lorries
+   * were not.
+   */
+  left: 0;
   display: flex;
   width: 200%;
   /* The wrap point. -50% puts the second half under the lane, 0% puts the
      first half there; since they are the same picture, the reset is
      invisible. */
-  animation: convoy 26s linear infinite;
+  animation: convoy var(--journey-pace, 16s) linear infinite;
 }
 
 @keyframes convoy {
@@ -420,9 +455,51 @@
   left: var(--x-sm);
 }
 
+/*
+ * One cycle moves the convoy exactly one lane width, so holding the duration
+ * fixed would make the same animation crawl on a wide screen and scurry on a
+ * phone. The duration grows roughly in step with the lane instead, and a
+ * little faster than `--fit` does, so the convoy reads at about the same
+ * speed — in its own body lengths per second — at every width.
+ *
+ * Positions change tier with the same breakpoints, so a vehicle never finds
+ * itself spaced for one layout and sized for another.
+ */
 @media (min-width: 640px) {
+  .journey-scene {
+    --fit: 0.9;
+  }
+
+  .journey-track {
+    --journey-pace: 24s;
+  }
+
   .journey-vehicle {
-    left: var(--x);
+    left: var(--x-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  .journey-scene {
+    --fit: 1;
+  }
+
+  .journey-track {
+    --journey-pace: 32s;
+  }
+
+  .journey-vehicle {
+    left: var(--x-lg);
+  }
+}
+
+@media (min-width: 1536px) {
+  .journey-scene {
+    --fit: 1.12;
+  }
+
+  .journey-track {
+    --journey-pace: 38s;
   }
 }
 

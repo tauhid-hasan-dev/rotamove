@@ -164,6 +164,7 @@ export const it = {
     mapLabel:
       "Mappa del mondo con i corridoi merci fra Europa, Türkiye, Caucaso, Asia centrale e Golfo.",
     legendHub: "Hub di partenza",
+    legendServed: "Paesi serviti",
     legendNote: "Corridoi attivi, aggiornati man mano che si aggiungono hub",
     statCities: "Città servite",
     statCountries: "Paesi",

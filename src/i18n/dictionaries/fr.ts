@@ -165,6 +165,7 @@ export const fr = {
     mapLabel:
       "Carte du monde montrant les corridors de fret entre l’Europe, la Türkiye, le Caucase, l’Asie centrale et le Golfe.",
     legendHub: "Hub de départ",
+    legendServed: "Pays desservis",
     legendNote: "Corridors actifs, mis à jour à mesure que des hubs s’ajoutent",
     statCities: "Villes desservies",
     statCountries: "Pays",

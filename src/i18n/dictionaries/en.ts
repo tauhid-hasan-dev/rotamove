@@ -183,6 +183,7 @@ export const en = {
     mapLabel:
       "World map showing freight corridors between Europe, Türkiye, the Caucasus, Central Asia and the Gulf.",
     legendHub: "Departure hub",
+    legendServed: "Countries we serve",
     legendNote: "Live corridors, updated as hubs are added",
     statCities: "Cities served",
     statCountries: "Countries",

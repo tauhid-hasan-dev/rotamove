@@ -1,5 +1,7 @@
 import { Shell } from "@/components/common/section";
 import { CITIES, CORRIDORS, getCity } from "@/lib/geo";
+import { LAND_SHAPES } from "@/lib/world-land";
+import { LAT_N, LAT_S, LON_E, LON_W, VIEW_H, VIEW_W, projectX, projectY } from "@/lib/map-projection";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { formatNumber } from "@/i18n/format";
 import type { Locale } from "@/i18n/config";
@@ -7,118 +9,27 @@ import type { Locale } from "@/i18n/config";
 /**
  * The coverage map.
  *
- * The corridors the network actually runs, drawn over a dotted land mask,
- * with a pulse travelling each lane. Everything is plotted from the same
- * city coordinates the search uses, so the picture cannot drift away from
- * the product: add a hub to `geo.ts` and it appears here.
+ * Real coastlines, with the corridors the network actually runs drawn over
+ * them and a pulse travelling each lane. Everything is plotted from the same
+ * city coordinates the search uses, so the picture cannot drift away from the
+ * product: add a hub to `geo.ts` and it appears here.
  *
- * It was a whole-world map and is now a map of the world this network
- * works in — Europe, North Africa, the Levant and Gulf, the Caucasus and
- * Central Asia. Showing the Pacific to prove we are global was spending
- * two thirds of the canvas on an argument the lanes themselves refute,
- * and squeezing every corridor into the remaining third is what had the
- * arcs stacked on top of each other.
+ * The land was a hand-written dot mask — longitude spans typed out per
+ * parallel — which was honest about being a suggestion but rendered Italy as
+ * a smudge and put the Gulf in roughly the right place. It is Natural Earth
+ * country geometry now, projected at build time by
+ * `scripts/generate-world-land.mjs` into the frame in `map-projection.ts`.
+ * The countries a hub stands in are lit; the rest of the world is there to
+ * be recognised, not to be claimed.
  *
- * Rendered on the server: no clock, no randomness, no interaction, so
- * there is nothing for the client to disagree with.
+ * It was a whole-world map and is now a map of the world this network works
+ * in — Europe, North Africa, the Levant and Gulf, the Caucasus and Central
+ * Asia. Showing the Pacific to prove we are global was spending two thirds
+ * of the canvas on an argument the lanes themselves refute.
+ *
+ * Rendered on the server: no clock, no randomness, no interaction, so there
+ * is nothing for the client to disagree with.
  */
-
-/* ------------------------------------------------------------- the world -- */
-
-/**
- * Land, as longitude spans per 2° parallel, from 70°N down to 10°N.
- *
- * A hand mask, at twice the resolution of the whole-world version it
- * replaces — the frame is a third as wide, so the same dot pitch would
- * have rendered Italy as two dots. Still a suggestion of coastline rather
- * than cartography: at this scale the Bosphorus is a third of a dot.
- */
-const LAND: Array<[lat: number, spans: Array<[number, number]>]> = [
-  [70, [[18, 41], [44, 70], [73, 79], [84, 96]]],
-  [68, [[13, 69], [75, 96]]],
-  [66, [[-24, -13], [12, 69], [76, 96]]],
-  [64, [[-24, -14], [7, 19], [22, 96]]],
-  [62, [[-8, -6], [5, 18], [21, 96]]],
-  [60, [[-2, -1], [5, 18], [21, 96]]],
-  [58, [[-7, -2], [8, 19], [22, 96]]],
-  [56, [[-10, -6], [-5, -1], [8, 16], [21, 96]]],
-  [54, [[-10, -6], [-5, 0], [7, 96]]],
-  [52, [[-10, -6], [-5, 2], [4, 96]]],
-  [50, [[-5, 1], [2, 96]]],
-  [48, [[-5, 96]]],
-  [46, [[-2, 31], [33, 36], [38, 48], [52, 96]]],
-  [44, [[-9, 12], [15, 28], [41, 47], [53, 96]]],
-  [42, [[-9, 3], [8, 10], [11, 16], [19, 28], [41, 47], [53, 96]]],
-  [40, [[-9, 3], [8, 10], [13, 18], [20, 24], [26, 44], [45, 50], [54, 96]]],
-  [38, [[-9, 0], [8, 10], [13, 16], [20, 24], [26, 49], [54, 96]]],
-  [36, [[-6, -1], [0, 11], [12, 15], [22, 26], [27, 96]]],
-  [34, [[-9, 11], [32, 34], [35, 96]]],
-  [32, [[-9, 96]]],
-  [30, [[-10, 34], [35, 48], [50, 96]]],
-  [28, [[-14, 33], [36, 50], [51, 96]]],
-  [26, [[-16, 33], [37, 50], [51, 96]]],
-  [24, [[-17, 34], [38, 52], [53, 96]]],
-  [22, [[-17, 35], [39, 52], [53, 59], [68, 96]]],
-  [20, [[-17, 36], [40, 52], [53, 58], [70, 88], [92, 96]]],
-  [18, [[-17, 37], [41, 52], [72, 85], [93, 96]]],
-  [16, [[-17, 40], [42, 53], [73, 82], [94, 96]]],
-  [14, [[-17, 44], [45, 52], [74, 81]]],
-  [12, [[-15, 48], [75, 80]]],
-  [10, [[-11, 51], [76, 79]]],
-];
-
-const STEP = 2;
-
-/** The frame: Iberia to the Tian Shan, the Nordics to the Horn. */
-const LON_W = -24;
-const LON_E = 96;
-const LAT_N = 70;
-const LAT_S = 10;
-
-/** 2:1, which is what the frame is. Big, because it was asked to be. */
-const VIEW_W = 1400;
-const VIEW_H = (VIEW_W * (LAT_N - LAT_S)) / (LON_E - LON_W);
-
-const projectX = (lon: number) => ((lon - LON_W) / (LON_E - LON_W)) * VIEW_W;
-const projectY = (lat: number) => ((LAT_N - lat) / (LAT_N - LAT_S)) * VIEW_H;
-
-/**
- * How far a hub's reach is drawn, as an ellipse in degrees.
- *
- * Measured on the map rather than on the ground, and deliberately tight.
- * Scaling longitude by cos(latitude) is the physically correct way to turn
- * degrees into kilometres, but a hub at 60°N would then throw a halo wide
- * enough to light up places this network has never collected a pallet in.
- * On a map whose own caption promises no flattery, understating the reach
- * is the right error to make.
- *
- * Tightened again when the frame narrowed to this region: with 91 hubs
- * across it, a generous radius merged every halo into one solid green
- * rectangle, which says nothing. A short radius leaves a band you can
- * actually trace — and each dot still stands for somewhere a real hub
- * collects from.
- */
-const REACH_LAT = 3;
-const REACH_LON = 4;
-
-function landDots(): Array<{ x: number; y: number; covered: boolean }> {
-  const dots: Array<{ x: number; y: number; covered: boolean }> = [];
-  for (const [lat, spans] of LAND) {
-    for (const [from, to] of spans) {
-      const start = Math.max(LON_W, Math.ceil(from / STEP) * STEP);
-      for (let lon = start; lon <= Math.min(to, LON_E); lon += STEP) {
-        const covered = CITIES.some((c) => {
-          const dLat = (c.lat - lat) / REACH_LAT;
-          if (Math.abs(dLat) > 1) return false;
-          const dLon = (c.lon - lon) / REACH_LON;
-          return dLat * dLat + dLon * dLon <= 1;
-        });
-        dots.push({ x: projectX(lon), y: projectY(lat), covered });
-      }
-    }
-  }
-  return dots;
-}
 
 /* ------------------------------------------------------------- the routes -- */
 
@@ -175,11 +86,28 @@ function arcPath(x1: number, y1: number, x2: number, y2: number, bow: number): s
   return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
 }
 
+/**
+ * The graticule.
+ *
+ * Meridians every 20°, parallels every 10°, barely visible. It does the job
+ * the dot grid used to do incidentally — telling the eye this is a map and
+ * not an illustration — without competing with the coastline for attention.
+ * Straight lines, because the projection is linear in both axes.
+ */
+const MERIDIANS = Array.from(
+  { length: Math.floor((LON_E - LON_W) / 20) + 1 },
+  (_, i) => LON_W + i * 20,
+).filter((lon) => lon > LON_W && lon < LON_E);
+
+const PARALLELS = Array.from(
+  { length: Math.floor((LAT_N - LAT_S) / 10) + 1 },
+  (_, i) => LAT_S + i * 10,
+).filter((lat) => lat > LAT_S && lat < LAT_N);
+
 /* ------------------------------------------------------------------ view -- */
 
 export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const wm = dict.worldMap;
-  const dots = landDots();
 
   const lanes = ROUTES.map((route) => {
     const from = getCity(route.from);
@@ -247,28 +175,66 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
           >
             <defs>
               <linearGradient id="lane" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="var(--brand)" stopOpacity="0.25" />
-                <stop offset="50%" stopColor="var(--brand)" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="var(--brand)" stopOpacity="0.25" />
+                <stop offset="0%" stopColor="var(--brand)" stopOpacity="0.3" />
+                <stop offset="50%" stopColor="var(--brand)" stopOpacity="1" />
+                <stop offset="100%" stopColor="var(--brand)" stopOpacity="0.3" />
+              </linearGradient>
+
+              <linearGradient id="map-horizon" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--map-ink)" stopOpacity="0.95" />
+                <stop offset="9%" stopColor="var(--map-ink)" stopOpacity="0" />
+                <stop offset="91%" stopColor="var(--map-ink)" stopOpacity="0" />
+                <stop offset="100%" stopColor="var(--map-ink)" stopOpacity="0.95" />
               </linearGradient>
             </defs>
 
-            {/* Two passes so the covered band reads as one shape rather than
-                as scattered bright dots among dim ones. */}
-            <g fill="#ffffff" fillOpacity="0.1">
-              {dots
-                .filter((d) => !d.covered)
-                .map((d, i) => (
-                  <circle key={i} cx={d.x} cy={d.y} r="3" />
-                ))}
+            <g stroke="#ffffff" strokeOpacity="0.05" strokeWidth="1" aria-hidden>
+              {MERIDIANS.map((lon) => (
+                <line key={`m${lon}`} x1={projectX(lon)} y1="0" x2={projectX(lon)} y2={VIEW_H} />
+              ))}
+              {PARALLELS.map((lat) => (
+                <line key={`p${lat}`} x1="0" y1={projectY(lat)} x2={VIEW_W} y2={projectY(lat)} />
+              ))}
             </g>
-            <g fill="var(--brand)" fillOpacity="0.85">
-              {dots
-                .filter((d) => d.covered)
-                .map((d, i) => (
-                  <circle key={i} cx={d.x} cy={d.y} r="3.4" />
-                ))}
+
+            {/* Land. Two passes: the whole frame first so the coastline is
+                continuous, then the served countries painted over it — a
+                single pass with per-country fills leaves the unlit borders
+                drawn on top of the lit fills. */}
+            <g fill="#ffffff" fillOpacity="0.07" stroke="#ffffff" strokeOpacity="0.13" strokeWidth="0.7">
+              {LAND_SHAPES.map((shape, i) => (
+                <path key={i} d={shape.d} />
+              ))}
             </g>
+            {/* Lit, but not loud. A country we serve is a fact about where a
+                lorry can be booked, not the headline — the headline is the
+                six lanes drawn over it, and a solid green Russia would win
+                that argument on area alone. */}
+            <g
+              fill="var(--brand)"
+              fillOpacity="0.16"
+              stroke="var(--brand)"
+              strokeOpacity="0.52"
+              strokeWidth="0.9"
+            >
+              {LAND_SHAPES.filter((shape) => shape.served).map((shape, i) => (
+                <path key={i} d={shape.d} />
+              ))}
+            </g>
+
+            {/* The frame cuts the Arctic and the Sahara mid-country, and a
+                filled shape sliced by a straight edge reads as a painted bar
+                rather than as a map running off the page. Fading the last
+                few per cent of the panel to the panel's own colour turns the
+                cut back into a horizon. Over the land, under the lanes. */}
+            <rect
+              x="0"
+              y="0"
+              width={VIEW_W}
+              height={VIEW_H}
+              fill="url(#map-horizon)"
+              aria-hidden
+            />
 
             {lanes.map((lane, i) => (
               <g key={lane.id}>
@@ -305,7 +271,7 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
                       fillOpacity="0.92"
                       fontSize="17"
                       fontWeight="500"
-                      // Names sit over dots and lanes; a dark rim painted
+                      // Names sit over land and lanes; a dark rim painted
                       // under the glyphs keeps them readable without a
                       // plate behind every one.
                       stroke="#0b0e0a"
@@ -325,9 +291,18 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
           </svg>
 
           <figcaption className="relative flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 pb-6 text-[13px] text-white/60 sm:px-8 sm:pb-8">
-            <span className="inline-flex items-center gap-2">
-              <span className="size-2 rounded-full bg-brand" aria-hidden />
-              {wm.legendHub}
+            <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <span className="inline-flex items-center gap-2">
+                <span className="size-2 rounded-full bg-brand" aria-hidden />
+                {wm.legendHub}
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span
+                  className="size-2 rounded-[2px] bg-brand/30 ring-1 ring-brand/60"
+                  aria-hidden
+                />
+                {wm.legendServed}
+              </span>
             </span>
             <span>{wm.legendNote}</span>
           </figcaption>

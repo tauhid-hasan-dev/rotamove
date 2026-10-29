@@ -34,8 +34,23 @@ export function Hero({ dict, rtl }: { dict: Dictionary; rtl: boolean }) {
             {dict.hero.title}
           </h1>
 
+          {/*
+            One line, from the tablet range up.
+
+            It used to sit in a 38rem column and break in the middle of
+            "find the right transport provider", which read as two half
+            thoughts rather than one sentence. The cap is wide enough for the
+            whole sentence now and the size shrinks with the viewport the way
+            the headline above does, so the line survives down to roughly
+            768px before it wraps.
+
+            Still wrapping, not `nowrap`. German and French run a third
+            longer than English and would push a nowrapped line past the
+            gutter; a sentence that breaks on a phone is the right failure,
+            a sentence running off the screen is not.
+          */}
           <p
-            className="mt-5 max-w-[38rem] animate-rise text-balance text-[17px] leading-relaxed text-muted-foreground"
+            className="mt-5 w-full max-w-[72rem] animate-rise text-pretty text-[clamp(0.95rem,1.5vw,1.1rem)] leading-relaxed text-muted-foreground"
             style={{ animationDelay: "120ms" }}
           >
             {dict.hero.subtitle}

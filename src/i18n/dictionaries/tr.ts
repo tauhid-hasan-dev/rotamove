@@ -168,6 +168,7 @@ export const tr = {
     mapLabel:
       "Avrupa, Türkiye, Kafkasya, Orta Asya ve Körfez arasındaki yük koridorlarını gösteren dünya haritası.",
     legendHub: "Çıkış merkezi",
+    legendServed: "Hizmet verdiğimiz ülkeler",
     legendNote: "Canlı koridorlar, yeni merkez eklendikçe güncellenir",
     statCities: "Hizmet verilen şehir",
     statCountries: "Ülke",

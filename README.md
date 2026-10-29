@@ -119,6 +119,15 @@ throughout, the mobile drawer opens from the other edge, and the hero convoy
 drives the other way. Digits stay Western — Gulf and Levant business
 convention, and it keeps tabular figures aligned.
 
+**The header is sized to the longest translation.** Every label in the bar is
+`nowrap`, so it either has room for an item or does not show it — nothing is
+allowed to break "How it works" across three lines to make it fit. The drawer
+gives way to the full navigation at a measured breakpoint (`deck`, 1120px)
+rather than at `lg`: a logo, three links, the last-call pill, a language menu,
+a theme toggle and a call to action need 874px in French, and a 1024px screen
+leaves 819px inside the page gutter. Above that the pill gets its word back at
+`xl` and partner login joins at `2xl`.
+
 **Three typefaces, one per visitor.** Instrument Sans covers `latin` and
 `latin-ext` only, so Russian and Arabic would otherwise fall back to whatever
 the OS supplies. Cyrillic gets Inter, Arabic gets IBM Plex Sans Arabic, and only
@@ -210,6 +219,12 @@ sliding highlight, the request-sent confirmation. Everything respects
 `prefers-reduced-motion` — the convoy parks along the road rather than
 disappearing.
 
+The convoy rebalances rather than stretches. The road runs the full page
+gutter at every width, and the number of vehicles, their size and the time
+they take to cross all step with the breakpoints — two on a phone, three
+through the tablet range, four on a desktop — so the picture reads at the same
+density and the same speed on a 390px screen and a 2560px one.
+
 ---
 
 ## Architecture
@@ -246,7 +261,18 @@ src/
     lead-codec.ts           PII-free results-URL token
     lead-store.ts           repository interface + in-memory impl
     rand.ts                 seeded PRNG — results must be reproducible
+    map-projection.ts       the coverage map's frame and equirectangular projection
+    world-land.ts           GENERATED country outlines — `npm run generate:map`
 ```
+
+**The coverage map is real geography.** `world-land.ts` is Natural Earth's
+country polygons (public domain, via `world-atlas`), projected into the frame
+in `map-projection.ts` and clipped to it at build time by
+`scripts/generate-world-land.mjs`. A country is lit only when a hub in
+`geo.ts` physically stands inside its polygon, so the shading cannot claim
+somewhere the search will not quote. The generator reads the frame and the hub
+coordinates out of the app's own source: change either and re-run
+`npm run generate:map`. None of the source topology ships to the browser.
 
 **Deterministic results.** Everything "random" derives from
 `hash(leadId + moverId)`. Refresh, re-sort or share the link: same order.

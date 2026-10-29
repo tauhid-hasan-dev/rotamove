@@ -164,6 +164,7 @@ export const nl = {
     mapLabel:
       "Wereldkaart met vrachtcorridors tussen Europa, Türkiye, de Kaukasus, Centraal-Azië en de Golf.",
     legendHub: "Vertrekhub",
+    legendServed: "Landen die we bedienen",
     legendNote: "Actieve corridors, bijgewerkt zodra er hubs bij komen",
     statCities: "Bediende steden",
     statCountries: "Landen",
