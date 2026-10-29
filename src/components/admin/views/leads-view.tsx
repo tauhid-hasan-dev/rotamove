@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, MoveRight, Search } from "lucide-react";
-import { EmptyState, PageHeader } from "@/components/admin/bits";
+import { EmptyState } from "@/components/admin/bits";
 import { DateRangePicker, useDateRange } from "@/components/admin/date-range-picker";
 import { ExportMenu } from "@/components/admin/export-menu";
+import { useAdminPageTitle } from "@/components/admin/page-title";
 import {
   PaginationBar,
   SortHead,
@@ -14,13 +15,6 @@ import {
 } from "@/components/admin/table-bits";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -35,7 +29,7 @@ import { useI18n } from "@/i18n/provider";
 import { cityLabel } from "@/lib/geo";
 import { leadsInRange } from "@/lib/admin/metrics";
 import { useAdminData } from "@/lib/admin/store";
-import { CHANNELS, type AdminLead } from "@/lib/admin/types";
+import type { AdminLead } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 type SortKey = "created" | "move" | "quality" | "fee";
@@ -50,19 +44,15 @@ export function LeadsView() {
   const { dict, t } = useI18n();
   const dateRange = useDateRange(data.anchorMs, "30d");
 
+  useAdminPageTitle(dict.admin.leads.title);
+
   const [query, setQuery] = useState("");
-  const [channel, setChannel] = useState<string>("all");
-  const [companyId, setCompanyId] = useState<string>("all");
   const [dupOnly, setDupOnly] = useState(false);
   const { sort, toggle } = useSort<SortKey>({ key: "created", direction: "desc" });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const rows = leadsInRange(data.leads, dateRange.range).filter((l) => {
-      if (channel !== "all" && l.source.channel !== channel) return false;
-      if (companyId !== "all" && !l.assignments.some((a) => a.companyId === companyId)) {
-        return false;
-      }
       if (dupOnly && !l.duplicateOf) return false;
       if (!q) return true;
       return (
@@ -86,7 +76,7 @@ export function LeadsView() {
           return dir * (a.feeUsd - b.feeUsd);
       }
     });
-  }, [data.leads, dateRange.range, query, channel, companyId, dupOnly, sort]);
+  }, [data.leads, dateRange.range, query, dupOnly, sort]);
 
   const pagination = usePagination(filtered, 12);
 
@@ -127,30 +117,20 @@ export function LeadsView() {
     ]),
   });
 
-  const hasFilters = query !== "" || channel !== "all" || companyId !== "all" || dupOnly;
+  const hasFilters = query !== "" || dupOnly;
 
   return (
     <div className="animate-rise">
-      <PageHeader
-        title={dict.admin.leads.title}
-        description={dict.admin.leads.description}
-        actions={
-          <>
-            <DateRangePicker
-              value={dateRange}
-              onPreset={dateRange.setPreset}
-              onCustom={dateRange.setCustom}
-            />
-            <ExportMenu basename={`rotamove-leads-${dateRange.range.end}`} buildSheet={buildSheet} />
-          </>
-        }
-      />
-
-      {/* Filter bar */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      {/*
+        One row: search, the duplicates switch, then the date range and
+        export pushed to the end. The title is claimed by the topbar, so
+        nothing above this repeats it — which is also what lets the toolbar
+        sit on a single line instead of under a two-line header block.
+      */}
+      <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="relative">
           <Search
-            className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
           <Input
@@ -158,52 +138,57 @@ export function LeadsView() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={dict.admin.leads.searchPlaceholder}
             aria-label={dict.admin.leads.searchAria}
-            className="w-64 ps-8"
+            className="w-full ps-9 sm:w-72"
           />
         </div>
 
-        <Select value={channel} onValueChange={setChannel}>
-          <SelectTrigger className="w-40" aria-label={dict.admin.leads.filterChannelAria}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{dict.admin.leads.allChannels}</SelectItem>
-            {CHANNELS.map((c) => (
-              <SelectItem key={c} value={c}>
-                {dict.admin.labels.channel[c]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={companyId} onValueChange={setCompanyId}>
-          <SelectTrigger className="w-48" aria-label={dict.admin.leads.filterCompanyAria}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{dict.admin.leads.allCompanies}</SelectItem>
-            {data.companies.map((c) => (
-              <SelectItem key={c.mover.id} value={c.mover.id}>
-                {c.mover.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center gap-2 ps-1">
+        <div className="flex items-center gap-2">
           <Switch id="dup-only" checked={dupOnly} onCheckedChange={setDupOnly} />
           <Label htmlFor="dup-only" className="text-[13px] font-normal text-muted-foreground">
             {dict.admin.leads.duplicatesOnly}
           </Label>
         </div>
+
+        <div className="ms-auto flex flex-wrap items-center gap-2">
+          <DateRangePicker
+            value={dateRange}
+            onPreset={dateRange.setPreset}
+            onCustom={dateRange.setCustom}
+          />
+          <ExportMenu basename={`rotamove-leads-${dateRange.range.end}`} buildSheet={buildSheet} />
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-xl border bg-card shadow-soft">
+      {/*
+        The table.
+
+        Three changes from the shared default, all of them about letting the
+        rows breathe: a softer corner radius so the panel reads as a sheet of
+        data rather than a card; roughly double the cell padding, with the
+        first and last columns inset further so nothing runs up against the
+        border; and a quiet header band that separates labels from values
+        without a heavy rule.
+
+        Scoped here rather than changed in `ui/table`, which eight other
+        admin views share and none of them asked for.
+      */}
+      <div className="overflow-hidden rounded-md border bg-card shadow-soft">
         <div className="overflow-x-auto">
-          <Table>
+          <Table
+            className={cn(
+              "[&_thead]:bg-muted/40",
+              "[&_th]:h-11 [&_th]:px-4 [&_th]:text-[12px] [&_th]:font-medium [&_th]:text-muted-foreground",
+              "[&_td]:px-4 [&_td]:py-3.5",
+              "[&_th:first-child]:ps-6 [&_td:first-child]:ps-6",
+              "[&_th:last-child]:pe-6 [&_td:last-child]:pe-6",
+            )}
+          >
             <TableHeader>
               <TableRow>
+                {/* Position in the filtered set, not the lead's identity —
+                    the ID is already under the name. It continues across
+                    pages so "row 14" means the same thing on page two. */}
+                <TableHead className="w-[64px] text-end">{dict.admin.leads.colNumber}</TableHead>
                 <TableHead>{dict.admin.leads.colLead}</TableHead>
                 <TableHead>{dict.admin.leads.colRoute}</TableHead>
                 <SortHead label={dict.admin.leads.colCreated} sortKey="created" sort={sort} onToggle={toggle} />
@@ -215,7 +200,7 @@ export function LeadsView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pagination.pageRows.map((l) => (
+              {pagination.pageRows.map((l, i) => (
                 <TableRow
                   key={l.lead.id}
                   tabIndex={0}
@@ -225,6 +210,9 @@ export function LeadsView() {
                   }}
                   className="cursor-pointer"
                 >
+                  <TableCell className="tnum text-end text-[13px] text-muted-foreground">
+                    {t.number(pagination.from + i)}
+                  </TableCell>
                   <TableCell>
                     <span className="flex flex-col">
                       <span className="flex items-center gap-1.5 font-medium">

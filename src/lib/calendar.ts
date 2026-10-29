@@ -120,6 +120,10 @@ export function weekdayHeaders(bcp47: string, weekStart: number): Array<{ narrow
 export const monthLabel = (bcp47: string, date: Date) =>
   new Intl.DateTimeFormat(bcp47, { month: "long", year: "numeric" }).format(date);
 
+/** Just the month name, for a month menu where the year is chosen separately. */
+export const monthName = (bcp47: string, month: number) =>
+  new Intl.DateTimeFormat(bcp47, { month: "long" }).format(new Date(2000, month, 1));
+
 export function addMonths(date: Date, months: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + months, 1);
 }

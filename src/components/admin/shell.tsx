@@ -32,6 +32,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AdminLocaleSwitcher } from "@/components/admin/locale-switcher";
+import { useAdminTitle } from "@/components/admin/page-title";
 import { ADMIN_COOKIE, ADMIN_EMAIL } from "@/lib/admin-session";
 import { useI18n } from "@/i18n/provider";
 import type { Dictionary } from "@/i18n/dictionaries";
@@ -169,6 +170,16 @@ function AccountMenu() {
   );
 }
 
+function PageTitle() {
+  const title = useAdminTitle();
+  if (!title) return null;
+  return (
+    <h1 className="hidden min-w-0 truncate text-[15px] font-semibold tracking-[-0.02em] lg:block">
+      {title}
+    </h1>
+  );
+}
+
 export function AdminShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { dict } = useI18n();
@@ -217,6 +228,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <div className="lg:hidden">
             <Wordmark />
           </div>
+
+          {/* Claimed by the view, not derived from the route — see
+              `page-title.ts`. Hidden on phones, where the wordmark already
+              owns the row. */}
+          <PageTitle />
 
           <div className="ms-auto flex items-center gap-2">
             <div className="hidden sm:block">

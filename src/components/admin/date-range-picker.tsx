@@ -107,6 +107,8 @@ export function DateRangePicker({
                 }
               }}
               months={1}
+              // A console filters what has already happened.
+              allowPast
             />
           </div>
         </div>

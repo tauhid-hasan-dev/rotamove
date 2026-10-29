@@ -12,6 +12,7 @@ import {
   isWithin,
   monthGrid,
   monthLabel,
+  monthName,
   todayLocalIso,
   weekdayHeaders,
 } from "@/lib/calendar";
@@ -38,10 +39,26 @@ export function RangeCalendar({
   value,
   onChange,
   months = 2,
+  allowPast = false,
+  yearsBack = 6,
+  yearsForward = 1,
 }: {
   value: DateRange;
   onChange: (next: DateRange) => void;
   months?: number;
+  /**
+   * Lets the range reach backwards.
+   *
+   * Off by default, because the calendar was built for the quote wizard,
+   * where a collection date in the past is not a date. The admin console
+   * filters history with the same component and needs the exact opposite —
+   * every day it can offer was greyed out, which looked like a broken
+   * calendar rather than a deliberate rule.
+   */
+  allowPast?: boolean;
+  /** How far the year menu reaches, either side of today. */
+  yearsBack?: number;
+  yearsForward?: number;
 }) {
   const { locale, dict, rtl } = useI18n();
   const bcp47 = LOCALE_META[locale].bcp47;
@@ -57,10 +74,37 @@ export function RangeCalendar({
   });
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const thisMonth = new Date();
+  // Memoised because the year list derives from it; a fresh Date on every
+  // render would rebuild that list on every render too.
+  const thisMonth = useMemo(() => new Date(), []);
   const atStart =
+    !allowPast &&
     cursor.getFullYear() === thisMonth.getFullYear() &&
     cursor.getMonth() === thisMonth.getMonth();
+
+  /*
+   * Month and year as menus, not as a pair of arrows.
+   *
+   * Reaching last March from this October was eight clicks on the chevron
+   * and no indication of how many more were left. Two menus make any month
+   * in the range two clicks, and they also say what the range *is* — the
+   * arrows gave no clue where they stopped.
+   */
+  const monthNames = useMemo(
+    () => Array.from({ length: 12 }, (_, m) => monthName(bcp47, m)),
+    [bcp47],
+  );
+
+  const years = useMemo(() => {
+    const base = thisMonth.getFullYear();
+    const from = allowPast ? base - yearsBack : base;
+    const to = base + yearsForward;
+    return Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  }, [allowPast, yearsBack, yearsForward, thisMonth]);
+
+  const setMonth = (month: number) =>
+    setCursor(new Date(cursor.getFullYear(), month, 1));
+  const setYear = (year: number) => setCursor(new Date(year, cursor.getMonth(), 1));
 
   /**
    * First click sets the start and clears the end; second click closes the
@@ -82,21 +126,54 @@ export function RangeCalendar({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-2 px-1">
+      <div className="flex items-center gap-1.5 px-1">
         <button
           type="button"
           onClick={() => setCursor(addMonths(cursor, -1))}
           disabled={atStart}
           aria-label={dict.dates.previousMonth}
-          className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+          className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
         >
           {rtl ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
         </button>
+
+        {/*
+          Native selects on purpose. They sit inside a popover, they have to
+          stay usable by keyboard once they are there, and the platform's own
+          menu handles both without a second layer of focus management.
+        */}
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+          <select
+            value={cursor.getMonth()}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            aria-label={dict.dates.chooseMonth}
+            className="min-w-0 rounded-md border bg-background px-2 py-1 text-[13px] font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            {monthNames.map((name, m) => (
+              <option key={m} value={m}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={cursor.getFullYear()}
+            onChange={(e) => setYear(Number(e.target.value))}
+            aria-label={dict.dates.chooseYear}
+            className="tnum rounded-md border bg-background px-2 py-1 text-[13px] font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <button
           type="button"
           onClick={() => setCursor(addMonths(cursor, 1))}
           aria-label={dict.dates.nextMonth}
-          className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           {rtl ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}
         </button>
@@ -109,14 +186,23 @@ export function RangeCalendar({
         {Array.from({ length: months }, (_, offset) => {
           const monthDate = addMonths(cursor, offset);
           const grid = monthGrid(monthDate.getFullYear(), monthDate.getMonth(), weekStart);
+          // A fixed cell size, not seven equal fractions of whatever width
+          // the popover happens to be. The grid used to collapse to its
+          // content inside a `w-auto` popover, so two-digit dates ran into
+          // each other — "12131415161718" across a week.
           return (
-            <div key={offset} className={cn(offset > 0 && months > 1 && "hidden sm:block")}>
-              <p className="pb-3 text-center text-[14px] font-medium">
-                {monthLabel(bcp47, monthDate)}
-              </p>
+            <div
+              key={offset}
+              className={cn("w-[266px]", offset > 0 && months > 1 && "hidden sm:block")}
+            >
+              {months > 1 && (
+                <p className="pb-3 text-center text-[14px] font-medium">
+                  {monthLabel(bcp47, monthDate)}
+                </p>
+              )}
 
               <div
-                className="grid grid-cols-7 gap-y-1"
+                className="grid grid-cols-7 justify-items-center gap-y-1"
                 role="grid"
                 aria-label={monthLabel(bcp47, monthDate)}
               >
@@ -124,7 +210,7 @@ export function RangeCalendar({
                   <abbr
                     key={i}
                     title={day.long}
-                    className="pb-1 text-center text-[11px] font-normal text-muted-foreground no-underline"
+                    className="w-[38px] pb-1 text-center text-[11px] font-normal text-muted-foreground no-underline"
                   >
                     {day.narrow}
                   </abbr>
@@ -133,7 +219,7 @@ export function RangeCalendar({
                 {grid.weeks.flat().map((iso, i) => {
                   if (!iso) return <span key={i} />;
 
-                  const past = iso < today;
+                  const past = !allowPast && iso < today;
                   const isStart = isSameDay(iso, value.start);
                   const isEnd = isSameDay(iso, provisionalEnd);
                   const inRange = isWithin(iso, value.start, provisionalEnd);
@@ -148,7 +234,7 @@ export function RangeCalendar({
                       onMouseEnter={() => !past && setHovered(iso)}
                       aria-pressed={edge || inRange}
                       className={cn(
-                        "relative h-8 text-[13.5px] tnum transition-colors",
+                        "relative h-9 w-[38px] text-[13.5px] tnum transition-colors",
                         // Inset, because the popover clips: an outline drawn
                         // outside the button is sliced off for days in the
                         // first and last columns, which is exactly where
@@ -165,7 +251,7 @@ export function RangeCalendar({
                     >
                       <span
                         className={cn(
-                          "absolute inset-0 m-auto grid size-8 place-items-center rounded-full",
+                          "absolute inset-0 m-auto grid size-9 place-items-center rounded-full",
                           edge && "bg-brand font-medium text-ink",
                           iso === today && !edge && "ring-1 ring-inset ring-border",
                         )}
