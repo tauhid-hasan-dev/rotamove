@@ -90,10 +90,17 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
   const [open, setOpen] = useState(false);
   const { offers } = useLastCall();
 
+  /*
+   * The left group is for people with something to move. "Become a partner"
+   * used to sit here as "For carriers" and it was the odd one out: everything
+   * beside it answers a question a shipper is already asking, while that one
+   * addresses the other side of the marketplace entirely. It lives on the
+   * right now, next to partner login, where the two carrier-facing doors are
+   * together and neither interrupts the shipper's row.
+   */
   const nav = [
     { path: "/how-it-works", label: dict.nav.howItWorks },
     { path: "/coverage", label: dict.nav.coverage },
-    { path: "/partners", label: dict.nav.forMovers },
   ];
 
   const [lastPath, setLastPath] = useState(pathname);
@@ -134,18 +141,24 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
         against all eight locales rather than guessed.
 
         What appears when:
-          < deck  the drawer. Three links, a pill, two controls and a button
-                  do not fit in 819px in French, and 1024px screens leave
-                  exactly that inside the gutter.
-          deck    links + the last-call pill, compact; language, theme, CTA.
+          < lg    the drawer. Three links, a pill and two controls do not fit
+                  in the 722px a tablet leaves inside the gutter.
+          lg      links + the last-call pill, compact; language and theme.
           xl      the last-call pill gets its word back.
           2xl     partner login joins the row, and the gaps open up.
+
+        This used to switch at a bespoke 1120px, because the bar also carried
+        a "start a search" button and in French that pushed it to 874px of
+        the 819px a 1024px screen allows. The button is gone — it pointed at
+        the home page, which is what the logo beside it already does — and
+        with it the reason for a breakpoint of our own. The widest
+        translation now clears `lg` with 150px to spare.
       */}
       <div className={cn(PAGE_GUTTER, "flex h-16 items-center gap-4 2xl:gap-6")}>
         <Logo />
 
         <nav
-          className="hidden items-center gap-4 deck:flex 2xl:gap-6"
+          className="hidden items-center gap-4 lg:flex 2xl:gap-6"
           aria-label={dict.nav.main}
         >
           {nav.map((item) => {
@@ -176,24 +189,41 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
           <ThemeToggle className="hidden rounded-full sm:inline-flex" />
           {/* Last in, first out: partner login is the only item here that is
               also one tap away inside the dashboard, so it is the one the bar
-              can afford to hold back until there is genuinely room. */}
+              can afford to hold back until there is genuinely room. It waited
+              until `2xl` while the bar still carried a call to action; with
+              that gone there is room for it from `xl`, and the right-hand
+              side of a 1280px header is otherwise two icons and a gap. */}
           <Link
             href={href("/partners/login")}
-            className="hidden whitespace-nowrap rounded-full px-4 py-2 text-[14px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground 2xl:inline-flex"
+            className="hidden whitespace-nowrap rounded-full px-4 py-2 text-[14px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xl:inline-flex"
           >
             {dict.common.partnerLogin}
           </Link>
+
+          {/* Last, and the only item on this side carrying full-strength ink:
+              it is the one thing in the bar asking someone to join rather
+              than to look. It appears whenever the desktop row does, while
+              partner login waits for `xl` — a carrier who has not signed up
+              yet needs the door more than one who has. */}
           <Link
-            href={href("/")}
-            className="ms-1 hidden whitespace-nowrap rounded-full bg-brand px-4 py-2.5 text-[14.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985] sm:inline-flex 2xl:px-5"
+            href={href("/partners")}
+            className={cn(
+              "hidden whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-medium transition-colors lg:inline-flex",
+              // The join funnel only. `/partners/login` and the dashboard
+              // behind it belong to someone who has already joined, and
+              // lighting this up there would be telling them to do it again.
+              current === "/partners" || current.startsWith("/partners/register")
+                ? "text-foreground"
+                : "text-foreground/80 hover:bg-muted hover:text-foreground",
+            )}
           >
-            {dict.common.startSearch}
+            {dict.nav.becomePartner}
           </Link>
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <button
-                className="grid size-10 place-items-center rounded-full transition-colors hover:bg-muted deck:hidden"
+                className="grid size-10 place-items-center rounded-full transition-colors hover:bg-muted lg:hidden"
                 aria-label={dict.common.openMenu}
               >
                 <Menu className="size-5" />
@@ -224,6 +254,17 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "flu
                   count={offers.length}
                   mobile
                 />
+                {/* The drawer carries both carrier doors explicitly, because
+                    it no longer gets "Become a partner" from the `nav` array
+                    the way it used to. The bar can move an item to its right
+                    edge; the drawer has no right edge, so the only thing that
+                    changes here is the order. */}
+                <Link
+                  href={href("/partners")}
+                  className="rounded-xl px-3 py-3 text-[16px] font-medium transition-colors hover:bg-muted"
+                >
+                  {dict.nav.becomePartner}
+                </Link>
                 <Link
                   href={href("/partners/login")}
                   className="rounded-xl px-3 py-3 text-[16px] transition-colors hover:bg-muted"

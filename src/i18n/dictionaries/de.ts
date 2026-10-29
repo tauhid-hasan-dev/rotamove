@@ -56,7 +56,7 @@ export const de = {
     lastCall: "Kurzfristig frei",
     howItWorks: "So funktioniert’s",
     coverage: "Abdeckung",
-    forMovers: "Für Speditionen",
+    becomePartner: "Partner werden",
     main: "Hauptnavigation",
     mobile: "Mobile Navigation",
     home: "Rotamove Startseite",
@@ -463,8 +463,6 @@ export const de = {
 
   lastCall: {
     badge: "Kurzfristig frei",
-    body: "{count} Routen mit freiem Platz, Abfahrt in wenigen Stunden.",
-    cta: "Ansehen",
     dismiss: "Schließen",
   },
 

@@ -56,7 +56,7 @@ export const nl = {
     lastCall: "Last minute",
     howItWorks: "Hoe het werkt",
     coverage: "Dekking",
-    forMovers: "Voor vervoerders",
+    becomePartner: "Word partner",
     main: "Hoofdnavigatie",
     mobile: "Mobiele navigatie",
     home: "Rotamove-startpagina",
@@ -462,8 +462,6 @@ export const nl = {
 
   lastCall: {
     badge: "Last minute",
-    body: "{count} routes met ruimte, vertrek binnen enkele uren.",
-    cta: "Bekijk ze",
     dismiss: "Sluiten",
   },
 

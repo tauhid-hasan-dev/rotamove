@@ -61,7 +61,7 @@ export const tr = {
     lastCall: "Son çağrı",
     howItWorks: "Nasıl çalışır",
     coverage: "Kapsama",
-    forMovers: "Taşıyıcılar için",
+    becomePartner: "İş ortağı olun",
     main: "Ana menü",
     mobile: "Mobil menü",
     home: "Rotamove ana sayfa",
@@ -464,8 +464,6 @@ export const tr = {
 
   lastCall: {
     badge: "Son çağrı",
-    body: "{count} hatta yer var, saatler içinde kalkıyor.",
-    cta: "Hepsini gör",
     dismiss: "Kapat",
   },
 

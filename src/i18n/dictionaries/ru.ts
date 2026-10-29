@@ -77,7 +77,7 @@ export const ru = {
     lastCall: "Срочная загрузка",
     howItWorks: "Как это работает",
     coverage: "География",
-    forMovers: "Для перевозчиков",
+    becomePartner: "Стать партнёром",
     main: "Основная навигация",
     mobile: "Мобильная навигация",
     home: "Главная Rotamove",
@@ -483,8 +483,6 @@ export const ru = {
 
   lastCall: {
     badge: "Срочная загрузка",
-    body: "Маршрутов с местом: {count} — отправление в ближайшие часы.",
-    cta: "Посмотреть",
     dismiss: "Закрыть",
   },
 

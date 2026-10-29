@@ -14,31 +14,27 @@ import { useI18n } from "@/i18n/provider";
 const APPEAR_AFTER_MS = 900;
 
 /**
- * Where the popup stays out of the way.
- *
- * The board it advertises, and anywhere the visitor is already acting on a
- * request. Someone who has just pressed Send request has taken the offer —
- * putting the same offer back in front of them is interrupting a conversion
- * to advertise the thing they are already doing.
- *
- * The partner workspace too. Last call sells spare capacity to people
- * moving house; a carrier signed in to work their lead board is the wrong
- * audience, and a modal over a tool is an interruption rather than an
- * offer. (The admin console sits outside this layout and never sees it.)
- */
-const SILENT_PATHS = ["/last-call", "/quote", "/results", "/partners/dashboard"];
-
-/**
  * The last-call offer popup.
  *
- * Shown on every page load rather than once per visitor: the thing it
- * advertises expires in hours, so "you already saw this yesterday" is not a
- * reason to hide today's departures. Dismissal therefore lives in component
- * state only — closing it clears this page view, not the next one.
+ * The home page, on arrival, and nowhere else.
  *
- * Suppressed on the board it links to (nothing to promote once you are
- * already there) and whenever no offer is actually live, because a popup
- * advertising an empty page is worse than no popup.
+ * It used to appear on every page in the public site except a short list of
+ * exceptions, and because this component is mounted by the layout rather
+ * than by a page, it survived client-side navigation — so it could also
+ * reappear mid-session, over a login form or a carrier's profile, simply
+ * because the visitor had walked back out of one of the quiet paths. An
+ * offer that interrupts you while you are signing in is not an offer.
+ *
+ * Two rules now, and the second is what makes the first stick:
+ *
+ *   · it opens only if the visitor arrived on the home page;
+ *   · the moment the path is anything else, it is closed for good.
+ *
+ * The second rule is checked on mount too, which is what suppresses it on a
+ * direct load of any other page. Dismissal stays in component state, so a
+ * genuine reload shows today's departures again — the thing it advertises
+ * expires in hours, and "you saw this yesterday" is not a reason to hide
+ * tomorrow's.
  */
 export function LastCallPopup() {
   const { dict, t, href } = useI18n();
@@ -47,17 +43,43 @@ export function LastCallPopup() {
   const pathname = usePathname();
   const { offers, now, ready } = useLastCall();
 
-  const [dismissed, setDismissed] = useState(false);
+  const path = stripLocale(pathname);
+
+  /*
+   * It starts closed anywhere but the home page.
+   *
+   * A lazy initialiser rather than an effect, so a direct load of the login
+   * page never has a window in which the popup could arm. Recomputed on
+   * every fresh mount, which is why a reload of the home page still shows
+   * today's departures.
+   */
+  const [dismissed, setDismissed] = useState(() => path !== "/");
   const [armed, setArmed] = useState(false);
 
-  const path = stripLocale(pathname);
-  const silent = SILENT_PATHS.some((p) => path.startsWith(p));
   const target = href("/last-call");
 
   useEffect(() => {
     const timer = setTimeout(() => setArmed(true), APPEAR_AFTER_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  /*
+   * And any navigation at all closes it, for good.
+   *
+   * One-way on purpose: going home → partners → home must not bring it
+   * back, which is the behaviour being removed. Since it can only ever be
+   * open on the home page, a changed path always means the visitor has
+   * left — there is no case where reopening would be right.
+   *
+   * Adjusting state during render rather than in an effect is React's own
+   * recommendation for deriving from a changed input, and it is the shape
+   * `site-header.tsx` already uses to close the drawer on navigation.
+   */
+  const [lastPath, setLastPath] = useState(path);
+  if (lastPath !== path) {
+    setLastPath(path);
+    setDismissed(true);
+  }
 
   // Escape closes it, like any other modal on the site.
   useEffect(() => {
@@ -68,7 +90,7 @@ export function LastCallPopup() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const open = armed && ready && !dismissed && !silent && offers.length > 0;
+  const open = armed && ready && !dismissed && offers.length > 0;
 
   // The three soonest to expire — enough to show the offer is real without
   // turning the popup into the board it links to.

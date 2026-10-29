@@ -121,7 +121,7 @@ export const ar = {
     lastCall: "فرصة أخيرة",
     howItWorks: "كيف تعمل المنصة",
     coverage: "التغطية",
-    forMovers: "للناقلين",
+    becomePartner: "كن شريكًا",
     main: "التنقل الرئيسي",
     mobile: "تنقل الجوال",
     home: "الصفحة الرئيسية لـ Rotamove",
@@ -525,8 +525,6 @@ export const ar = {
 
   lastCall: {
     badge: "فرصة أخيرة",
-    body: "خطوط بها مساحة: {count} — تغادر خلال ساعات.",
-    cta: "اعرضها",
     dismiss: "إغلاق",
   },
 

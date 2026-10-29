@@ -122,11 +122,12 @@ convention, and it keeps tabular figures aligned.
 **The header is sized to the longest translation.** Every label in the bar is
 `nowrap`, so it either has room for an item or does not show it — nothing is
 allowed to break "How it works" across three lines to make it fit. The drawer
-gives way to the full navigation at a measured breakpoint (`deck`, 1120px)
-rather than at `lg`: a logo, three links, the last-call pill, a language menu,
-a theme toggle and a call to action need 874px in French, and a 1024px screen
-leaves 819px inside the page gutter. Above that the pill gets its word back at
-`xl` and partner login joins at `2xl`.
+gives way to the full navigation at `lg`, where the widest translation
+(French) clears the page gutter with 150px to spare; the last-call pill gets
+its word back at `xl`, along with partner login, and the gaps open up at
+`2xl`. Every threshold was measured against all eight locales, not guessed —
+the bar carried a bespoke 1120px breakpoint for as long as it also carried a
+"start a search" button.
 
 **Three typefaces, one per visitor.** Instrument Sans covers `latin` and
 `latin-ext` only, so Russian and Arabic would otherwise fall back to whatever

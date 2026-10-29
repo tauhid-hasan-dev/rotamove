@@ -69,7 +69,7 @@ export const en = {
     lastCall: "Last call",
     howItWorks: "How it works",
     coverage: "Coverage",
-    forMovers: "For carriers",
+    becomePartner: "Become a partner",
     main: "Main",
     mobile: "Mobile",
     home: "Rotamove home",
@@ -486,8 +486,6 @@ export const en = {
 
   lastCall: {
     badge: "Last call",
-    body: "{count} routes with space, leaving within hours.",
-    cta: "See them",
     dismiss: "Dismiss",
   },
 

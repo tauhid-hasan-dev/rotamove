@@ -10,20 +10,6 @@
    backgrounds. Generous air. Everything else gets out of the way.
    ========================================================================== */
 
-/*
- * One extra breakpoint, and it exists for a measured reason.
- *
- * The header swaps its drawer for the full navigation here. Not at `lg`:
- * the bar carries a logo, three links, the last-call pill, a language menu,
- * a theme toggle and a call to action, and in French that needs 874px of the
- * 819px a 1024px screen leaves inside the page gutter. 1120px is the width
- * at which the longest of the eight translations fits with room to spare —
- * see `site-header.tsx`.
- */
-@theme {
-  --breakpoint-deck: 70rem;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -539,18 +525,6 @@
   }
 }
 
-/*
- * Set before first paint by the inline script in the root layout, so a visitor
- * who dismissed the last-call strip never sees it flash back.
- *
- * Deliberately NOT inside `@layer utilities`: Tailwind v4 tree-shakes that
- * layer against the classes it finds in the source, and this rule was being
- * dropped from the build entirely.
- */
-[data-lastcall="off"] .last-call-bar {
-  display: none;
-}
-
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
@@ -637,32 +611,6 @@
   .coverage-pulse {
     display: none;
   }
-}
-
-/* A short bright run travelling left to right along the last-call strip
-   run travelling left to right along the bar, on the same slow cadence as
-   the lanes. It says "live" about a strip advertising stock that expires
-   in hours, using the one gesture the rest of the page already uses for
-   movement. A sweep rather than a flash — the strip sits above every page
-   and anything that blinks would have to be ignored all session. */
-@keyframes last-call-run {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-.last-call-run {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in oklab, white 55%, transparent) 45%,
-    color-mix(in oklab, white 55%, transparent) 55%,
-    transparent 100%
-  );
-  animation: last-call-run 6.5s linear infinite;
 }
 
 @keyframes last-call-sheen {

@@ -56,7 +56,7 @@ export const fr = {
     lastCall: "Dernière minute",
     howItWorks: "Comment ça marche",
     coverage: "Couverture",
-    forMovers: "Pour les transporteurs",
+    becomePartner: "Devenir partenaire",
     main: "Navigation principale",
     mobile: "Navigation mobile",
     home: "Accueil Rotamove",
@@ -464,8 +464,6 @@ export const fr = {
 
   lastCall: {
     badge: "Dernière minute",
-    body: "{count} trajets avec de la place, départ dans quelques heures.",
-    cta: "Les voir",
     dismiss: "Fermer",
   },
 
