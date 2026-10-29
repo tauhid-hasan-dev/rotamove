@@ -24,7 +24,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { geoContains } from "d3-geo";
+import { geoCentroid, geoContains, geoDistance } from "d3-geo";
 import { feature } from "topojson-client";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -85,38 +85,61 @@ const topology = JSON.parse(
 );
 const countries = feature(topology, topology.objects.countries).features;
 
+/**
+ * How far from a hub a separate landmass can be and still count as served.
+ *
+ * Lighting a whole country because one hub stands somewhere in it put a green
+ * patch on South America: `world-atlas` draws French Guiana as part of
+ * France, and France has Paris in it. Sicily, Northern Ireland and Jutland
+ * have exactly the same shape of problem in reverse — no hub inside them
+ * either, and obviously served.
+ *
+ * So the rule is per-landmass and the test is distance: a ring is lit if a
+ * hub stands on it, or if its centroid is within this of one. Twenty degrees
+ * is about 2,200km — far enough to reach a country's own islands, nowhere
+ * near far enough to reach its other hemisphere.
+ */
+const RING_REACH = (20 * Math.PI) / 180;
+
 const out = [];
 let points = 0;
 
 for (const country of countries) {
-  // Served if a hub stands on it. Tested against the polygon rather than
-  // matched on a country name or ISO code: the hub list already knows where
-  // it is, and no two datasets agree on what to call Türkiye.
-  const served = HUBS.some((hub) => geoContains(country, hub));
-  const hubsHere = served ? HUBS.filter((hub) => geoContains(country, hub)) : [];
+  // Tested against the geometry rather than matched on a country name or ISO
+  // code: the hub list already knows where it is, and no two datasets agree
+  // on what to call Türkiye.
+  const hubsHere = HUBS.filter((hub) => geoContains(country, hub));
 
   const polygons =
     country.geometry.type === "Polygon"
       ? [country.geometry.coordinates]
       : country.geometry.coordinates;
 
-  const rings = [];
   for (const polygon of polygons) {
     // Outer ring only. Holes at 110m are a handful of inland seas, and a
-    // filled globe reads perfectly well without them.
+    // filled map reads perfectly well without them.
     const outer = polygon[0];
     const keep = hubsHere.length > 0 && outer.length < 40;
     if (!ringWorthDrawing(outer, keep)) continue;
     const flat = flatten(outer);
     if (!flat) continue;
-    rings.push(flat);
+
+    let served = false;
+    if (hubsHere.length) {
+      const poly = { type: "Polygon", coordinates: [outer] };
+      served = hubsHere.some((hub) => geoContains(poly, hub));
+      if (!served) {
+        const centre = geoCentroid(poly);
+        served = hubsHere.some((hub) => geoDistance(centre, hub) < RING_REACH);
+      }
+    }
+
+    out.push({ name: country.properties?.name ?? "", served, ring: flat });
     points += flat.length / 2;
   }
-
-  if (rings.length) out.push({ name: country.properties?.name ?? "", served, rings });
 }
 
-out.sort((a, b) => a.name.localeCompare(b.name));
+out.sort((a, b) => a.name.localeCompare(b.name) || b.ring.length - a.ring.length);
 const served = out.filter((c) => c.served).length;
 
 const file = `/**
@@ -125,30 +148,32 @@ const file = `/**
  *   npm run generate:map
  *
  * Natural Earth 1:110m country polygons (public domain, via \`world-atlas\`),
- * rounded to a tenth of a degree and flattened. \`served\` is true where one of
- * the hubs in \`geo.ts\` stands inside the country, so the globe cannot light
- * somewhere the search will not quote.
+ * rounded to a tenth of a degree and flattened to \`[lon, lat, lon, lat, …]\`.
  *
- * Unprojected on purpose: the globe turns, so it re-projects these every
- * frame. See \`scripts/generate-world-land.mjs\`.
+ * One entry per landmass, not per country, because \`served\` is a fact about
+ * a landmass: a hub stands on it, or stands within reach of it. That is what
+ * keeps French Guiana dark while Paris lights France, and lights Sicily
+ * because Rome is 600km away. See \`RING_REACH\` in the generator.
  *
- * ${out.length} countries, ${served} served, ${points.toLocaleString("en-GB")} points.
+ * Unprojected on purpose — the map projects these itself.
+ *
+ * ${out.length} landmasses, ${served} served, ${points.toLocaleString("en-GB")} points.
  */
 
-export interface LandCountry {
+export interface LandShape {
   /** For debugging and for the generator's benefit. Never rendered. */
   name: string;
-  /** True when a hub in \`geo.ts\` falls inside this country. */
+  /** True when a hub in \`geo.ts\` stands on this landmass or within reach of it. */
   served: boolean;
-  /** Outer rings, each flat: \`[lon, lat, lon, lat, …]\`. */
-  rings: number[][];
+  /** The outer ring, flat: \`[lon, lat, lon, lat, …]\`. */
+  ring: number[];
 }
 
-export const WORLD: LandCountry[] = ${JSON.stringify(out)};
+export const WORLD: LandShape[] = ${JSON.stringify(out)};
 `;
 
 const target = join(root, "src/lib/world-land.ts");
 writeFileSync(target, file, "utf8");
 console.log(
-  `world-land.ts: ${out.length} countries (${served} served), ${points} points, ${(file.length / 1024).toFixed(0)} KB`,
+  `world-land.ts: ${out.length} landmasses (${served} served), ${points} points, ${(file.length / 1024).toFixed(0)} KB`,
 );

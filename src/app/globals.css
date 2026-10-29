@@ -613,11 +613,31 @@
   transform-origin: 50% 55%;
 }
 
-/* The travelling shipment that used to live here — a short dash chasing a
-   long gap along each lane — moved into the globe's canvas when the flat map
-   became a sphere. It is the same nine-second cadence and the same idea; it
-   is drawn in `globe-canvas.tsx` now because a lane on a turning globe has
-   no fixed path for CSS to animate along. */
+/* Coverage map ----------------------------------------------------------
+   A short dash chasing a long gap along the lane path: the dash is the
+   shipment, the gap is the wait between departures. Slow — nine seconds end
+   to end — because this sits behind the reader while they read the copy
+   above it, and anything quicker turns a map into a screensaver. */
+@keyframes coverage-pulse {
+  from {
+    stroke-dashoffset: 1200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.coverage-pulse {
+  stroke-dasharray: 22 1178;
+  animation: coverage-pulse 9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The lane itself still reads; only the traffic stops. */
+  .coverage-pulse {
+    display: none;
+  }
+}
 
 /* A short bright run travelling left to right along the last-call strip
    run travelling left to right along the bar, on the same slow cadence as

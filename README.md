@@ -261,36 +261,36 @@ src/
     lead-codec.ts           PII-free results-URL token
     lead-store.ts           repository interface + in-memory impl
     rand.ts                 seeded PRNG — results must be reproducible
-    globe-scene.ts          what the coverage globe draws, renderer-agnostic
-    world-land.ts           GENERATED country rings — `npm run generate:map`
+    map-scene.ts            the coverage map's frame, lanes and palette
+    world-land.ts           GENERATED landmass rings — `npm run generate:map`
 ```
 
-**The coverage globe is real geography, and it turns.** `world-land.ts` is
-Natural Earth's country polygons (public domain, via `world-atlas`), rounded
-to a tenth of a degree by `scripts/generate-world-land.mjs` and shipped
-unprojected — the globe re-projects them every frame. A country is lit only
-when a hub in `geo.ts` physically stands inside its polygon, so the shading
-cannot claim somewhere the search will not quote. The generator reads the hub
-coordinates out of the app's own source: change `geo.ts` and re-run
+**The coverage map is real geography, centred on Istanbul.** `world-land.ts`
+is Natural Earth's country polygons (public domain, via `world-atlas`),
+rounded to a tenth of a degree by `scripts/generate-world-land.mjs` and
+shipped unprojected; the map projects them itself with
+`geoEquirectangular().rotate([-28.98, 0])`.
+
+That rotation is the whole design. `CORRIDORS` is overwhelmingly
+Türkiye-centric — TR to Western Europe, Southern Europe, the Nordics, the
+Balkans, the Middle East, the CIS, Central Asia, and the return leg of each.
+A map drawn on the Greenwich meridian puts the hub every one of those lanes
+passes through a third of the way in from the left and spends its middle on
+the Atlantic. Re-centred, the picture is what the corridor table says, and
+the crop that makes a world map legible on a 360px phone zooms into the
+network instead of cutting it in half.
+
+Lighting is per **landmass**, not per country, and the test is distance: a
+shape is lit if a hub stands on it or its centroid is within 20° of one.
+Lighting whole countries put a green patch on South America — `world-atlas`
+draws French Guiana as part of France — while Sicily and Northern Ireland had
+the same problem in reverse. Change `geo.ts` and re-run
 `npm run generate:map`. None of the source topology ships to the browser.
 
-Two renderers share `globe-scene.ts`, so what paints first and what replaces
-it cannot disagree:
-
-- the **server** draws one still frame as SVG. It is a complete picture — it
-  survives JavaScript being off, paints with the HTML, and holds the panel's
-  height so nothing shifts;
-- the **canvas** fades in over it and spins. Orthographic projection and a
-  fill, not WebGL: a sphere with a fixed light and no user camera does not
-  need a scene graph or half a megabyte of engine.
-
-It is built not to cost anything until it is looked at. The renderer, d3's
-projection maths and the geometry sit behind a dynamic import fired by an
-observer, so the home page loads **zero bytes** of globe; reaching the section
-pulls one ~50KB chunk. The loop runs only while the panel is on screen *and*
-the tab is foreground, draws at 30fps rather than 60, and caps its backing
-store at 2× whatever the display claims. Under `prefers-reduced-motion` it
-paints one frame and never starts.
+The whole section is server-rendered SVG: no canvas, no client JavaScript, no
+lazily fetched geometry. The only thing that moves is a CSS dash travelling
+each lane, and `prefers-reduced-motion` stops the traffic without removing
+the road.
 
 **Deterministic results.** Everything "random" derives from
 `hash(leadId + moverId)`. Refresh, re-sort or share the link: same order.
