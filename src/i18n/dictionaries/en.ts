@@ -299,6 +299,7 @@ export const en = {
       "Both plans include licence and insurance verification, dispute mediation, and removal from the board if standards slip.",
     creditTitle: "Get {credit} in credit when you create your account.",
     creditBody: "It applies to whichever plan you pick. The first leads are on us.",
+    creditDismiss: "Maybe later",
     chooserTitle: "Which one fits you?",
     feeTitle: "Never more than {cap}. Whatever the load.",
     whyItems: [
@@ -763,7 +764,7 @@ export const en = {
 
   register: {
     title: "Join the Rotamove carrier network",
-    lede: "Five short steps. We verify every applicant before they see a single lead.",
+    lede: "Six short steps. We verify every applicant before they see a single lead.",
     stepOf: "Step {current} of {total}",
     back: "Back",
     next: "Continue",
@@ -779,11 +780,19 @@ export const en = {
     s3: "Credentials",
     s4: "Fleet",
     s5: "Coverage",
+    s6: "Plan",
     s1Lede: "Who are we accrediting?",
     s2Lede: "Who should we deal with?",
     s3Lede: "What can you prove?",
     s4Lede: "What can you move?",
     s5Lede: "Where, and how soon?",
+    s6Lede: "How would you like to pay?",
+    planLegend: "Choose your plan",
+    planHint: "Every account starts on one. You can change it from your dashboard later.",
+    planRequired: "Pick a plan to continue",
+    planCredit: "{credit} in credit lands on your account the day it opens — whichever plan you pick.",
+    planSwitchNote:
+      "Plan changes take effect on the first of the following month, so you are never moved mid-cycle.",
     legalName: "Registered company name",
     tradingName: "Trading name",
     country: "Country of registration",

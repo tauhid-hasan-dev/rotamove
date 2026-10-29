@@ -49,6 +49,9 @@ export interface ApplicationDraft {
   availability: string;
   notes: string;
   declaration: boolean;
+
+  /** `""` until chosen — the plan step has no default on purpose. */
+  plan: string;
 }
 
 const STORAGE_KEY = "rotamove.partner.application";
@@ -93,6 +96,11 @@ export function emptyDraft(locale: Locale): ApplicationDraft {
     availability: "within_week",
     notes: "",
     declaration: false,
+
+    // Deliberately empty. Pre-selecting a plan would mean most accounts
+    // arrive on whichever one we happened to list first, which is a pricing
+    // decision made by a default rather than by the carrier.
+    plan: "",
   };
 }
 

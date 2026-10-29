@@ -1,6 +1,17 @@
 "use client";
 
-import { Building2, Globe2, Plane, Ship, Train, Truck } from "lucide-react";
+import {
+  Building2,
+  Eye,
+  Gift,
+  Globe2,
+  Infinity as InfinityIcon,
+  Plane,
+  Ship,
+  Ticket,
+  Train,
+  Truck,
+} from "lucide-react";
 import { FieldSet, OptionCard, ToggleChip } from "@/components/quote/fields";
 import { DocumentField } from "@/components/partners/register/document-field";
 import { Input } from "@/components/ui/input";
@@ -24,6 +35,13 @@ import {
   REGION_KEYS,
   SERVICE_KEYS,
 } from "@/lib/partner-application";
+import {
+  LEAD_FEE_CAP_USD,
+  LEAD_FEE_FLOOR_USD,
+  PLAN_IDS,
+  PRO_MONTHLY_USD,
+  SIGNUP_CREDIT_USD,
+} from "@/lib/plans";
 import { LOCALES, LOCALE_META } from "@/i18n/config";
 import { useI18n } from "@/i18n/provider";
 import { regionName } from "@/i18n/geo-labels";
@@ -643,6 +661,78 @@ export function StepCoverage({ draft, update, touched, invalid }: StepProps) {
           {R.declaration}
         </span>
       </label>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ plan -- */
+
+const PLAN_ICONS: Record<string, typeof InfinityIcon> = {
+  pro_unlimited: InfinityIcon,
+  pay_per_lead: Ticket,
+  pay_per_seen: Eye,
+};
+
+/**
+ * Which plan the account starts on.
+ *
+ * Last, and required. It is last because nobody can choose how to pay for
+ * leads before they have told us what they can carry, and required because
+ * the three plans bill in genuinely different ways — a default here would be
+ * a pricing decision taken on the carrier's behalf.
+ *
+ * The prices come from `lib/plans`, not from the copy, so this step and the
+ * pricing page cannot quote different numbers.
+ */
+export function StepPlan({ draft, update, touched, invalid }: StepProps) {
+  const { dict, t } = useI18n();
+  const R = dict.register;
+  const cap = t.usd(LEAD_FEE_CAP_USD);
+  const floor = t.usd(LEAD_FEE_FLOOR_USD);
+
+  const priceFor = (plan: string) =>
+    plan === "pro_unlimited"
+      ? t.fill(dict.partnerDashboard.planChange.pricePro, { amount: t.usd(PRO_MONTHLY_USD) })
+      : t.fill(
+          plan === "pay_per_seen"
+            ? dict.partnerDashboard.planChange.pricePps
+            : dict.partnerDashboard.planChange.pricePpl,
+          { floor, cap },
+        );
+
+  return (
+    <div className="space-y-7">
+      {/* The credit, restated where the money question is actually being
+          answered. Someone who arrived from the pricing page has seen it;
+          someone who was sent the form directly has not. */}
+      <p className="flex items-start gap-3 rounded-2xl bg-lastcall px-4 py-3.5 text-[14px] font-medium leading-snug text-lastcall-foreground">
+        <Gift className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <span>{t.fill(R.planCredit, { credit: t.usd(SIGNUP_CREDIT_USD) })}</span>
+      </p>
+
+      <FieldSet legend={R.planLegend} hint={R.planHint}>
+        <div role="radiogroup" aria-label={R.planLegend} className="grid gap-2.5">
+          {PLAN_IDS.map((id) => {
+            const Icon = PLAN_ICONS[id];
+            return (
+              <OptionCard
+                key={id}
+                selected={draft.plan === id}
+                onSelect={() => update({ plan: id })}
+                title={dict.partnerDashboard.planNames[id]}
+                meta={priceFor(id)}
+                hint={dict.partnerDashboard.planChange.planNotes[id]}
+                icon={<Icon className="size-4" />}
+              />
+            );
+          })}
+        </div>
+        {touched && invalid.has("plan") && (
+          <p className="mt-2 text-[12.5px] text-destructive">{R.planRequired}</p>
+        )}
+      </FieldSet>
+
+      <p className="text-[12.5px] leading-relaxed text-muted-foreground">{R.planSwitchNote}</p>
     </div>
   );
 }

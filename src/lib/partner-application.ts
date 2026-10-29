@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { COUNTRY_BY_ISO } from "@/lib/geo";
+import { PLAN_IDS } from "@/lib/plans";
 import { LOCALES } from "@/i18n/config";
 import type { RegionId } from "@/lib/geo";
 
@@ -146,11 +147,29 @@ export const coverageStepSchema = z.object({
   declaration: z.literal(true),
 });
 
+/**
+ * How the applicant intends to pay.
+ *
+ * Asked at application rather than after approval, and required rather than
+ * defaulted: the three plans bill in genuinely different ways — a flat month,
+ * per lead assigned, per lead opened — and which one a carrier wants is a
+ * commercial decision, not a setting to be guessed on their behalf. An
+ * account created without one would have to be chased for it before the
+ * first lead could be billed.
+ *
+ * `PLAN_IDS` is the same list the pricing page and the dashboard read, so a
+ * fourth plan appears here the day it is added there.
+ */
+export const planStepSchema = z.object({
+  plan: z.enum(PLAN_IDS),
+});
+
 export const partnerApplicationSchema = companyStepSchema
   .extend(contactStepSchema.shape)
   .extend(credentialsStepSchema.shape)
   .extend(fleetStepSchema.shape)
   .extend(coverageStepSchema.shape)
+  .extend(planStepSchema.shape)
   .refine((a) => a.lorries + a.vans > 0, {
     message: "Tell us about at least one vehicle",
     path: ["lorries"],

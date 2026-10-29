@@ -11,6 +11,7 @@ import {
   StepCoverage,
   StepCredentials,
   StepFleet,
+  StepPlan,
 } from "@/components/partners/register/steps";
 import {
   useApplicationDraft,
@@ -23,6 +24,7 @@ import {
   credentialsStepSchema,
   fleetStepSchema,
   normaliseWebsite,
+  planStepSchema,
 } from "@/lib/partner-application";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -47,6 +49,7 @@ const SCHEMAS = [
   credentialsStepSchema,
   fleetStepSchema,
   coverageStepSchema,
+  planStepSchema,
 ] as const;
 
 type Issue = z.ZodIssue;
@@ -64,8 +67,8 @@ export function RegisterForm() {
   const [reference, setReference] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const titles = [R.s1, R.s2, R.s3, R.s4, R.s5];
-  const ledes = [R.s1Lede, R.s2Lede, R.s3Lede, R.s4Lede, R.s5Lede];
+  const titles = [R.s1, R.s2, R.s3, R.s4, R.s5, R.s6];
+  const ledes = [R.s1Lede, R.s2Lede, R.s3Lede, R.s4Lede, R.s5Lede, R.s6Lede];
   const total = SCHEMAS.length;
   const last = index === total - 1;
   const slide = rtl ? -1 : 1;
@@ -339,7 +342,9 @@ function renderStep(
       return <StepCredentials {...props} />;
     case 3:
       return <StepFleet {...props} />;
-    default:
+    case 4:
       return <StepCoverage {...props} />;
+    default:
+      return <StepPlan {...props} />;
   }
 }

@@ -4,6 +4,7 @@ import { ArrowRight, BarChart3, Clock3, Filter, Gift, Plug, ShieldCheck } from "
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Shell } from "@/components/common/section";
+import { CreditPopup } from "@/components/partners/credit-popup";
 import { PricingPlans } from "@/components/partners/pricing-plans";
 import { PlanChooser } from "@/components/partners/roi-calculator";
 import { LeadPriceExplainer } from "@/components/partners/lead-price-explainer";
@@ -54,6 +55,10 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
   return (
     <>
       <SiteHeader />
+      {/* Mounted by this page rather than by the layout, which is what makes
+          "every visit to the partner page" its scope without it ever
+          appearing anywhere else. */}
+      <CreditPopup />
       <main id="main">
         {/* hero ------------------------------------------------- */}
         <section className="relative pb-16 pt-16 sm:pt-24">
@@ -63,7 +68,18 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
           />
           <Shell>
             <p className="eyebrow text-center">{page.eyebrow}</p>
-            <h1 className="mx-auto mt-5 max-w-3xl text-center text-[clamp(2.4rem,5.6vw,4rem)] leading-[1.0] tracking-[-0.045em]">
+            {/*
+              One line, from the tablet range up.
+
+              It sat in a 48rem column and broke after "not", which splits
+              the sentence exactly where its contrast lives — "buy demand"
+              against "not phone numbers". The cap is wide enough for the
+              whole line now and the size scales with the viewport, so it
+              holds together down to roughly 768px. Still wrapping rather
+              than `nowrap`: French and Russian run a third longer and a
+              headline running off the gutter is worse than one that breaks.
+            */}
+            <h1 className="mx-auto mt-5 w-full max-w-[72rem] text-balance text-center text-[clamp(2rem,4.4vw,3.6rem)] leading-[1.02] tracking-[-0.045em]">
               {page.title}
             </h1>
             <p className="mx-auto mt-6 max-w-lg text-center text-[17px] leading-relaxed text-muted-foreground">
@@ -83,22 +99,26 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
                 so the decision below is about fit rather than about spending
                 anything today. Same width as the cards, and the same door as
                 every button on them. */}
+            {/* Yellow, and sized so it cannot be read past. This is the one
+                notice on the page offering money rather than describing a
+                price, and the system's yellow is the colour reserved for
+                exactly that — a notice, not navigation. */}
             <Link
               href={localePath(locale, "/partners/register")}
-              className="group mx-auto mb-4 flex max-w-6xl flex-col items-center gap-x-5 gap-y-3 rounded-3xl border border-brand/40 bg-brand-soft px-6 py-5 text-center transition-colors hover:border-brand/70 sm:flex-row sm:text-start"
+              className="group mx-auto mb-5 flex max-w-6xl flex-col items-center gap-x-6 gap-y-4 rounded-3xl bg-lastcall px-6 py-6 text-center text-lastcall-foreground transition-all duration-200 hover:brightness-[0.98] sm:flex-row sm:px-8 sm:py-7 sm:text-start"
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-ink">
-                <Gift className="size-5" strokeWidth={2} />
+              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-lastcall-accent">
+                <Gift className="size-6" strokeWidth={2} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[16.5px] font-medium">
+                <span className="block text-[clamp(1.25rem,2.4vw,1.75rem)] font-semibold leading-[1.15] tracking-[-0.025em]">
                   {fill(page.creditTitle, { credit })}
                 </span>
-                <span className="mt-0.5 block text-[14px] leading-relaxed text-muted-foreground">
+                <span className="mt-1.5 block text-[clamp(0.95rem,1.4vw,1.0625rem)] leading-relaxed opacity-80">
                   {page.creditBody}
                 </span>
               </span>
-              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14.5px] font-medium text-ink transition-all duration-200 group-hover:brightness-[0.97]">
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink px-6 py-3 text-[15.5px] font-medium text-background transition-transform duration-200 group-hover:scale-[1.02]">
                 {dict.plans.getStarted}
                 <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 rtl:-scale-x-100" />
               </span>
