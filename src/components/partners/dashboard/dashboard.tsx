@@ -3,18 +3,22 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   CreditCard,
   ChevronDown,
   Filter,
   Inbox,
   Check,
   Copy,
+  LayoutDashboard,
   LogOut,
   Route,
+  Sparkles,
   Wallet,
 } from "lucide-react";
 import { MoverLogo } from "@/components/common/mover-logo";
 import { PAGE_GUTTER } from "@/components/common/section";
+import { LanguageSwitcher } from "@/components/site/language-switcher";
 import { Logo } from "@/components/site/logo";
 import {
   DropdownMenu,
@@ -46,15 +50,16 @@ import { useI18n } from "@/i18n/provider";
 import { regionName } from "@/i18n/geo-labels";
 import { cn } from "@/lib/utils";
 
-type SectionId = "inbox" | "lanes" | "billing";
+type SectionId = "overview" | "inbox" | "lanes" | "billing";
 
 const SECTION_ICONS: Record<SectionId, typeof Inbox> = {
+  overview: LayoutDashboard,
   inbox: Inbox,
   lanes: Route,
   billing: CreditCard,
 };
 
-const SECTION_IDS: SectionId[] = ["inbox", "lanes", "billing"];
+const SECTION_IDS: SectionId[] = ["overview", "inbox", "lanes", "billing"];
 
 /**
  * Partner dashboard.
@@ -89,14 +94,14 @@ export function PartnerDashboard({
   subscription: PlanSubscription;
   account: PartnerAccount;
 }) {
-  const { dict, href, t } = useI18n();
+  const { dict, href } = useI18n();
   const pd = dict.partnerDashboard;
   const router = useRouter();
   // Not state. The plan is a billing fact held on the server; the dashboard
   // renders it and asks the API to change it, rather than owning a copy
   // that a refresh would silently discard.
   const plan = subscription.plan;
-  const [section, setSection] = useState<SectionId>("inbox");
+  const [section, setSection] = useState<SectionId>("overview");
   const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set(initialUnlocked));
   const [region, setRegion] = useState<string>("all");
   const [onlyNew, setOnlyNew] = useState(false);
@@ -170,7 +175,14 @@ export function PartnerDashboard({
       {/* sidebar ------------------------------------------------- */}
       <aside className="lg:w-[228px] lg:shrink-0">
         <div className="lg:sticky lg:top-24">
-          <nav className="flex gap-1 lg:flex-col" aria-label={pd.navAria}>
+          {/* On a phone this is a strip, not a column. With a fourth entry
+              it no longer divides the width into readable thirds, so the
+              labels size to their own text and the strip scrolls — better
+              a row you can push than "Lead board" broken over two lines. */}
+          <nav
+            className="scrollbar-slim -mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
+            aria-label={pd.navAria}
+          >
             {SECTION_IDS.map((id) => {
               const active = section === id;
               const Icon = SECTION_ICONS[id];
@@ -181,7 +193,7 @@ export function PartnerDashboard({
                   onClick={() => setSection(id)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "inline-flex flex-1 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[14px] transition-colors lg:flex-none",
+                    "inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[14px] transition-colors lg:w-full",
                     active
                       ? "bg-brand-soft font-medium text-foreground dark:bg-accent"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -214,38 +226,23 @@ export function PartnerDashboard({
           <PlanPanel subscription={subscription} compact />
         </div>
 
-        {/* kpis ------------------------------------------------- */}
-        <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:mt-0">
-          <Kpi
-            label={pd.kpis.leadsThisMonth}
-            value={t.number(metrics.leadsThisMonth)}
-            sub={
-              plan === "pro_unlimited"
-                ? pd.kpis.unlimitedOnPlan
-                : t.fill(pd.kpis.nUnlocked, { n: t.number(metrics.unlocked) })
-            }
+        {section === "overview" && (
+          <OverviewPanel
+            account={account}
+            board={board}
+            unlocked={unlocked}
+            lanes={lanes}
+            metrics={metrics}
+            plan={plan}
+            walletSpent={walletSpent}
+            subscription={subscription}
+            now={now}
+            onGoTo={setSection}
           />
-          <Kpi
-            label={pd.kpis.avgReply}
-            value={t.fill(dict.units.minutesShort, { n: t.number(metrics.avgResponseMins) })}
-            sub={plan === "pro_unlimited" ? pd.kpis.autoConfirmed : pd.kpis.manualPickup}
-          />
-          <Kpi
-            label={pd.kpis.platformSpend}
-            value={t.usd(Math.round((metrics.spendUsd + walletSpent) * 100) / 100)}
-            sub={
-              plan === "pro_unlimited"
-                ? t.fill(pd.kpis.flatPerMonth, { amount: t.usd(PRO_MONTHLY_USD) })
-                : t.fill(
-                    plan === "pay_per_seen" ? pd.kpis.perUnlockApprox : pd.kpis.perLeadApprox,
-                    { amount: t.usd(AVG_LEAD_FEE_USD) },
-                  )
-            }
-          />
-        </div>
+        )}
 
         {section === "inbox" && (
-          <div className="mt-8">
+          <div className="mt-4 lg:mt-0">
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-[20px] tracking-[-0.03em]">{pd.sections.inbox}</h2>
 
@@ -355,8 +352,17 @@ function DashboardBar({
             unpicks on the server and React then refuses to hydrate. */}
         <Logo className="shrink-0" />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="ms-auto flex items-center gap-2.5 rounded-full p-1 ps-2.5 outline-ring/40 transition-colors hover:bg-muted">
+        {/* Language sits immediately before the account block, which is
+            where a signed-in partner looks for the things that are about
+            them rather than about their leads. It is the same switcher the
+            public site uses, so it keeps the path and only swaps the
+            locale — changing language on the dashboard returns you to the
+            dashboard. */}
+        <div className="ms-auto flex items-center gap-1">
+          <LanguageSwitcher />
+
+          <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-2.5 rounded-full p-1 ps-2.5 outline-ring/40 transition-colors hover:bg-muted">
             {/* The name and plan are hidden on phones; the avatar is the
                 affordance, and the menu holds everything either way. */}
             <span className="hidden min-w-0 text-end sm:block">
@@ -417,9 +423,329 @@ function DashboardBar({
               {dict.login.signOut}
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
+  );
+}
+
+/**
+ * The Dashboard section.
+ *
+ * What the three KPIs used to do from above every page, plus the context
+ * that makes them mean something — and nothing beyond what the platform can
+ * actually observe. There is no win rate here and no revenue chart, because
+ * Rotamove never learns whether a partner won the job; inventing that was
+ * the reason the old performance panel was taken out, and it is not coming
+ * back dressed as an overview.
+ *
+ * Everything below is derived from the board, the lanes and the plan the
+ * partner is already looking at on the other three sections.
+ */
+function OverviewPanel({
+  account,
+  board,
+  unlocked,
+  lanes,
+  metrics,
+  plan,
+  walletSpent,
+  subscription,
+  now,
+  onGoTo,
+}: {
+  account: PartnerAccount;
+  board: BoardLead[];
+  unlocked: Set<string>;
+  lanes: PartnerLane[];
+  metrics: ReturnType<typeof generatePartnerMetrics>;
+  plan: PlanId;
+  walletSpent: number;
+  subscription: PlanSubscription;
+  now: number;
+  onGoTo: (section: SectionId) => void;
+}) {
+  const { dict, t } = useI18n();
+  const pd = dict.partnerDashboard;
+  const ov = pd.overview;
+  const isPro = plan === "pro_unlimited";
+
+  const awaiting = board.filter((b) => b.status === "new" && !unlocked.has(b.lead.id)).length;
+
+  /*
+   * Corridors on the board right now, busiest first. Counted, not modelled.
+   *
+   * Grouped by region pair rather than by city pair. Eighteen leads across
+   * eighteen distinct city pairs is eighteen bars all reading "1", which is
+   * a chart that has learned nothing — at region level the same board says
+   * "most of what is in front of you is Türkiye to Western Europe", which is
+   * the thing a dispatcher would actually act on.
+   */
+  const corridors = useMemo(() => {
+    const tally = new Map<string, { label: string; value: number }>();
+    for (const item of board) {
+      const from = getCity(item.lead.origin.cityCode);
+      const to = getCity(item.lead.destination.cityCode);
+      if (!from || !to) continue;
+      const fromRegion = cityRegion(from);
+      const toRegion = cityRegion(to);
+      const key = `${fromRegion}:${toRegion}`;
+      const entry = tally.get(key);
+      if (entry) entry.value += 1;
+      else {
+        tally.set(key, {
+          label: `${regionName(dict, fromRegion)} → ${regionName(dict, toRegion)}`,
+          value: 1,
+        });
+      }
+    }
+    return [...tally.entries()]
+      .map(([key, v]) => ({ key, ...v }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6);
+  }, [board, dict]);
+
+  /** The four most recent enquiries, as a preview of the board. */
+  const latest = useMemo(
+    () => [...board].sort((a, b) => a.ageMins - b.ageMins).slice(0, 4),
+    [board],
+  );
+
+  const activeLanes = lanes.filter((lane) => lane.status === "active").length;
+
+  // First of next month, from the request clock rather than a fresh `Date`.
+  const anchor = new Date(now);
+  const nextCycle = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+
+  return (
+    <div className="mt-4 lg:mt-0">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-[20px] tracking-[-0.03em]">
+            {t.fill(ov.greeting, { name: account.name })}
+          </h2>
+          <p className="mt-1 text-[13.5px] text-muted-foreground">
+            {awaiting > 0
+              ? t.fill(ov.awaiting, { n: t.number(awaiting) })
+              : ov.awaitingNone}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onGoTo("inbox")}
+          className="group inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-[13.5px] font-medium text-ink transition-all duration-200 hover:brightness-[0.97] active:scale-[0.985]"
+        >
+          {ov.openBoard}
+          <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5 rtl:-scale-x-100" />
+        </button>
+      </div>
+
+      {/* The three figures that used to sit above every section, plus the
+          one that says what is waiting on the board today. */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi
+          label={pd.kpis.leadsThisMonth}
+          value={t.number(metrics.leadsThisMonth)}
+          sub={
+            isPro
+              ? pd.kpis.unlimitedOnPlan
+              : t.fill(pd.kpis.nUnlocked, { n: t.number(metrics.unlocked) })
+          }
+        />
+        <Kpi
+          label={pd.kpis.avgReply}
+          value={t.fill(dict.units.minutesShort, { n: t.number(metrics.avgResponseMins) })}
+          sub={isPro ? pd.kpis.autoConfirmed : pd.kpis.manualPickup}
+        />
+        <Kpi
+          label={pd.kpis.platformSpend}
+          value={t.usd(Math.round((metrics.spendUsd + walletSpent) * 100) / 100)}
+          sub={
+            isPro
+              ? t.fill(pd.kpis.flatPerMonth, { amount: t.usd(PRO_MONTHLY_USD) })
+              : t.fill(plan === "pay_per_seen" ? pd.kpis.perUnlockApprox : pd.kpis.perLeadApprox, {
+                  amount: t.usd(AVG_LEAD_FEE_USD),
+                })
+          }
+        />
+        <Kpi
+          label={ov.onBoardNow}
+          value={t.number(board.length)}
+          sub={t.fill(ov.nAwaiting, { n: t.number(awaiting) })}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        {/* corridors ------------------------------------------- */}
+        <section className="rounded-2xl border bg-card p-6">
+          <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            {ov.corridorsTitle}
+          </h3>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+            {ov.corridorsBody}
+          </p>
+          {corridors.length === 0 ? (
+            <p className="mt-5 rounded-xl border border-dashed p-6 text-center text-[13px] text-muted-foreground">
+              {pd.board.empty}
+            </p>
+          ) : (
+            <Bars items={corridors} className="mt-4" />
+          )}
+        </section>
+
+        {/* routes + billing ------------------------------------ */}
+        <div className="grid gap-4">
+          <section className="rounded-2xl border bg-card p-6">
+            <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              {pd.sections.lanes}
+            </h3>
+            <p className="mt-3 text-[26px] font-medium leading-none tracking-[-0.035em] tnum">
+              {t.number(activeLanes)}
+            </p>
+            {/* "0 — all of your routes are active" is a sentence about
+                nothing. An account that has not added a lane yet gets the
+                same empty-state line the Routes section uses, so the two
+                agree about what zero means. */}
+            <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
+              {lanes.length === 0
+                ? pd.lanes.emptyTitle
+                : lanes.length === activeLanes
+                  ? ov.lanesAllActive
+                  : t.fill(ov.lanesPaused, { n: t.number(lanes.length - activeLanes) })}
+            </p>
+            <button
+              type="button"
+              onClick={() => onGoTo("lanes")}
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium underline decoration-brand decoration-2 underline-offset-4"
+            >
+              {ov.manageLanes}
+            </button>
+          </section>
+
+          <section className="rounded-2xl border bg-card p-6">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="size-4 text-brand" aria-hidden />
+              <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                {pd.billing.currentPlan}
+              </h3>
+            </div>
+            <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <dt className="eyebrow">{pd.billing.billedThisCycle}</dt>
+                <dd className="mt-1.5 text-[20px] font-medium tnum">
+                  {t.usd(
+                    Math.round((isPro ? PRO_MONTHLY_USD : metrics.spendUsd + walletSpent) * 100) /
+                      100,
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="eyebrow">{pd.billing.nextCharge}</dt>
+                <dd className="mt-1.5 text-[20px] font-medium tnum">
+                  {isPro ? t.dateShort(nextCycle.toISOString()) : pd.billing.onUnlock}
+                </dd>
+              </div>
+            </dl>
+            {subscription.pendingPlan && subscription.effectiveFrom && (
+              <p className="mt-4 text-[12.5px] leading-snug text-muted-foreground">
+                {t.fill(pd.planChange.pendingLine, {
+                  plan: pd.planNames[subscription.pendingPlan],
+                  date: t.dateLong(subscription.effectiveFrom),
+                })}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => onGoTo("billing")}
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium underline decoration-brand decoration-2 underline-offset-4"
+            >
+              {ov.openBilling}
+            </button>
+          </section>
+        </div>
+      </div>
+
+      {/* latest ------------------------------------------------- */}
+      {/* A preview, not a second lead board: route, age and status only.
+          Anything that costs money to reveal stays on the board itself,
+          where the price is next to the button that charges it. */}
+      <section className="mt-4 rounded-2xl border bg-card p-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            {ov.latestTitle}
+          </h3>
+          <button
+            type="button"
+            onClick={() => onGoTo("inbox")}
+            className="ms-auto inline-flex items-center gap-1.5 text-[13px] font-medium underline decoration-brand decoration-2 underline-offset-4"
+          >
+            {ov.openBoard}
+          </button>
+        </div>
+
+        <ul className="mt-4 divide-y">
+          {latest.map((item) => {
+            const isNew = item.status === "new" && !unlocked.has(item.lead.id);
+            return (
+              <li key={item.lead.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3">
+                <span className="min-w-0 flex-1 truncate text-[13.5px]">{item.routeLabel}</span>
+                <span className="shrink-0 text-[12.5px] text-muted-foreground tnum">
+                  {t.relative(now - item.ageMins * 60_000, now)}
+                </span>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em]",
+                    isNew
+                      ? "bg-brand-soft text-foreground dark:bg-accent"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {isNew ? pd.row.statusNew : pd.row.statusUnlocked}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+/**
+ * A ranked list with a bar behind each value.
+ *
+ * Written here rather than imported from the admin console: that module is
+ * a client bundle built around the admin's own data store, and a partner
+ * dashboard reaching into it to borrow twenty lines of markup would tie two
+ * unrelated surfaces together for no gain.
+ */
+function Bars({
+  items,
+  className,
+}: {
+  items: Array<{ key: string; label: string; value: number }>;
+  className?: string;
+}) {
+  const { t } = useI18n();
+  const max = Math.max(1, ...items.map((i) => i.value));
+  return (
+    <ol className={className}>
+      {items.map((item) => (
+        <li key={item.key} className="py-1.5">
+          <div className="flex items-baseline justify-between gap-3 text-[13px]">
+            <span className="min-w-0 truncate">{item.label}</span>
+            <span className="shrink-0 font-medium tnum">{t.number(item.value)}</span>
+          </div>
+          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <span
+              className="block h-full rounded-full bg-brand-deep"
+              style={{ width: `${(item.value / max) * 100}%` }}
+            />
+          </div>
+        </li>
+      ))}
+    </ol>
   );
 }
 

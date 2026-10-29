@@ -52,27 +52,66 @@ export function PlanPanel({
   const px = pd.planChange;
   const [open, setOpen] = useState(false);
 
-  const Icon = PLAN_ICONS[subscription.plan];
+  const plan = subscription.plan;
+  const Icon = PLAN_ICONS[plan];
 
+  const price =
+    plan === "pro_unlimited"
+      ? t.fill(px.pricePro, { amount: t.usd(PRO_MONTHLY_USD) })
+      : t.fill(plan === "pay_per_seen" ? px.pricePps : px.pricePpl, {
+          floor: t.usd(LEAD_FEE_FLOOR_USD),
+          cap: t.usd(LEAD_FEE_CAP_USD),
+        });
+
+  /*
+   * The compact strip, for the phone layout where the sidebar collapses.
+   * Pill and button on one line, both sized by their content.
+   */
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2.5">
+        <span className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-[12.5px] font-medium">
+          <Icon className="size-3.5 text-brand" />
+          {pd.planNames[plan]}
+        </span>
+        <Button variant="outline" size="sm" className="rounded-full" onClick={() => setOpen(true)}>
+          {px.changeCta}
+        </Button>
+        <ChangePlanDialog open={open} onOpenChange={setOpen} subscription={subscription} />
+      </div>
+    );
+  }
+
+  /*
+   * One card, one width.
+   *
+   * This used to be a content-width pill floating above a full-width button,
+   * which in a 228px sidebar read as two unrelated controls of two different
+   * sizes — the pill ended two thirds of the way across and the button ran
+   * to the edge under it. Everything now sits inside a single bordered block
+   * and shares its measure: the plan names it, the price qualifies it, and
+   * the button spans the same width as both.
+   */
   return (
-    <div className={cn(compact ? "flex items-center gap-2.5" : "space-y-3")}>
-      <span className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-[12.5px] font-medium">
-        <Icon className="size-3.5 text-brand" />
-        {pd.planNames[subscription.plan]}
-      </span>
+    <div className="rounded-2xl border bg-card p-4">
+      <p className="flex items-center gap-2 text-[14px] font-medium">
+        <Icon className="size-4 shrink-0 text-brand" aria-hidden />
+        <span className="min-w-0 truncate">{pd.planNames[plan]}</span>
+      </p>
+      <p className="mt-1 text-[12.5px] leading-snug text-muted-foreground tnum">{price}</p>
 
       <Button
         variant="outline"
         size="sm"
-        className={cn("rounded-full", !compact && "w-full")}
+        className="mt-3.5 w-full rounded-full"
         onClick={() => setOpen(true)}
       >
         {px.changeCta}
       </Button>
 
       {/* The queued change, where there is room to say it properly. */}
-      {!compact && subscription.pendingPlan && subscription.effectiveFrom && (
-        <p className="flex items-start gap-2 rounded-xl bg-surface px-3 py-2.5 text-[12px] leading-snug text-muted-foreground">
+      {subscription.pendingPlan && subscription.effectiveFrom && (
+        <p className="mt-3 flex items-start gap-2 rounded-xl bg-surface px-3 py-2.5 text-[12px] leading-snug text-muted-foreground">
           <CalendarClock className="mt-0.5 size-3.5 shrink-0 text-brand" aria-hidden />
           <span>
             {t.fill(px.pendingLine, {
