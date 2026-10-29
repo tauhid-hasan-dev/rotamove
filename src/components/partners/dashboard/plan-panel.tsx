@@ -52,9 +52,19 @@ const PLAN_ICONS: Record<PlanId, typeof InfinityIcon> = {
 export function PlanPanel({
   subscription,
   now,
+  onChanged,
   compact = false,
 }: {
   subscription: PlanSubscription;
+  /**
+   * Hands the server's answer back to the dashboard.
+   *
+   * The API response already carries the new subscription, so the panel does
+   * not need the page to re-render to show it — which matters because on a
+   * serverless deployment the page render is a different function from the
+   * route handler and cannot see what the route handler just wrote.
+   */
+  onChanged: (next: PlanSubscription) => void;
   /**
    * The request clock, threaded through as data rather than read here.
    *
@@ -96,7 +106,12 @@ export function PlanPanel({
         <Button variant="outline" size="sm" className="rounded-full" onClick={() => setOpen(true)}>
           {px.changeCta}
         </Button>
-        <ChangePlanDialog open={open} onOpenChange={setOpen} subscription={subscription} />
+        <ChangePlanDialog
+          open={open}
+          onOpenChange={setOpen}
+          subscription={subscription}
+          onChanged={onChanged}
+        />
       </div>
     );
   }
@@ -158,7 +173,12 @@ export function PlanPanel({
         </p>
       )}
 
-      <ChangePlanDialog open={open} onOpenChange={setOpen} subscription={subscription} />
+      <ChangePlanDialog
+        open={open}
+        onOpenChange={setOpen}
+        subscription={subscription}
+        onChanged={onChanged}
+      />
     </div>
   );
 }
@@ -167,10 +187,12 @@ function ChangePlanDialog({
   open,
   onOpenChange,
   subscription,
+  onChanged,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   subscription: PlanSubscription;
+  onChanged: (next: PlanSubscription) => void;
 }) {
   const { dict, t, href } = useI18n();
   const pd = dict.partnerDashboard;
@@ -240,6 +262,11 @@ function ChangePlanDialog({
         toast.success(px.toastCancelled);
       }
 
+      // The panel updates from the response, not from the re-render. The
+      // refresh still runs for the rest of the page, but it cannot be relied
+      // on for the plan: on a serverless deployment it re-renders a function
+      // that has never seen the write we just made.
+      onChanged(next);
       onOpenChange(false);
       router.refresh();
     } catch {

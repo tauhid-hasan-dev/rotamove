@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -96,7 +96,7 @@ export function PartnerDashboard({
   now,
   lanes,
   initialUnlocked,
-  subscription,
+  subscription: initialSubscription,
   account,
   profile,
 }: {
@@ -105,7 +105,7 @@ export function PartnerDashboard({
   lanes: PartnerLane[];
   /** Server-recorded pay-per-seen unlocks, so a refresh keeps them revealed. */
   initialUnlocked: string[];
-  /** The plan in force, plus any change queued for the next period. */
+  /** The plan in force at render time. Reconciled against the API on mount. */
   subscription: PlanSubscription;
   account: PartnerAccount;
   /** Editable account details, behind the account menu's Settings entry. */
@@ -114,9 +114,44 @@ export function PartnerDashboard({
   const { dict, href } = useI18n();
   const pd = dict.partnerDashboard;
   const router = useRouter();
-  // Not state. The plan is a billing fact held on the server; the dashboard
-  // renders it and asks the API to change it, rather than owning a copy
-  // that a refresh would silently discard.
+
+  /*
+   * The plan is a billing fact held on the server, and this is the first
+   * paint of it — not the owner of it.
+   *
+   * It used to be read straight from the prop on every render, on the
+   * reasoning that state here would be a copy a refresh could silently
+   * discard. That is true of a single server, and false of this one: Next
+   * compiles route handlers and page renders into separate serverless
+   * functions with separate memory, so on Vercel the plan API writes into
+   * one process and this page is rendered by another that cannot see it. A
+   * partner changed their plan, got the confirmation, and found the old plan
+   * still on screen after a reload.
+   *
+   * So the API is the single source of truth and the prop is a starting
+   * value: the subscription is reconciled against `GET /api/partners/plan`
+   * on mount, and updated from the response of any change. `router.refresh()`
+   * still runs for everything else on the page.
+   */
+  const [subscription, setSubscription] = useState(initialSubscription);
+
+  useEffect(() => {
+    // Through a timer so the state update lands in a callback rather than in
+    // the effect body — the shape `react-hooks/set-state-in-effect` requires.
+    const id = setTimeout(async () => {
+      try {
+        const response = await fetch("/api/partners/plan", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { subscription: PlanSubscription };
+        setSubscription(data.subscription);
+      } catch {
+        // The server-rendered value stays on screen. It is the right value on
+        // any single-process deployment and a stale one here at worst.
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
   const plan = subscription.plan;
   const [section, setSection] = useState<SectionId>("overview");
   const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set(initialUnlocked));
@@ -233,7 +268,7 @@ export function PartnerDashboard({
               here is the plan, which belongs beside the navigation because
               it changes what the sections show. */}
           <div className="mt-6 hidden border-t pt-6 lg:block">
-            <PlanPanel subscription={subscription} now={now} />
+            <PlanPanel subscription={subscription} now={now} onChanged={setSubscription} />
           </div>
         </div>
       </aside>
@@ -241,7 +276,7 @@ export function PartnerDashboard({
       {/* content ------------------------------------------------- */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3 lg:hidden">
-          <PlanPanel subscription={subscription} now={now} compact />
+          <PlanPanel subscription={subscription} now={now} onChanged={setSubscription} compact />
         </div>
 
         {section === "overview" && (
@@ -325,6 +360,7 @@ export function PartnerDashboard({
             metrics={metrics}
             now={now}
             subscription={subscription}
+            onChanged={setSubscription}
           />
         )}
       </div>
@@ -817,12 +853,14 @@ function BillingPanel({
   metrics,
   now,
   subscription,
+  onChanged,
 }: {
   plan: PlanId;
   walletSpent: number;
   metrics: ReturnType<typeof generatePartnerMetrics>;
   now: number;
   subscription: PlanSubscription;
+  onChanged: (next: PlanSubscription) => void;
 }) {
   const { dict, t } = useI18n();
   const pd = dict.partnerDashboard;
@@ -900,7 +938,7 @@ function BillingPanel({
         {/* The real control, not the toast-only button that used to sit
             here claiming an upgrade had happened. */}
         <div className="mt-7 border-t pt-6">
-          <PlanPanel subscription={subscription} now={now} />
+          <PlanPanel subscription={subscription} now={now} onChanged={onChanged} />
         </div>
       </div>
 

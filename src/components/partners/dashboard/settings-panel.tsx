@@ -82,6 +82,33 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
   const [emailOk, setEmailOk] = useState(false);
   const [phoneOk, setPhoneOk] = useState(false);
 
+  /*
+   * Reconcile against the API on mount.
+   *
+   * `profile` is the server render's answer, and on a serverless deployment
+   * that render is a different function from the one `PUT /api/partners/
+   * profile` wrote to — so a detail saved on a previous visit would come
+   * back as the seeded value and the form would quietly offer to overwrite
+   * it. The route handler is the source of truth; the prop is a first paint.
+   *
+   * Skipped if there are unsaved edits, which there never are on mount but
+   * would be if this ever re-ran.
+   */
+  useEffect(() => {
+    const id = setTimeout(async () => {
+      try {
+        const response = await fetch("/api/partners/profile", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { profile: PartnerProfile };
+        setSaved(data.profile);
+        setDraft(toDraft(data.profile));
+      } catch {
+        // Keep the server-rendered values; correct on a single-process host.
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
   const emailChanged = draft.email.trim() !== saved.email;
   const phoneChanged = draft.phone.trim() !== saved.phone;
   const emailVerified = !emailChanged || emailOk;
