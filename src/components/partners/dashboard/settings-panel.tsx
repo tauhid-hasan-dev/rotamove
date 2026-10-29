@@ -3,67 +3,100 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2, RotateCcw, Save } from "lucide-react";
 import { toast } from "sonner";
-import { ToggleChip } from "@/components/quote/fields";
-import { VerifyField } from "@/components/quote/verify-field";
+import {
+  StepCompany,
+  StepContact,
+  StepCoverage,
+  StepCredentials,
+  StepFleet,
+} from "@/components/partners/register/steps";
+import type { ApplicationDraft } from "@/components/partners/register/use-application-draft";
 import { PANEL } from "@/components/partners/dashboard/surface";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { REGION_ORDER } from "@/lib/geo";
 import { partnerProfileSchema, type PartnerProfile } from "@/lib/partner-profile";
-import { LOCALES, LOCALE_META, type Locale } from "@/i18n/config";
 import { useI18n } from "@/i18n/provider";
-import { regionName } from "@/i18n/geo-labels";
 import { cn } from "@/lib/utils";
 
 /**
- * Account settings.
+ * Account settings — the registration form, reopened.
  *
- * Reached from the account menu rather than the section rail, because this is
- * where someone goes once a quarter and the rail is for the four things they
- * open daily. It still renders as a section of the workspace rather than its
- * own route — the partner keeps their sidebar, their plan panel and their
- * place.
+ * Not a form that resembles the one they filled in: literally the same five
+ * step components, with the same labels, the same controls and the same
+ * validation. A partner who spent six screens getting an account can find
+ * every one of those answers here and change it. The alternative — a curated
+ * subset of "editable" fields — is how a product ends up with a support
+ * queue made entirely of "please update our licence number for us".
  *
- * Changing the email address or the phone number means confirming the new one
- * by code before the form will save. That is the same rule the application
- * form applies, and for the same reason: every message this product sends
- * goes to these two fields, so an edit that is wrong silently cuts the account
- * off from its own approvals, document requests and billing notices. The
- * confirmation also makes the change expensive enough to be deliberate, which
- * is what you want of the field an account takeover has to move first.
+ * The wizard's two step-specific pieces are gone, because neither belongs to
+ * an account that already exists: the plan has its own flow with its own
+ * terms, and the conduct declaration is accepted once rather than re-ticked
+ * whenever somebody widens a region list.
+ *
+ * Changing the email address or the phone number still needs a one-time
+ * code. Everything this product sends goes to those two values, so an edit
+ * that is wrong silently cuts the account off from its own approvals,
+ * document requests and billing notices — and the confirmation makes the
+ * change expensive enough to be deliberate, which is what you want of the
+ * field an account takeover has to move first.
  */
 
-/** Good enough to decide whether to offer to send a code. */
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-type Draft = {
-  contactName: string;
-  contactRole: string;
-  email: string;
-  phone: string;
-  website: string;
-  city: string;
-  regions: string[];
-  languages: Locale[];
-  notes: string;
-};
+/**
+ * The step components speak `ApplicationDraft`. The stored profile is the
+ * same field set minus the two the wizard owns, so the bridge is to add
+ * them back with values that keep the steps happy and are never submitted:
+ * `declaration` is hidden, and `plan` has no step rendered here.
+ */
+type Draft = ApplicationDraft & { emailVerified: boolean; phoneVerified: boolean };
 
 const toDraft = (p: PartnerProfile): Draft => ({
+  legalName: p.legalName,
+  tradingName: p.tradingName ?? "",
+  countryIso: p.countryIso,
+  city: p.city,
+  foundedYear: p.foundedYear,
+  website: p.website ?? "",
+  size: p.size,
+
   contactName: p.contactName,
   contactRole: p.contactRole,
   email: p.email,
   phone: p.phone,
-  website: p.website,
-  city: p.city,
-  regions: [...p.regions],
+  altPhone: p.altPhone ?? "",
   languages: [...p.languages],
-  notes: p.notes,
+  // Seeded true: these are the values the account is already reachable on.
+  // Editing either one flips it back — see `update` below.
+  emailVerified: true,
+  phoneVerified: true,
+
+  registrationNumber: p.registrationNumber,
+  vatNumber: p.vatNumber ?? "",
+  transportLicence: p.transportLicence,
+  cargoCoverEur: p.cargoCoverEur,
+  liabilityCoverEur: p.liabilityCoverEur,
+  memberships: [...p.memberships],
+  registrationDoc: p.registrationDoc ?? null,
+  insuranceDoc: p.insuranceDoc ?? null,
+  licenceDoc: p.licenceDoc ?? null,
+
+  lorries: p.lorries,
+  vans: p.vans,
+  ownership: p.ownership,
+  weeklyCapacityM3: p.weeklyCapacityM3,
+  modes: [...p.modes],
+  services: [...p.services],
+
+  regions: [...p.regions],
+  availability: p.availability,
+  notes: p.notes ?? "",
+
+  // Neither is rendered here; both keep the shared types satisfied.
+  declaration: true,
+  plan: "",
 });
 
 export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
   const { dict, t } = useI18n();
   const st = dict.partnerDashboard.settings;
+  const R = dict.register;
 
   const [saved, setSaved] = useState<PartnerProfile>(profile);
   const [draft, setDraft] = useState<Draft>(() => toDraft(profile));
@@ -71,28 +104,12 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
   const [touched, setTouched] = useState(false);
 
   /*
-   * Verification is tracked here rather than in the draft, and starts false
-   * on every mount. A tick carried in from a previous visit would vouch for
-   * an address this session never confirmed.
-   *
-   * The unchanged value counts as already confirmed — it is the address the
-   * account was reached on. Only an edit re-opens the question, which is why
-   * these are compared against `saved` rather than held as plain booleans.
-   */
-  const [emailOk, setEmailOk] = useState(false);
-  const [phoneOk, setPhoneOk] = useState(false);
-
-  /*
    * Reconcile against the API on mount.
    *
    * `profile` is the server render's answer, and on a serverless deployment
-   * that render is a different function from the one `PUT /api/partners/
-   * profile` wrote to — so a detail saved on a previous visit would come
-   * back as the seeded value and the form would quietly offer to overwrite
-   * it. The route handler is the source of truth; the prop is a first paint.
-   *
-   * Skipped if there are unsaved edits, which there never are on mount but
-   * would be if this ever re-ran.
+   * that render is a different function from the one the save wrote to — so
+   * a detail changed on a previous visit would come back as the seeded value
+   * and this form would quietly offer to overwrite it.
    */
   useEffect(() => {
     const id = setTimeout(async () => {
@@ -109,30 +126,28 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
     return () => clearTimeout(id);
   }, []);
 
-  const emailChanged = draft.email.trim() !== saved.email;
-  const phoneChanged = draft.phone.trim() !== saved.phone;
-  const emailVerified = !emailChanged || emailOk;
-  const phoneVerified = !phoneChanged || phoneOk;
-
-  const set = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
-    setDraft((d) => ({ ...d, [key]: value }));
-  }, []);
-
-  const toggle = <K extends "regions" | "languages">(key: K, value: string) =>
-    setDraft((d) => {
-      const list = d[key] as string[];
-      return {
-        ...d,
-        [key]: list.includes(value) ? list.filter((v) => v !== value) : [...list, value],
-      };
-    });
-
-  const payload = useMemo(
-    () => ({ ...draft, emailVerified, phoneVerified }),
-    [draft, emailVerified, phoneVerified],
+  /**
+   * Editing a contact route withdraws its confirmation.
+   *
+   * The one-time-code field pins the value it verified in its own state, and
+   * that state does not exist on a fresh mount — so a flag seeded `true`
+   * would survive an edit underneath it, which is precisely the badge that
+   * vouches for a value nobody confirmed. Recomputing here closes that: the
+   * flag is true only while the field still matches what is on file, or
+   * while this session has just confirmed the new value.
+   */
+  const update = useCallback(
+    (patch: Partial<Draft>) =>
+      setDraft((current) => {
+        const next = { ...current, ...patch };
+        if ("email" in patch) next.emailVerified = next.email.trim() === saved.email;
+        if ("phone" in patch) next.phoneVerified = next.phone.trim() === saved.phone;
+        return next;
+      }),
+    [saved.email, saved.phone],
   );
 
-  const parsed = useMemo(() => partnerProfileSchema.safeParse(payload), [payload]);
+  const parsed = useMemo(() => partnerProfileSchema.safeParse(draft), [draft]);
   const invalid = useMemo(
     () =>
       parsed.success
@@ -157,7 +172,10 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
 
   const save = async () => {
     setTouched(true);
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -175,10 +193,6 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
 
       setSaved(next);
       setDraft(toDraft(next));
-      // The new values are now the values on file, so they are confirmed by
-      // definition and the next edit starts the question over.
-      setEmailOk(false);
-      setPhoneOk(false);
       setTouched(false);
 
       if (changed.length === 0) {
@@ -197,19 +211,51 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
 
   const reset = () => {
     setDraft(toDraft(saved));
-    setEmailOk(false);
-    setPhoneOk(false);
     setTouched(false);
   };
 
-  const err = (key: string) => touched && invalid.has(key);
+  const steps = [
+    { title: R.s1, lede: R.s1Lede, node: <StepCompany draft={draft} update={update} touched={touched} invalid={invalid} /> },
+    { title: R.s2, lede: R.s2Lede, node: <StepContact draft={draft} update={update} touched={touched} invalid={invalid} /> },
+    {
+      title: R.s3,
+      lede: R.s3Lede,
+      node: (
+        <StepCredentials
+          draft={draft}
+          update={update}
+          touched={touched}
+          invalid={invalid}
+          documentsOptional
+        />
+      ),
+    },
+    { title: R.s4, lede: R.s4Lede, node: <StepFleet draft={draft} update={update} touched={touched} invalid={invalid} /> },
+    {
+      title: R.s5,
+      lede: R.s5Lede,
+      node: (
+        <StepCoverage
+          draft={draft}
+          update={update}
+          touched={touched}
+          invalid={invalid}
+          showDeclaration={false}
+        />
+      ),
+    },
+  ];
+
+  const contactMoved = !draft.emailVerified || !draft.phoneVerified;
 
   return (
     <div className="mt-4 lg:mt-0">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-[20px] tracking-[-0.03em]">{st.title}</h2>
-          <p className="mt-1 text-[13.5px] text-muted-foreground">{st.lede}</p>
+          <p className="mt-1 max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">
+            {st.lede}
+          </p>
         </div>
         {saved.updatedAt && (
           <p className="text-[12px] text-muted-foreground">
@@ -218,176 +264,39 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
         )}
       </div>
 
-      {/* contact ------------------------------------------------- */}
-      <section className={cn(PANEL, "mt-5 p-6")}>
-        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-          {st.contactHeading}
-        </h3>
-
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field
-            id="st-name"
-            label={st.contactName}
-            value={draft.contactName}
-            onChange={(v) => set("contactName", v)}
-            invalid={err("contactName")}
-          />
-          <Field
-            id="st-role"
-            label={st.contactRole}
-            value={draft.contactRole}
-            onChange={(v) => set("contactRole", v)}
-            invalid={err("contactRole")}
-          />
-
-          <VerifyField
-            className="sm:col-span-2"
-            id="st-email"
-            kind="email"
-            label={st.email}
-            placeholder={dict.register.emailPlaceholder}
-            value={draft.email}
-            onChange={(v) => set("email", v)}
-            /* Unchanged counts as confirmed — this is the address the
-               account is already reachable on, and making someone re-verify
-               it to edit their city would be theatre. */
-            verified={emailVerified}
-            onVerifiedChange={setEmailOk}
-            valid={EMAIL_RE.test(draft.email.trim())}
-            invalid={err("email")}
-            autoComplete="email"
-            inputMode="email"
-            type="email"
-          />
-
-          <VerifyField
-            className="sm:col-span-2"
-            id="st-phone"
-            kind="phone"
-            label={st.phone}
-            placeholder={dict.register.phonePlaceholder}
-            value={draft.phone}
-            onChange={(v) => set("phone", v)}
-            verified={phoneVerified}
-            onVerifiedChange={setPhoneOk}
-            valid={draft.phone.replace(/\D/g, "").length >= 7}
-            invalid={err("phone")}
-            autoComplete="tel"
-            inputMode="tel"
-            type="tel"
-          />
-        </div>
-
-        {(emailChanged || phoneChanged) && (
-          <p className="mt-4 rounded-xl bg-surface px-3.5 py-3 text-[12.5px] leading-relaxed text-muted-foreground">
-            {st.contactChangeNote}
-          </p>
-        )}
-      </section>
-
-      {/* company ------------------------------------------------- */}
-      <section className={cn(PANEL, "mt-4 p-6")}>
-        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-          {st.companyHeading}
-        </h3>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field
-            id="st-city"
-            label={st.city}
-            value={draft.city}
-            onChange={(v) => set("city", v)}
-            invalid={err("city")}
-          />
-          <Field
-            id="st-website"
-            label={st.website}
-            value={draft.website}
-            onChange={(v) => set("website", v)}
-            invalid={err("website")}
-          />
-        </div>
-
-        <div className="mt-6">
-          <Label htmlFor="st-notes" className="mb-2 block text-[13.5px]">
-            {st.notes}
-          </Label>
-          <Textarea
-            id="st-notes"
-            rows={4}
-            value={draft.notes}
-            onChange={(e) => set("notes", e.target.value)}
-            placeholder={st.notesPlaceholder}
-            className="rounded-2xl"
-          />
-          <p className="mt-2 text-[12px] text-muted-foreground">{st.notesHint}</p>
-        </div>
-      </section>
-
-      {/* coverage ------------------------------------------------ */}
-      <section className={cn(PANEL, "mt-4 p-6")}>
-        <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-          {st.coverageHeading}
-        </h3>
-        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          {st.coverageHint}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {REGION_ORDER.map((id) => (
-            <ToggleChip
-              key={id}
-              active={draft.regions.includes(id)}
-              onToggle={() => toggle("regions", id)}
-            >
-              {regionName(dict, id)}
-            </ToggleChip>
-          ))}
-        </div>
-        {err("regions") && (
-          <p className="mt-2 text-[12.5px] text-destructive">{st.pickRegion}</p>
-        )}
-
-        <h3 className="mt-7 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-          {st.languagesHeading}
-        </h3>
-        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          {st.languagesHint}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {LOCALES.map((code) => (
-            <ToggleChip
-              key={code}
-              active={draft.languages.includes(code)}
-              onToggle={() => toggle("languages", code)}
-            >
-              {/* Endonyms: a carrier scans for the word they use themselves. */}
-              {LOCALE_META[code].native}
-            </ToggleChip>
-          ))}
-        </div>
-        {err("languages") && (
-          <p className="mt-2 text-[12.5px] text-destructive">{st.pickLanguage}</p>
-        )}
-      </section>
-
-      {/* Above the save bar, not below it.
-          The bar is sticky, so a message rendered after it sat underneath
-          the viewport's bottom edge — you pressed Save, nothing appeared to
-          happen, and the explanation was off-screen. */}
       {touched && invalid.size > 0 && (
         <p
           role="alert"
-          className="mt-5 rounded-xl bg-destructive/10 px-3.5 py-3 text-[13px] text-destructive"
+          className="mt-4 rounded-xl bg-destructive/10 px-3.5 py-3 text-[13px] text-destructive"
         >
-          {/* Named when it is the only thing standing in the way, because
-              "check the fields" sends someone hunting for a typo that is
-              not there. */}
+          {/* Named when it is the only thing in the way, because "check the
+              fields" sends someone hunting for a typo that is not there. */}
           {[...invalid].every((k) => k === "emailVerified" || k === "phoneVerified")
             ? st.verifyFirst
             : st.fixErrors}
         </p>
       )}
 
-      {/* save bar ------------------------------------------------ */}
+      {contactMoved && (
+        <p className="mt-4 rounded-xl bg-surface px-3.5 py-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          {st.contactChangeNote}
+        </p>
+      )}
+
+      {/* The five steps, stacked. Same components the application form
+          renders one at a time — see the note at the top of this file. */}
+      <div className="mt-5 space-y-4">
+        {steps.map((step) => (
+          <section key={step.title} className={cn(PANEL, "p-6")}>
+            <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              {step.title}
+            </h3>
+            <p className="mt-1.5 text-[15px] font-medium">{step.lede}</p>
+            <div className="mt-5">{step.node}</div>
+          </section>
+        ))}
+      </div>
+
       <div className="sticky bottom-0 z-20 mt-4 flex flex-wrap items-center gap-3 border-t bg-background/92 py-4 backdrop-blur-xl">
         <p className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">
           {dirty ? st.unsaved : st.allSaved}
@@ -433,34 +342,6 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
           )}
         </button>
       </div>
-    </div>
-  );
-}
-
-function Field({
-  id,
-  label,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (next: string) => void;
-  invalid?: boolean;
-}) {
-  return (
-    <div>
-      <Label htmlFor={id} className="mb-2 block text-[13.5px]">
-        {label}
-      </Label>
-      <Input
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={cn("h-12 rounded-2xl", invalid && "border-destructive")}
-      />
     </div>
   );
 }

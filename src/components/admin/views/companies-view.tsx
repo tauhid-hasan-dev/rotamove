@@ -42,6 +42,15 @@ type SortKey = "name" | "rating" | "leads" | "fees" | "joined";
 
 const PLAN_IDS: readonly PlanId[] = ["pro_unlimited", "pay_per_lead", "pay_per_seen"];
 
+/**
+ * The statuses this table deals in.
+ *
+ * Everything except `pending`, which belongs to the review queue — see the
+ * filter in `filtered` below. Derived from `COMPANY_STATUSES` rather than
+ * written out, so a fifth status appears here the day it is added.
+ */
+const MANAGED_STATUSES = COMPANY_STATUSES.filter((s) => s !== "pending");
+
 export function CompaniesView() {
   const data = useAdminData();
   const router = useRouter();
@@ -64,6 +73,17 @@ export function CompaniesView() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const rows = data.companies.filter((c) => {
+      /*
+       * Pending companies are not managed here.
+       *
+       * A company awaiting a decision is a different kind of object from one
+       * we have accepted: it has no lead history, no invoices and no plan we
+       * are billing, so every column on this table reads as a zero, and the
+       * only useful action on it — approve or decline — lives in the review
+       * queue. Leaving it in made Manage companies a list that was partly a
+       * list of work, and gave the reviewer two places to look.
+       */
+      if (c.status === "pending") return false;
       if (status !== "all" && c.status !== status) return false;
       if (plan !== "all" && c.mover.plan !== plan) return false;
       if (region !== "all" && !c.mover.regions.includes(region)) return false;
@@ -164,7 +184,10 @@ export function CompaniesView() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{dict.admin.common.allStatuses}</SelectItem>
-            {COMPANY_STATUSES.map((s) => (
+            {/* "Pending review" is not offered: those rows are filtered out
+                of this table above, so the option could only ever return an
+                empty list. */}
+            {MANAGED_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>
                 {dict.admin.status.company[s]}
               </SelectItem>

@@ -330,7 +330,11 @@ export function PartnerDashboard({
               </div>
             </div>
 
-            <div className="mt-5 space-y-3">
+            {/* space-y-5, not -3. Each row is a tinted card carrying four
+                lines and its own actions; at twelve pixels the gap read as
+                a table rule rather than as separation, and the eye lost
+                where one lead ended and the next began. */}
+            <div className="mt-5 space-y-5">
               {visible.map((item) => (
                 <LeadRow
                   key={item.lead.id}

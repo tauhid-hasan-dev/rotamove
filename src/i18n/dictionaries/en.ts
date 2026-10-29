@@ -872,6 +872,8 @@ export const en = {
     phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Confirm your email address and phone number to continue.",
     doneEmailed: "We have emailed a copy to {email}.",
+
+    docOnFileNote: "The documents you sent with your application are already on file. Attach one here only to replace it — leaving a slot empty changes nothing.",
   },
 
   notFound: {
@@ -1110,26 +1112,9 @@ export const en = {
 
     settings: {
       title: "Settings",
-      lede: "Your contact details, your company and where you run.",
+      lede: "Everything you told us when you applied. All of it is yours to change.",
       lastSaved: "Last saved {when}",
-      contactHeading: "Who we contact",
-      contactName: "Contact name",
-      contactRole: "Role",
-      email: "Work email",
-      phone: "Phone",
       contactChangeNote: "Confirm the new value with the code we send before saving. Everything we send you — approvals, document requests, billing notices — goes to these two, so a change has to be deliberate.",
-      companyHeading: "Company",
-      city: "Head office city",
-      website: "Website",
-      notes: "Notes for our team",
-      notesPlaceholder: "Weekly groupage departures, bonded warehouse, specialist crating…",
-      notesHint: "Read by the vetting team. Not shown to customers.",
-      coverageHeading: "Where you run",
-      coverageHint: "The regions you will take work in. Changing this does not move the lanes on your board — add or retire those in Routes.",
-      pickRegion: "Pick at least one region.",
-      languagesHeading: "Languages",
-      languagesHint: "The languages your team can handle a call in.",
-      pickLanguage: "Pick at least one language.",
       unsaved: "You have unsaved changes.",
       allSaved: "Everything is saved.",
       discard: "Discard",
@@ -1173,7 +1158,7 @@ export const en = {
         billing: "Billing",
         settings: "Settings",
 
-        companiesPending: "Pending",
+        companiesPending: "Pending review",
         companiesManage: "Manage companies",
 
         outbox: "Outbox",
@@ -1882,6 +1867,17 @@ export const en = {
         bank_details: "Bank details on company letterhead",
         conduct_charter: "Signed code of conduct",
       },
+
+      backToQueue: "Back to the queue",
+      submittedOn: "Submitted {date}",
+      scoreOf: "Score {n}/100",
+      outstandingTitle: "Still outstanding",
+      historyTitle: "Review history",
+      historyEmpty: "No decisions recorded yet.",
+      docMeta: "{size} · {type}",
+      docMissing: "Not attached",
+      notFoundTitle: "No such application",
+      notFoundBody: "That reference does not match anything in the queue. It may have been evicted on a restart.",
     },
 
     outbox: {

@@ -41,6 +41,21 @@ const ICONS: Record<PartnerNotificationKind, typeof FileWarning> = {
 /** Only one of these is an instruction the partner has to act on. */
 const URGENT: ReadonlySet<PartnerNotificationKind> = new Set(["documents_requested"]);
 
+/**
+ * Kinds that belong in email and nowhere else.
+ *
+ * An approval asks nothing of the partner: the account is live, the plan is
+ * set, the credit is on it, and the next thing they do is use the dashboard
+ * they are already looking at. Putting it under "Needs your attention" is a
+ * card that says "no action needed", which is how a notification panel earns
+ * the habit of being dismissed unread — and then the document request that
+ * genuinely is urgent gets swept along with it.
+ *
+ * It is still written to the outbox and still sent. It just does not queue
+ * for attention that it does not need.
+ */
+const EMAIL_ONLY: ReadonlySet<PartnerNotificationKind> = new Set(["application_approved"]);
+
 export function NotificationsPanel() {
   const { dict, t } = useI18n();
   const nx = dict.partnerDashboard.notifications;
@@ -52,7 +67,7 @@ export function NotificationsPanel() {
       const response = await fetch("/api/partners/notifications", { cache: "no-store" });
       if (!response.ok) return;
       const data = (await response.json()) as { notifications: PartnerNotification[] };
-      setItems(data.notifications.filter((n) => !n.readAt));
+      setItems(data.notifications.filter((n) => !n.readAt && !EMAIL_ONLY.has(n.kind)));
     } catch {
       // A failed fetch leaves the panel absent rather than showing an error
       // box. This is an additive notice, not the content of the page, and a

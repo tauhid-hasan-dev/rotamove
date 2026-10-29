@@ -1,121 +1,203 @@
 import { z } from "zod";
-import { getCity, type RegionId } from "@/lib/geo";
-// The same tuple the application form validates against, rather than a second
-// copy of the region list that drifts the day a ninth region is added.
-import { REGION_KEYS } from "@/lib/partner-application";
+import { cityCountry, getCity } from "@/lib/geo";
+import {
+  companyStepSchema,
+  contactStepSchema,
+  coverageStepSchema,
+  credentialsStepSchema,
+  documentMetaSchema,
+  fleetStepSchema,
+  MEMBERSHIPS,
+  type Membership,
+} from "@/lib/partner-application";
 import { LOCALES, type Locale } from "@/i18n/config";
 import type { Mover } from "@/lib/types";
 import { serverSingleton } from "@/lib/server-singleton";
 
 /**
- * The account details a partner can edit themselves.
+ * Everything a partner can maintain about themselves.
  *
- * Deliberately a separate record from `Mover`. The mover catalogue is
- * marketplace data — ratings, on-time rate, completed moves, the corridor
- * list the matching engine reads — and none of it is the partner's to rewrite.
- * What they own is how we reach them and where they say they run, so that is
- * what this holds, and the two are joined rather than merged.
+ * Built from the registration form's own step schemas rather than from a
+ * second, smaller list of "editable fields". A partner filled in six screens
+ * to get an account; they should be able to open Settings and find the same
+ * six screens, with the same labels and the same controls, rather than a
+ * handful of the fields and a support address for the rest. Composing the
+ * schemas here is what makes that true by construction — a field added to
+ * the application form becomes editable the same day, and cannot be
+ * collected once and then quietly become unmaintainable.
  *
- * Seeded from the mover record on first read, so an account that has never
- * opened Settings still has a complete profile to show rather than a form of
- * empty boxes.
+ * Two deliberate differences from the application:
+ *
+ *  - The conduct declaration is not here. It is accepted once, and asking
+ *    for it again on a change of phone number would make it meaningless.
+ *  - The three documents are optional. The originals are already on file;
+ *    requiring a re-upload to correct a typo in a city name would be
+ *    hostile, so an absent document means "unchanged", not "removed".
+ *
+ * The plan is not here either — it is a billing fact, held by
+ * `plan-store.ts`, and changed through its own flow with its own terms.
  */
 
-export interface PartnerProfile {
+/* ------------------------------------------------------------- schema -- */
+
+/**
+ * Credentials as Settings needs them: documents optional.
+ *
+ * `nullish`, not `optional`: an unattached document is `null` in form state,
+ * and `optional()` admits only `undefined` — the same trap the application
+ * form's licence field already documents.
+ */
+const credentialsForProfile = credentialsStepSchema.extend({
+  registrationDoc: documentMetaSchema.nullish(),
+  insuranceDoc: documentMetaSchema.nullish(),
+});
+
+export const partnerProfileSchema = companyStepSchema
+  .extend(contactStepSchema.shape)
+  .extend(credentialsForProfile.shape)
+  .extend(fleetStepSchema.shape)
+  .extend(coverageStepSchema.omit({ declaration: true }).shape)
+  .refine((a) => a.lorries + a.vans > 0, {
+    message: "Tell us about at least one vehicle",
+    path: ["lorries"],
+  });
+
+export type PartnerProfileInput = z.infer<typeof partnerProfileSchema>;
+
+/**
+ * What is stored.
+ *
+ * The two verification flags gate the write and are then dropped: they say
+ * something about this request, not about the account.
+ */
+export type PartnerProfile = Omit<PartnerProfileInput, "emailVerified" | "phoneVerified"> & {
   /** Internal mover id of the partner this belongs to. */
   partnerId: string;
-  contactName: string;
-  contactRole: string;
-  email: string;
-  phone: string;
-  website: string;
-  city: string;
-  /** Where they will take work. Drives nothing automatically — see below. */
-  regions: RegionId[];
-  languages: Locale[];
-  /** Free text for the vetting team: departures, bonded space, restrictions. */
-  notes: string;
   updatedAt?: string;
+};
+
+/** Fields a change to which is worth telling the account holder about. */
+export const SENSITIVE_FIELDS = ["email", "phone"] as const;
+
+/* -------------------------------------------------------------- seeding -- */
+
+/** Company size, inferred from the fleet the catalogue already records. */
+function sizeFor(mover: Mover): PartnerProfile["size"] {
+  const people = mover.crewSize + mover.fleetTrucks;
+  if (people > 200) return "large";
+  if (people > 50) return "medium";
+  if (people > 10) return "small";
+  return "micro";
 }
 
 /**
- * A complete profile for an account that has never opened Settings.
+ * A deterministic demo phone number for an account that has none.
  *
- * Everything here comes from data we already hold, except the two fields the
- * mover catalogue has no answer for: there is no person on a `Mover`, only a
- * company. Rather than invent a plausible human — a fabricated name in a
- * contact field is the kind of demo detail someone later mistakes for real
- * data — the contact name falls back to the trading name and the role to a
- * function rather than a title. Both are the first things a partner corrects,
- * and seeding them this way keeps the form valid on first open instead of
- * greeting them with two empty required fields.
+ * The mover catalogue has no phone field, and the schema will not accept an
+ * empty one. Rather than leave Settings opening on an invalid required field,
+ * a number is derived from the partner id — stable across renders and
+ * restarts, obviously patterned, and the first thing a real partner would
+ * correct. Deriving it is preferable to a single hardcoded number only
+ * because three demo accounts sharing one number looks like a bug.
+ */
+function seedPhone(moverId: string, dialling: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < moverId.length; i += 1) {
+    hash ^= moverId.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  const digits = String(hash % 10_000_000).padStart(7, "0");
+  return `${dialling} 532 ${digits.slice(0, 3)} ${digits.slice(3, 5)} ${digits.slice(5)}`;
+}
+
+/** Reference-like identifiers the catalogue does not carry. See `seedPhone`. */
+function seedRef(moverId: string, prefix: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < moverId.length; i += 1) {
+    hash ^= moverId.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return `${prefix}-${String(hash % 1_000_000).padStart(6, "0")}`;
+}
+
+/**
+ * A complete, valid profile for an account that has never opened Settings.
+ *
+ * Everything that the mover catalogue can answer comes from it. The rest is
+ * derived deterministically and is plainly demo data — the alternative is
+ * greeting a partner with eight empty required fields, which teaches them
+ * that Settings is broken rather than that it is theirs to fill in.
  */
 export function seedProfile(opts: {
   partnerId: string;
   mover: Mover;
   email: string;
-  phone?: string;
   locale: Locale;
 }): PartnerProfile {
-  const hq = getCity(opts.mover.hqCity);
+  const { mover } = opts;
+  const hq = getCity(mover.hqCity);
+  const country = hq ? cityCountry(hq) : undefined;
+  const iso = country?.iso ?? "TR";
+
+  const memberships = mover.certifications
+    .map((c) => String(c).toLowerCase().replace(/[^a-z0-9]+/g, "_"))
+    .filter((c): c is Membership => (MEMBERSHIPS as readonly string[]).includes(c));
+
   return {
     partnerId: opts.partnerId,
-    contactName: opts.mover.name,
+
+    legalName: mover.legalName,
+    tradingName: mover.name,
+    countryIso: iso,
+    city: hq?.name ?? mover.hqCity,
+    foundedYear: mover.since,
+    website: `https://${mover.slug}.example`,
+    size: sizeFor(mover),
+
+    contactName: mover.name,
     contactRole: "Operations",
     email: opts.email,
-    phone: opts.phone ?? "",
-    website: `https://${opts.mover.slug}.example`,
-    city: hq?.name ?? opts.mover.hqCity,
-    regions: [...opts.mover.regions],
+    phone: seedPhone(mover.id, iso === "TR" ? "+90" : "+49"),
+    altPhone: "",
     // The catalogue stores languages as free strings; the profile stores
-    // interface locales, which is a different and smaller set. Only the ones
-    // that map are carried over, and the reader's own locale backstops an
-    // empty result so the field is never invalid on arrival.
+    // interface locales, a different and smaller set. Only the ones that map
+    // are carried over, and the reader's locale backstops an empty result so
+    // the field is never invalid on arrival.
     languages: (() => {
-      const matched = opts.mover.languages.filter((l): l is Locale =>
+      const matched = mover.languages.filter((l): l is Locale =>
         (LOCALES as readonly string[]).includes(l),
       );
       return matched.length ? matched : [opts.locale];
     })(),
+
+    registrationNumber: seedRef(mover.id, iso),
+    vatNumber: "",
+    transportLicence: seedRef(mover.id, "L2"),
+    cargoCoverEur: mover.insuranceUpToEur,
+    // Liability typically runs ahead of cargo cover; capped at the schema's
+    // ceiling so a well-insured carrier does not seed an invalid profile.
+    liabilityCoverEur: Math.min(10_000_000, mover.insuranceUpToEur * 2),
+    memberships: memberships.length ? memberships : ["none"],
+    registrationDoc: null,
+    insuranceDoc: null,
+    licenceDoc: null,
+
+    lorries: mover.fleetTrucks,
+    vans: Math.max(1, Math.round(mover.fleetTrucks / 3)),
+    ownership: "owned",
+    weeklyCapacityM3: Math.max(40, mover.fleetTrucks * 60),
+    modes: mover.modes.length ? [...mover.modes] : ["road"],
+    services: (Object.keys(mover.services) as Array<keyof Mover["services"]>).filter(
+      (k) => mover.services[k],
+    ),
+
+    regions: [...mover.regions],
+    availability: "immediate",
     notes: "",
   };
 }
 
-/** Permissive on format, strict on reachability — international numbers vary. */
-const phone = z
-  .string()
-  .trim()
-  .min(7)
-  .max(24)
-  .refine((v) => v.replace(/\D/g, "").length >= 7, "Enter a reachable phone number");
-
-/**
- * What a partner may change, validated identically on both sides.
- *
- * `email` and `phone` carry confirmation flags for the same reason the
- * application form does: every message this product sends goes to these two
- * values, and an account that silently edits itself to an unreachable address
- * is an account we can no longer tell anything. The flags are not stored —
- * they gate the write and are dropped.
- */
-export const partnerProfileSchema = z.object({
-  contactName: z.string().trim().min(2).max(80),
-  contactRole: z.string().trim().min(2).max(80),
-  email: z.string().trim().email(),
-  phone,
-  emailVerified: z.literal(true, { message: "Confirm your email address" }),
-  phoneVerified: z.literal(true, { message: "Confirm your phone number" }),
-  website: z.string().trim().max(200).optional().or(z.literal("")),
-  city: z.string().trim().min(2).max(80),
-  regions: z.array(z.enum(REGION_KEYS)).min(1, "Pick at least one region"),
-  languages: z.array(z.enum(LOCALES)).min(1, "Pick at least one language"),
-  notes: z.string().trim().max(1200).optional().or(z.literal("")),
-});
-
-export type PartnerProfileInput = z.infer<typeof partnerProfileSchema>;
-
-/** Fields a change to which is worth telling the account holder about. */
-export const SENSITIVE_FIELDS = ["email", "phone"] as const;
+/* ---------------------------------------------------------- repository -- */
 
 export interface PartnerProfileRepository {
   /** The stored profile, or `fallback` seeded and stored on first read. */
@@ -130,6 +212,27 @@ export interface PartnerProfileRepository {
     fallback: PartnerProfile,
     input: PartnerProfileInput,
   ): { profile: PartnerProfile; changed: string[]; previousEmail: string };
+}
+
+/** Order-insensitive, so a reordered chip list is not reported as a change. */
+const sameSet = (a: readonly unknown[], b: readonly unknown[]) =>
+  a.length === b.length && [...a].map(String).sort().join() === [...b].map(String).sort().join();
+
+const sameDoc = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/**
+ * Drop the confirmation flags.
+ *
+ * They say something about the request — that this caller proved it holds
+ * the address — and nothing about the account, so they gate the write and
+ * are not stored. `void` rather than an underscore prefix, because the point
+ * is that they are deliberately discarded rather than merely unused.
+ */
+function withoutVerification(input: PartnerProfileInput) {
+  const { emailVerified, phoneVerified, ...rest } = input;
+  void emailVerified;
+  void phoneVerified;
+  return rest;
 }
 
 class InMemoryPartnerProfileRepository implements PartnerProfileRepository {
@@ -148,38 +251,36 @@ class InMemoryPartnerProfileRepository implements PartnerProfileRepository {
     input: PartnerProfileInput,
   ): { profile: PartnerProfile; changed: string[]; previousEmail: string } {
     const current = this.get(partnerId, fallback);
+    const stored = withoutVerification(input);
 
     const next: PartnerProfile = {
+      ...stored,
       partnerId,
-      contactName: input.contactName,
-      contactRole: input.contactRole,
-      email: input.email,
-      phone: input.phone,
-      website: input.website ?? "",
-      city: input.city,
-      regions: input.regions,
-      languages: input.languages,
-      notes: input.notes ?? "",
+      // An absent document means "unchanged", never "removed" — the original
+      // is on file and was never transmitted here to re-send.
+      registrationDoc: stored.registrationDoc ?? current.registrationDoc ?? null,
+      insuranceDoc: stored.insuranceDoc ?? current.insuranceDoc ?? null,
+      licenceDoc: stored.licenceDoc ?? current.licenceDoc ?? null,
       updatedAt: new Date().toISOString(),
     };
 
-    // Compared field by field rather than by deep equality on the whole
-    // record, because `updatedAt` always differs and arrays need order-
-    // insensitive comparison to avoid reporting a reordered chip list as a
-    // change to coverage.
+    /*
+     * Compared field by field rather than by deep equality on the record:
+     * `updatedAt` always differs, arrays need order-insensitive comparison,
+     * and the caller needs the names of what moved rather than a boolean.
+     */
     const changed: string[] = [];
-    const sameSet = (a: readonly string[], b: readonly string[]) =>
-      a.length === b.length && [...a].sort().join() === [...b].sort().join();
-
-    if (current.contactName !== next.contactName) changed.push("contactName");
-    if (current.contactRole !== next.contactRole) changed.push("contactRole");
-    if (current.email !== next.email) changed.push("email");
-    if (current.phone !== next.phone) changed.push("phone");
-    if (current.website !== next.website) changed.push("website");
-    if (current.city !== next.city) changed.push("city");
-    if (!sameSet(current.regions, next.regions)) changed.push("regions");
-    if (!sameSet(current.languages, next.languages)) changed.push("languages");
-    if (current.notes !== next.notes) changed.push("notes");
+    const keys = Object.keys(stored) as Array<keyof typeof stored>;
+    for (const key of keys) {
+      const before = current[key as keyof PartnerProfile];
+      const after = next[key as keyof PartnerProfile];
+      const equal = Array.isArray(before)
+        ? sameSet(before, (after ?? []) as unknown[])
+        : key.endsWith("Doc")
+          ? sameDoc(before, after)
+          : before === after;
+      if (!equal) changed.push(String(key));
+    }
 
     this.profiles.set(partnerId, next);
     return { profile: next, changed, previousEmail: current.email };

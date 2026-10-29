@@ -180,7 +180,9 @@ export function RoutesPanel({ initial, now }: { initial: PartnerLane[]; now: num
         {lx.intro}
       </p>
 
-      <div className="mt-5 space-y-3">
+      {/* Matched to the lead board's spacing — the two lists sit one click
+          apart and a different rhythm between them reads as a mistake. */}
+      <div className="mt-5 space-y-5">
         <AnimatePresence initial={false}>
           {lanes.map((lane) => (
             <LaneCard

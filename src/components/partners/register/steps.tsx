@@ -32,9 +32,11 @@ import {
   COMPANY_SIZES,
   FLEET_OWNERSHIP,
   MEMBERSHIPS,
+  MEMBERSHIP_LABELS,
   MODE_KEYS,
   REGION_KEYS,
   SERVICE_KEYS,
+  type Membership,
 } from "@/lib/partner-application";
 import {
   LEAD_FEE_CAP_USD,
@@ -58,17 +60,6 @@ export type StepProps = {
 };
 
 /** Accreditation bodies are proper nouns — never translated. */
-const MEMBERSHIP_LABELS: Record<string, string> = {
-  fidi_faim: "FIDI / FAIM",
-  iam: "IAM",
-  amo: "AMÖ",
-  bar: "BAR",
-  iata: "IATA",
-  iso_9001: "ISO 9001",
-  tobb: "TOBB",
-  none: "—",
-};
-
 const MODE_ICONS = { road: Truck, sea: Ship, air: Plane, rail: Train } as const;
 
 /** Shared label + required/optional marker. */
@@ -348,7 +339,25 @@ export function StepContact({ draft, update, touched, invalid }: StepProps) {
 
 /* ----------------------------------------------------- 3 · Credentials -- */
 
-export function StepCredentials({ draft, update, touched, invalid }: StepProps) {
+export function StepCredentials({
+  draft,
+  update,
+  touched,
+  invalid,
+  documentsOptional = false,
+}: StepProps & {
+  /**
+   * Set when this step is reused by account settings.
+   *
+   * At application the registration extract and the insurance certificate
+   * are required, because there is nothing on file yet. Afterwards there is,
+   * and an absent file means "unchanged" — so marking them Required there
+   * would be asking a partner to re-attach two documents in order to correct
+   * a VAT number, and would be telling them something untrue about what the
+   * form will accept.
+   */
+  documentsOptional?: boolean;
+}) {
   const { dict, t } = useI18n();
   const R = dict.register;
 
@@ -447,7 +456,7 @@ export function StepCredentials({ draft, update, touched, invalid }: StepProps) 
               active={draft.memberships.includes(id)}
               onToggle={() => toggleMembership(id)}
             >
-              {MEMBERSHIP_LABELS[id]}
+              {MEMBERSHIP_LABELS[id as Membership]}
             </ToggleChip>
           ))}
         </div>
@@ -458,7 +467,7 @@ export function StepCredentials({ draft, update, touched, invalid }: StepProps) 
           <DocumentField
             id="registrationDoc"
             label={R.docRegistration}
-            required
+            required={!documentsOptional}
             value={draft.registrationDoc}
             onChange={(v) => update({ registrationDoc: v })}
             invalid={touched && invalid.has("registrationDoc")}
@@ -466,7 +475,7 @@ export function StepCredentials({ draft, update, touched, invalid }: StepProps) 
           <DocumentField
             id="insuranceDoc"
             label={R.docInsurance}
-            required
+            required={!documentsOptional}
             value={draft.insuranceDoc}
             onChange={(v) => update({ insuranceDoc: v })}
             invalid={touched && invalid.has("insuranceDoc")}
@@ -477,8 +486,11 @@ export function StepCredentials({ draft, update, touched, invalid }: StepProps) 
             value={draft.licenceDoc}
             onChange={(v) => update({ licenceDoc: v })}
           />
+          {/* Settings says what an empty slot means there; the application
+              form says what happens to the bytes. Both are true in their own
+              context and neither is true in the other's. */}
           <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-            {R.docDemoNote}
+            {documentsOptional ? R.docOnFileNote : R.docDemoNote}
           </p>
         </div>
       </FieldSet>
@@ -607,7 +619,23 @@ export function StepFleet({ draft, update, touched, invalid }: StepProps) {
 
 /* -------------------------------------------------------- 5 · Coverage -- */
 
-export function StepCoverage({ draft, update, touched, invalid }: StepProps) {
+export function StepCoverage({
+  draft,
+  update,
+  touched,
+  invalid,
+  showDeclaration = true,
+}: StepProps & {
+  /**
+   * Hidden when this step is reused by account settings.
+   *
+   * The conduct charter is accepted once, at application. Re-presenting it
+   * every time a partner widens their region list would either be asking
+   * them to re-accept something they are not changing, or — worse — be a
+   * tick box that silently means nothing.
+   */
+  showDeclaration?: boolean;
+}) {
   const { dict } = useI18n();
   const R = dict.register;
   const availLabel = {
@@ -669,22 +697,24 @@ export function StepCoverage({ draft, update, touched, invalid }: StepProps) {
         />
       </div>
 
-      <label
-        className={cn(
-          "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors",
-          draft.declaration && "border-brand bg-brand-soft dark:bg-accent",
-          touched && invalid.has("declaration") && "border-destructive",
-        )}
-      >
-        <Checkbox
-          checked={draft.declaration}
-          onCheckedChange={(v) => update({ declaration: v === true })}
-          className="mt-0.5"
-        />
-        <span className="text-[13px] leading-relaxed text-muted-foreground">
-          {R.declaration}
-        </span>
-      </label>
+      {showDeclaration && (
+        <label
+          className={cn(
+            "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors",
+            draft.declaration && "border-brand bg-brand-soft dark:bg-accent",
+            touched && invalid.has("declaration") && "border-destructive",
+          )}
+        >
+          <Checkbox
+            checked={draft.declaration}
+            onCheckedChange={(v) => update({ declaration: v === true })}
+            className="mt-0.5"
+          />
+          <span className="text-[13px] leading-relaxed text-muted-foreground">
+            {R.declaration}
+          </span>
+        </label>
+      )}
     </div>
   );
 }

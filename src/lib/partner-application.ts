@@ -31,6 +31,26 @@ export const MEMBERSHIPS = [
 ] as const;
 export type Membership = (typeof MEMBERSHIPS)[number];
 
+/**
+ * Accreditation names, which are the same in every language.
+ *
+ * Not in the locale dictionaries because they are proper nouns — FIDI is
+ * FIDI in Arabic — and a translator handed these would have nothing to do
+ * but risk mangling them. Lives here rather than in the registration form
+ * because the review queue and the partner's own settings now show the same
+ * list, and three copies of an acronym table is three chances to drift.
+ */
+export const MEMBERSHIP_LABELS: Record<Membership, string> = {
+  fidi_faim: "FIDI / FAIM",
+  iam: "IAM",
+  amo: "AMÖ",
+  bar: "BAR",
+  iata: "IATA",
+  iso_9001: "ISO 9001",
+  tobb: "TOBB",
+  none: "—",
+};
+
 export const FLEET_OWNERSHIP = ["owned", "leased", "mixed", "subcontracted"] as const;
 export type FleetOwnership = (typeof FLEET_OWNERSHIP)[number];
 

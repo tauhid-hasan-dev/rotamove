@@ -849,6 +849,8 @@ export const de = {
     phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Bestätigen Sie Ihre E-Mail-Adresse und Ihre Telefonnummer, um fortzufahren.",
     doneEmailed: "Eine Kopie haben wir an {email} geschickt.",
+
+    docOnFileNote: "Die mit Ihrem Antrag eingereichten Dokumente liegen uns bereits vor. Laden Sie hier nur etwas hoch, um es zu ersetzen — ein leeres Feld ändert nichts.",
   },
 
   notFound: {
@@ -1089,26 +1091,9 @@ export const de = {
 
     settings: {
       title: "Einstellungen",
-      lede: "Ihre Kontaktdaten, Ihr Unternehmen und Ihr Einsatzgebiet.",
+      lede: "Alles, was Sie bei der Bewerbung angegeben haben. Sie können alles davon ändern.",
       lastSaved: "Zuletzt gespeichert {when}",
-      contactHeading: "Wen wir kontaktieren",
-      contactName: "Ansprechpartner",
-      contactRole: "Funktion",
-      email: "Geschäftliche E-Mail",
-      phone: "Telefon",
       contactChangeNote: "Bestätigen Sie den neuen Wert mit dem Code, den wir senden, bevor Sie speichern. Alles, was wir Ihnen schicken — Freigaben, Dokumentenanfragen, Rechnungshinweise — geht an diese beiden Angaben; eine Änderung muss also bewusst erfolgen.",
-      companyHeading: "Unternehmen",
-      city: "Stadt der Hauptniederlassung",
-      website: "Website",
-      notes: "Hinweise für unser Team",
-      notesPlaceholder: "Wöchentliche Sammelgutabfahrten, Zolllager, Spezialverpackung…",
-      notesHint: "Wird vom Prüfteam gelesen. Für Kunden nicht sichtbar.",
-      coverageHeading: "Ihr Einsatzgebiet",
-      coverageHint: "Die Regionen, in denen Sie Aufträge annehmen. Eine Änderung verschiebt nicht die Relationen auf Ihrem Board — die legen Sie unter Routen an oder stellen sie dort still.",
-      pickRegion: "Wählen Sie mindestens eine Region.",
-      languagesHeading: "Sprachen",
-      languagesHint: "Die Sprachen, in denen Ihr Team ein Gespräch führen kann.",
-      pickLanguage: "Wählen Sie mindestens eine Sprache.",
       unsaved: "Sie haben nicht gespeicherte Änderungen.",
       allSaved: "Alles ist gespeichert.",
       discard: "Verwerfen",
@@ -1151,7 +1136,7 @@ export const de = {
         billing: "Abrechnung",
         settings: "Einstellungen",
 
-        companiesPending: "Ausstehend",
+        companiesPending: "Ausstehende Prüfung",
         companiesManage: "Unternehmen verwalten",
 
         outbox: "Postausgang",
@@ -1867,6 +1852,17 @@ export const de = {
         bank_details: "Bankverbindung auf Firmenbriefpapier",
         conduct_charter: "Unterzeichneter Verhaltenskodex",
       },
+
+      backToQueue: "Zurück zur Warteschlange",
+      submittedOn: "Eingegangen am {date}",
+      scoreOf: "Score {n}/100",
+      outstandingTitle: "Noch offen",
+      historyTitle: "Prüfverlauf",
+      historyEmpty: "Noch keine Entscheidungen erfasst.",
+      docMeta: "{size} · {type}",
+      docMissing: "Nicht beigefügt",
+      notFoundTitle: "Kein solcher Antrag",
+      notFoundBody: "Zu dieser Referenz gibt es nichts in der Warteschlange. Möglicherweise wurde sie bei einem Neustart verworfen.",
     },
 
     outbox: {

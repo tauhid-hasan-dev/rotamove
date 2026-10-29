@@ -848,6 +848,8 @@ export const tr = {
     phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Devam etmek için e-posta adresinizi ve telefon numaranızı doğrulayın.",
     doneEmailed: "Bir kopyasını {email} adresine gönderdik.",
+
+    docOnFileNote: "Başvurunuzla gönderdiğiniz belgeler zaten dosyanızda. Buraya yalnızca değiştirmek için ekleyin — boş bırakmak hiçbir şeyi değiştirmez.",
   },
 
   notFound: {
@@ -1086,26 +1088,9 @@ export const tr = {
 
     settings: {
       title: "Ayarlar",
-      lede: "İletişim bilgileriniz, şirketiniz ve çalıştığınız bölgeler.",
+      lede: "Başvururken bize verdiğiniz tüm bilgiler. Hepsini değiştirebilirsiniz.",
       lastSaved: "Son kayıt {when}",
-      contactHeading: "Kiminle iletişim kuracağız",
-      contactName: "İletişim kişisi",
-      contactRole: "Görev",
-      email: "İş e-postası",
-      phone: "Telefon",
       contactChangeNote: "Kaydetmeden önce yeni değeri gönderdiğimiz kodla doğrulayın. Size gönderdiğimiz her şey — onaylar, belge talepleri, fatura bildirimleri — bu ikisine gidiyor; bu yüzden değişiklik bilinçli olmalı.",
-      companyHeading: "Şirket",
-      city: "Merkez ofis şehri",
-      website: "Web sitesi",
-      notes: "Ekibimiz için notlar",
-      notesPlaceholder: "Haftalık parsiyel çıkışlar, antrepo, özel sandıklama…",
-      notesHint: "Değerlendirme ekibi okur. Müşterilere gösterilmez.",
-      coverageHeading: "Çalıştığınız bölgeler",
-      coverageHint: "İş aldığınız bölgeler. Bunu değiştirmek panonuzdaki hatları taşımaz — onları Rotalar bölümünde ekler veya kapatırsınız.",
-      pickRegion: "En az bir bölge seçin.",
-      languagesHeading: "Diller",
-      languagesHint: "Ekibinizin telefonda konuşabildiği diller.",
-      pickLanguage: "En az bir dil seçin.",
       unsaved: "Kaydedilmemiş değişiklikleriniz var.",
       allSaved: "Her şey kayıtlı.",
       discard: "Vazgeç",
@@ -1148,7 +1133,7 @@ export const tr = {
         billing: "Faturalama",
         settings: "Ayarlar",
 
-        companiesPending: "Bekleyen",
+        companiesPending: "İnceleme bekleyenler",
         companiesManage: "Şirketleri yönet",
 
         outbox: "Giden kutusu",
@@ -1858,6 +1843,17 @@ export const tr = {
         bank_details: "Şirket antetli kağıdında banka bilgileri",
         conduct_charter: "İmzalı davranış kuralları",
       },
+
+      backToQueue: "Kuyruğa dön",
+      submittedOn: "{date} tarihinde geldi",
+      scoreOf: "Puan {n}/100",
+      outstandingTitle: "Hâlâ eksik",
+      historyTitle: "İnceleme geçmişi",
+      historyEmpty: "Henüz kayıtlı bir karar yok.",
+      docMeta: "{size} · {type}",
+      docMissing: "Eklenmedi",
+      notFoundTitle: "Böyle bir başvuru yok",
+      notFoundBody: "Bu referans kuyruktaki hiçbir kayıtla eşleşmiyor. Yeniden başlatmada düşmüş olabilir.",
     },
 
     outbox: {

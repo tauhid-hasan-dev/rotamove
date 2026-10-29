@@ -845,6 +845,8 @@ export const it = {
     phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Conferma il tuo indirizzo email e il numero di telefono per continuare.",
     doneEmailed: "Abbiamo inviato una copia a {email}.",
+
+    docOnFileNote: "I documenti inviati con la candidatura sono già agli atti. Allega qui un file solo per sostituirlo: lasciare vuoto non cambia nulla.",
   },
 
   notFound: {
@@ -1086,26 +1088,9 @@ export const it = {
 
     settings: {
       title: "Impostazioni",
-      lede: "I tuoi contatti, la tua azienda e dove operi.",
+      lede: "Tutto quello che ci hai detto in fase di candidatura. Puoi modificare ogni campo.",
       lastSaved: "Ultimo salvataggio {when}",
-      contactHeading: "Chi contattiamo",
-      contactName: "Nome del contatto",
-      contactRole: "Ruolo",
-      email: "Email di lavoro",
-      phone: "Telefono",
       contactChangeNote: "Conferma il nuovo valore con il codice che inviamo prima di salvare. Tutto ciò che ti mandiamo — approvazioni, richieste di documenti, avvisi di fatturazione — passa da questi due recapiti, quindi la modifica deve essere voluta.",
-      companyHeading: "Azienda",
-      city: "Città della sede",
-      website: "Sito web",
-      notes: "Note per il nostro team",
-      notesPlaceholder: "Partenze groupage settimanali, magazzino doganale, imballaggi speciali…",
-      notesHint: "Letto dal team di verifica. Non visibile ai clienti.",
-      coverageHeading: "Dove operi",
-      coverageHint: "Le regioni in cui accetti lavoro. Modificarle non sposta le tratte sulla tua bacheca: quelle si aggiungono o si ritirano in Rotte.",
-      pickRegion: "Scegli almeno una regione.",
-      languagesHeading: "Lingue",
-      languagesHint: "Le lingue in cui il tuo team può gestire una chiamata.",
-      pickLanguage: "Scegli almeno una lingua.",
       unsaved: "Hai modifiche non salvate.",
       allSaved: "Tutto salvato.",
       discard: "Annulla",
@@ -1148,7 +1133,7 @@ export const it = {
         billing: "Fatturazione",
         settings: "Impostazioni",
 
-        companiesPending: "In attesa",
+        companiesPending: "In attesa di verifica",
         companiesManage: "Gestisci aziende",
 
         outbox: "Posta inviata",
@@ -1861,6 +1846,17 @@ export const it = {
         bank_details: "Coordinate bancarie su carta intestata",
         conduct_charter: "Codice di condotta firmato",
       },
+
+      backToQueue: "Torna alla coda",
+      submittedOn: "Ricevuta il {date}",
+      scoreOf: "Punteggio {n}/100",
+      outstandingTitle: "Ancora da ricevere",
+      historyTitle: "Storico della verifica",
+      historyEmpty: "Nessuna decisione registrata finora.",
+      docMeta: "{size} · {type}",
+      docMissing: "Non allegato",
+      notFoundTitle: "Candidatura inesistente",
+      notFoundBody: "Questo riferimento non corrisponde a nulla in coda. Potrebbe essere stato rimosso a un riavvio.",
     },
 
     outbox: {

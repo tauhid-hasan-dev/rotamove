@@ -1,33 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Building2,
   Check,
   FileWarning,
   Loader2,
-  Mail,
   RefreshCw,
   Search,
   ShieldCheck,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
 import { EmptyState, StatusBadge } from "@/components/admin/bits";
+import { DecisionDialog, type Decision } from "@/components/admin/decision-dialog";
 import { useAdminPageTitle } from "@/components/admin/page-title";
 import { PaginationBar, usePagination } from "@/components/admin/table-bits";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -43,14 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import { APPLICATION_STATUS_META } from "@/lib/admin/labels";
 import {
   APPLICATION_STATUSES,
-  REQUESTABLE_DOCUMENTS,
   type ApplicationStatus,
   type PartnerApplication,
-  type RequestableDocument,
 } from "@/lib/partner-application";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -77,11 +64,10 @@ type Filter = ApplicationStatus | "open" | "all";
 /** What the queue opens on: everything still needing a human. */
 const DEFAULT_FILTER: Filter = "open";
 
-type Decision = "approve" | "decline" | "request_documents";
-
 export function PendingView() {
   const { dict, t } = useI18n();
   const ax = dict.admin.pending;
+  const router = useRouter();
   useAdminPageTitle(ax.title);
 
   const [applications, setApplications] = useState<PartnerApplication[] | null>(null);
@@ -216,8 +202,21 @@ export function PendingView() {
             <TableBody>
               {pagination.pageRows.map((a) => {
                 const decided = a.status === "approved" || a.status === "declined";
+                const open = () => router.push(`/admin/companies/pending/${a.reference}`);
                 return (
-                  <TableRow key={a.reference}>
+                  /* The whole row opens the application — the documents, the
+                     cover amounts and the trading history are the things a
+                     decision actually turns on, and none of them fit in a
+                     table. Keyboard-reachable, like the leads list. */
+                  <TableRow
+                    key={a.reference}
+                    tabIndex={0}
+                    onClick={open}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") open();
+                    }}
+                    className="cursor-pointer"
+                  >
                     <TableCell>
                       <span className="flex items-center gap-3">
                         <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
@@ -279,7 +278,14 @@ export function PendingView() {
                           {ax.noActions}
                         </span>
                       ) : (
-                        <span className="flex items-center justify-end gap-1.5">
+                        /* Stops the row's own click: pressing Approve must
+                           open the confirmation, not navigate away from the
+                           list behind it. */
+                        <span
+                          className="flex items-center justify-end gap-1.5"
+                          onClick={(e) => e.stopPropagation()}
+                          role="presentation"
+                        >
                           <IconAction
                             label={ax.requestDocs}
                             onClick={() => setActing({ application: a, decision: "request_documents" })}
@@ -392,187 +398,5 @@ function IconAction({
     >
       {children}
     </button>
-  );
-}
-
-/**
- * The confirmation.
- *
- * Every branch names the address the message is going to, because that is the
- * fact the reviewer needs and cannot otherwise see from the row: an approval
- * is irreversible from here and the email goes out with it.
- */
-function DecisionDialog({
-  application,
-  decision,
-  onClose,
-  onDone,
-}: {
-  application: PartnerApplication;
-  decision: Decision;
-  onClose: () => void;
-  onDone: (next: PartnerApplication) => void;
-}) {
-  const { dict, t } = useI18n();
-  const ax = dict.admin.pending;
-
-  const [reason, setReason] = useState("");
-  const [note, setNote] = useState("");
-  const [documents, setDocuments] = useState<RequestableDocument[]>(
-    // Pre-ticked with whatever is already outstanding, so a reviewer chasing
-    // a second time does not have to remember what they asked for.
-    () => [...(application.requestedDocuments ?? [])] as RequestableDocument[],
-  );
-  const [working, setWorking] = useState(false);
-
-  const ready =
-    decision === "approve" ||
-    (decision === "decline" && reason.trim().length >= 4) ||
-    (decision === "request_documents" && documents.length > 0);
-
-  const submit = async () => {
-    if (!ready) return;
-    setWorking(true);
-    try {
-      const response = await fetch("/api/admin/applications/decision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reference: application.reference,
-          decision,
-          ...(decision === "decline" ? { reason: reason.trim() } : {}),
-          ...(decision === "request_documents"
-            ? { documents, note: note.trim() || undefined }
-            : {}),
-        }),
-      });
-      if (!response.ok) throw new Error();
-      const { application: next } = (await response.json()) as {
-        application: PartnerApplication;
-      };
-
-      toast.success(
-        decision === "approve"
-          ? ax.toastApproved
-          : decision === "decline"
-            ? ax.toastDeclined
-            : ax.toastRequested,
-        { description: t.fill(ax.toastEmailed, { email: application.email }) },
-      );
-      onDone(next);
-    } catch {
-      toast.error(ax.toastFailed);
-    } finally {
-      setWorking(false);
-    }
-  };
-
-  const title =
-    decision === "approve" ? ax.approveTitle : decision === "decline" ? ax.declineTitle : ax.docsTitle;
-
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            {t.fill(ax.forCompany, {
-              company: application.tradingName || application.legalName,
-              reference: application.reference,
-            })}
-          </DialogDescription>
-        </DialogHeader>
-
-        {decision === "approve" && (
-          <p className="rounded-xl border bg-surface p-4 text-[13px] leading-relaxed text-muted-foreground">
-            {ax.approveBody}
-          </p>
-        )}
-
-        {decision === "decline" && (
-          <div>
-            <Label htmlFor="decline-reason" className="mb-2 block text-[13.5px]">
-              {ax.reasonLabel}
-            </Label>
-            <Textarea
-              id="decline-reason"
-              rows={4}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={ax.reasonPlaceholder}
-              className="rounded-xl"
-            />
-            {/* Stated plainly: the reviewer's words are quoted verbatim to
-                the applicant, so this is not an internal note. */}
-            <p className="mt-2 text-[12px] text-muted-foreground">{ax.reasonHint}</p>
-          </div>
-        )}
-
-        {decision === "request_documents" && (
-          <div>
-            <p className="text-[13.5px] font-medium">{ax.docsLabel}</p>
-            <div className="mt-3 space-y-1">
-              {REQUESTABLE_DOCUMENTS.map((doc) => {
-                const checked = documents.includes(doc);
-                return (
-                  <label
-                    key={doc}
-                    className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted"
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(next) =>
-                        setDocuments((list) =>
-                          next ? [...list, doc] : list.filter((d) => d !== doc),
-                        )
-                      }
-                      className="mt-0.5"
-                    />
-                    <span className="text-[13.5px] leading-snug">
-                      {dict.admin.pending.documents[doc]}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-
-            <Label htmlFor="docs-note" className="mb-2 mt-5 block text-[13.5px]">
-              {ax.noteLabel}
-            </Label>
-            <Textarea
-              id="docs-note"
-              rows={3}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={ax.notePlaceholder}
-              className="rounded-xl"
-            />
-          </div>
-        )}
-
-        <p className="flex items-start gap-2 text-[12.5px] leading-snug text-muted-foreground">
-          <Mail className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          <span>{t.fill(ax.willEmail, { email: application.email })}</span>
-        </p>
-
-        <DialogFooter>
-          <Button variant="ghost" onClick={onClose} disabled={working}>
-            {dict.admin.common.cancel}
-          </Button>
-          <Button
-            onClick={submit}
-            disabled={working || !ready}
-            variant={decision === "decline" ? "destructive" : "default"}
-          >
-            {working && <Loader2 className="size-4 animate-spin" aria-hidden />}
-            {decision === "approve"
-              ? ax.approve
-              : decision === "decline"
-                ? ax.decline
-                : ax.sendRequest}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

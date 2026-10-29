@@ -849,6 +849,8 @@ export const fr = {
     phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Confirmez votre adresse e-mail et votre numéro de téléphone pour continuer.",
     doneEmailed: "Nous avons envoyé une copie à {email}.",
+
+    docOnFileNote: "Les documents envoyés avec votre candidature sont déjà au dossier. N'en joignez un ici que pour le remplacer : laisser un emplacement vide ne change rien.",
   },
 
   notFound: {
@@ -1090,26 +1092,9 @@ export const fr = {
 
     settings: {
       title: "Paramètres",
-      lede: "Vos coordonnées, votre entreprise et vos zones d'activité.",
+      lede: "Tout ce que vous nous avez indiqué lors de votre candidature. Vous pouvez tout modifier.",
       lastSaved: "Enregistré le {when}",
-      contactHeading: "Qui nous contactons",
-      contactName: "Nom du contact",
-      contactRole: "Fonction",
-      email: "E-mail professionnel",
-      phone: "Téléphone",
       contactChangeNote: "Confirmez la nouvelle valeur avec le code que nous envoyons avant d'enregistrer. Tout ce que nous vous adressons — validations, demandes de documents, avis de facturation — passe par ces deux canaux : le changement doit donc être volontaire.",
-      companyHeading: "Entreprise",
-      city: "Ville du siège",
-      website: "Site web",
-      notes: "Notes pour notre équipe",
-      notesPlaceholder: "Départs groupage hebdomadaires, entrepôt sous douane, caisserie spécialisée…",
-      notesHint: "Lu par l'équipe de validation. Non visible par les clients.",
-      coverageHeading: "Vos zones d'activité",
-      coverageHint: "Les régions où vous acceptez des missions. Ce réglage ne modifie pas les lignes de votre tableau — celles-ci s'ajoutent ou se retirent dans Itinéraires.",
-      pickRegion: "Choisissez au moins une région.",
-      languagesHeading: "Langues",
-      languagesHint: "Les langues dans lesquelles votre équipe peut prendre un appel.",
-      pickLanguage: "Choisissez au moins une langue.",
       unsaved: "Vous avez des modifications non enregistrées.",
       allSaved: "Tout est enregistré.",
       discard: "Annuler",
@@ -1152,7 +1137,7 @@ export const fr = {
         billing: "Facturation",
         settings: "Paramètres",
 
-        companiesPending: "En attente",
+        companiesPending: "En attente de validation",
         companiesManage: "Gérer les entreprises",
 
         outbox: "Messages envoyés",
@@ -1864,6 +1849,17 @@ export const fr = {
         bank_details: "Coordonnées bancaires sur papier à en-tête",
         conduct_charter: "Code de conduite signé",
       },
+
+      backToQueue: "Retour à la file",
+      submittedOn: "Reçue le {date}",
+      scoreOf: "Score {n}/100",
+      outstandingTitle: "Toujours en attente",
+      historyTitle: "Historique de validation",
+      historyEmpty: "Aucune décision enregistrée pour l'instant.",
+      docMeta: "{size} · {type}",
+      docMissing: "Non jointe",
+      notFoundTitle: "Candidature introuvable",
+      notFoundBody: "Cette référence ne correspond à rien dans la file. Elle a peut-être été écartée lors d'un redémarrage.",
     },
 
     outbox: {

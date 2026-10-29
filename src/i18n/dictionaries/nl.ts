@@ -847,6 +847,8 @@ export const nl = {
     phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Bevestig uw e-mailadres en telefoonnummer om door te gaan.",
     doneEmailed: "We hebben een kopie naar {email} gestuurd.",
+
+    docOnFileNote: "De documenten die u bij uw aanvraag stuurde, zitten al in het dossier. Voeg hier alleen iets toe om het te vervangen — een leeg vak verandert niets.",
   },
 
   notFound: {
@@ -1087,26 +1089,9 @@ export const nl = {
 
     settings: {
       title: "Instellingen",
-      lede: "Uw contactgegevens, uw bedrijf en waar u rijdt.",
+      lede: "Alles wat u bij uw aanvraag heeft opgegeven. U kunt alles wijzigen.",
       lastSaved: "Laatst opgeslagen {when}",
-      contactHeading: "Wie wij benaderen",
-      contactName: "Naam contactpersoon",
-      contactRole: "Functie",
-      email: "Zakelijk e-mailadres",
-      phone: "Telefoon",
       contactChangeNote: "Bevestig de nieuwe waarde met de code die wij sturen voordat u opslaat. Alles wat wij u sturen — goedkeuringen, documentverzoeken, factuurberichten — gaat naar deze twee, dus een wijziging moet bewust zijn.",
-      companyHeading: "Bedrijf",
-      city: "Vestigingsplaats",
-      website: "Website",
-      notes: "Opmerkingen voor ons team",
-      notesPlaceholder: "Wekelijkse groupage-afvaarten, douane-entrepot, speciaal kistwerk…",
-      notesHint: "Gelezen door het beoordelingsteam. Niet zichtbaar voor klanten.",
-      coverageHeading: "Waar u rijdt",
-      coverageHint: "De regio's waar u werk aanneemt. Dit verschuift niet de trajecten op uw bord — die voegt u toe of beëindigt u bij Routes.",
-      pickRegion: "Kies minstens één regio.",
-      languagesHeading: "Talen",
-      languagesHint: "De talen waarin uw team een gesprek kan voeren.",
-      pickLanguage: "Kies minstens één taal.",
       unsaved: "U heeft niet-opgeslagen wijzigingen.",
       allSaved: "Alles is opgeslagen.",
       discard: "Verwerpen",
@@ -1149,7 +1134,7 @@ export const nl = {
         billing: "Facturatie",
         settings: "Instellingen",
 
-        companiesPending: "In afwachting",
+        companiesPending: "Te beoordelen",
         companiesManage: "Bedrijven beheren",
 
         outbox: "Postvak uit",
@@ -1863,6 +1848,17 @@ export const nl = {
         bank_details: "Bankgegevens op bedrijfsbriefpapier",
         conduct_charter: "Ondertekende gedragscode",
       },
+
+      backToQueue: "Terug naar de wachtrij",
+      submittedOn: "Ontvangen op {date}",
+      scoreOf: "Score {n}/100",
+      outstandingTitle: "Nog openstaand",
+      historyTitle: "Beoordelingsgeschiedenis",
+      historyEmpty: "Nog geen beslissingen vastgelegd.",
+      docMeta: "{size} · {type}",
+      docMissing: "Niet bijgevoegd",
+      notFoundTitle: "Geen zo'n aanvraag",
+      notFoundBody: "Die referentie komt met niets in de wachtrij overeen. Mogelijk is die bij een herstart vervallen.",
     },
 
     outbox: {
