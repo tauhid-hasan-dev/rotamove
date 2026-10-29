@@ -13,6 +13,7 @@ import {
   Truck,
 } from "lucide-react";
 import { FieldSet, OptionCard, ToggleChip } from "@/components/quote/fields";
+import { VerifyField } from "@/components/quote/verify-field";
 import { DocumentField } from "@/components/partners/register/document-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,6 +220,17 @@ export function StepCompany({ draft, update, touched, invalid }: StepProps) {
 
 /* --------------------------------------------------------- 2 · Contact -- */
 
+/**
+ * Good enough to decide whether to offer to send a code.
+ *
+ * Deliberately not an RFC-compliant address grammar: the real check is
+ * whether a code sent to the address comes back, which is the whole point of
+ * the step. This only decides when the Verify button lights up, so being
+ * permissive costs a wasted click and being strict costs a valid applicant
+ * their account.
+ */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 export function StepContact({ draft, update, touched, invalid }: StepProps) {
   const { dict } = useI18n();
   const R = dict.register;
@@ -258,35 +270,46 @@ export function StepContact({ draft, update, touched, invalid }: StepProps) {
           />
         </div>
 
-        <div>
-          <FieldLabel htmlFor="email" required>
-            {R.email}
-          </FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            value={draft.email}
-            onChange={(e) => update({ email: e.target.value })}
-            className={field(invalid, touched, "email")}
-          />
-        </div>
+        {/* Both confirmed by a one-time code before the step will advance.
+            Same component the quote wizard uses, so there is one OTP flow in
+            the product rather than two that drift apart. Editing a confirmed
+            value clears its tick — see `use-fake-verification.ts`. */}
+        {/* Full width, unlike the pair above. The code panel opens inside
+            the field, and six 40px digit boxes plus "we sent a code to
+            <long address>" in half a column wraps into a mess. */}
+        <VerifyField
+          className="sm:col-span-2"
+          id="email"
+          kind="email"
+          label={R.email}
+          placeholder={R.emailPlaceholder}
+          value={draft.email}
+          onChange={(email) => update({ email })}
+          verified={draft.emailVerified}
+          onVerifiedChange={(emailVerified) => update({ emailVerified })}
+          valid={EMAIL_RE.test(draft.email.trim())}
+          invalid={touched && invalid.has("email")}
+          autoComplete="email"
+          inputMode="email"
+          type="email"
+        />
 
-        <div>
-          <FieldLabel htmlFor="phone" required>
-            {R.phone}
-          </FieldLabel>
-          <Input
-            id="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            value={draft.phone}
-            onChange={(e) => update({ phone: e.target.value })}
-            className={cn(field(invalid, touched, "phone"), "tnum")}
-          />
-        </div>
+        <VerifyField
+          className="sm:col-span-2"
+          id="phone"
+          kind="phone"
+          label={R.phone}
+          placeholder={R.phonePlaceholder}
+          value={draft.phone}
+          onChange={(phone) => update({ phone })}
+          verified={draft.phoneVerified}
+          onVerifiedChange={(phoneVerified) => update({ phoneVerified })}
+          valid={draft.phone.replace(/\D/g, "").length >= 7}
+          invalid={touched && invalid.has("phone")}
+          autoComplete="tel"
+          inputMode="tel"
+          type="tel"
+        />
 
         <div>
           <FieldLabel htmlFor="altPhone">{R.altPhone}</FieldLabel>
@@ -299,6 +322,7 @@ export function StepContact({ draft, update, touched, invalid }: StepProps) {
             className="h-12 rounded-2xl tnum"
           />
         </div>
+
       </div>
 
       <FieldSet legend={R.languages}>

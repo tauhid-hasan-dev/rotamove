@@ -111,6 +111,21 @@ export const contactStepSchema = z.object({
   phone,
   altPhone: z.string().trim().max(24).optional().or(z.literal("")),
   languages: z.array(z.enum(LOCALES)).min(1, "Pick at least one language"),
+  /*
+   * Both contact routes are confirmed by a one-time code before the step will
+   * advance, and the flags are part of the schema rather than a UI nicety so
+   * the API refuses an unverified application too.
+   *
+   * This is the one field set on the form that exists for our benefit rather
+   * than the applicant's. Everything downstream — the reference code, the
+   * approval, a request for a missing licence — is delivered to this address
+   * and this number, and a vetting queue full of applications we cannot reach
+   * is a queue that has to be worked by hand and then thrown away. A typo in
+   * an email address is both the likeliest error on the form and the only one
+   * that makes every later message silently fail.
+   */
+  emailVerified: z.literal(true, { message: "Verify your email address" }),
+  phoneVerified: z.literal(true, { message: "Verify your phone number" }),
 });
 
 export const credentialsStepSchema = z.object({
@@ -177,13 +192,64 @@ export const partnerApplicationSchema = companyStepSchema
 
 export type PartnerApplicationInput = z.infer<typeof partnerApplicationSchema>;
 
+/**
+ * Where an application sits in vetting.
+ *
+ * `awaiting_documents` is a hold, not a verdict: the reviewer has asked for
+ * something and the application stays in the queue until it arrives. Keeping
+ * it distinct from `pending` is what lets the queue be filtered down to "work
+ * I can actually do right now" — a reviewer looking at forty applications
+ * needs to skip the ones already waiting on somebody else.
+ */
+export type ApplicationStatus = "pending" | "awaiting_documents" | "approved" | "declined";
+
+export const APPLICATION_STATUSES = [
+  "pending",
+  "awaiting_documents",
+  "approved",
+  "declined",
+] as const satisfies ReadonlyArray<ApplicationStatus>;
+
+/** One thing a reviewer did to an application. Append-only. */
+export interface ReviewEvent {
+  status: ApplicationStatus;
+  at: string;
+  by: string;
+  /** The reviewer's words: a decline reason, or a note with a document ask. */
+  note?: string;
+  /** What was asked for, when the event is a document request. */
+  documents?: string[];
+}
+
 export interface PartnerApplication extends PartnerApplicationInput {
   /** Quoted back to the applicant; becomes their partner ID once approved. */
   reference: string;
   submittedAt: string;
   /** Internal 0–100 readiness score. Never returned to the applicant. */
   score: number;
+  status: ApplicationStatus;
+  /**
+   * The audit trail. A vetting decision is the kind of thing somebody asks
+   * about months later — "who approved this carrier, and on what basis" — and
+   * a single mutable status field cannot answer it.
+   */
+  review: ReviewEvent[];
+  /** Still outstanding from the last document request, if any. */
+  requestedDocuments?: string[];
 }
+
+/** The documents a reviewer can ask for. Labels are translated in the UI. */
+export const REQUESTABLE_DOCUMENTS = [
+  "insurance_certificate",
+  "transport_licence",
+  "registration_extract",
+  "vat_certificate",
+  "fleet_list",
+  "bank_details",
+  "conduct_charter",
+] as const;
+
+export type RequestableDocument = (typeof REQUESTABLE_DOCUMENTS)[number];
 
 /* ------------------------------------------------------------------- ids -- */
 

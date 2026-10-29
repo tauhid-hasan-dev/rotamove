@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { serverSingleton } from "@/lib/server-singleton";
 
 /**
  * Unlock repository.
@@ -92,11 +93,7 @@ class InMemoryUnlockRepository implements UnlockRepository {
  * Module-level singleton. Next's dev server re-evaluates modules on edit, so we
  * stash it on globalThis to keep unlocks alive across hot reloads.
  */
-const globalForUnlocks = globalThis as unknown as { __rotamoveUnlocks?: UnlockRepository };
-
-export const unlockRepository: UnlockRepository =
-  globalForUnlocks.__rotamoveUnlocks ?? new InMemoryUnlockRepository();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForUnlocks.__rotamoveUnlocks = unlockRepository;
-}
+export const unlockRepository: UnlockRepository = serverSingleton(
+  "__rotamoveUnlocks",
+  () => new InMemoryUnlockRepository(),
+);

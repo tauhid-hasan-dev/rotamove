@@ -6,6 +6,7 @@ import { generateLeadBoard } from "@/lib/demo-leads";
 import { laneRepository } from "@/lib/lane-store";
 import { unlockRepository } from "@/lib/unlock-store";
 import { planRepository } from "@/lib/plan-store";
+import { partnerProfileRepository, seedProfile } from "@/lib/partner-profile";
 import { accountForCookie, PARTNER_COOKIE } from "@/lib/partner-session";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
 import { localePath } from "@/i18n/paths";
@@ -55,6 +56,17 @@ export default async function PartnerDashboardPage({
   // Reading this is also what promotes a queued plan change whose start date
   // has passed — the sweep a scheduled job would do in a deployed system.
   const subscription = planRepository.get(account.mover.id, account.plan, now);
+  // Seeded from the mover record on first read, so Settings opens on a filled
+  // form rather than on empty required fields.
+  const profile = partnerProfileRepository.get(
+    account.mover.id,
+    seedProfile({
+      partnerId: account.mover.id,
+      mover: account.mover,
+      email: account.email,
+      locale,
+    }),
+  );
 
   // No SiteHeader and no SiteFooter. This is a signed-in workspace, not a
   // page of the marketing site: the public nav offered a partner mid-task
@@ -67,6 +79,7 @@ export default async function PartnerDashboardPage({
         lanes={lanes}
         initialUnlocked={unlocks.map((u) => u.leadId)}
         subscription={subscription}
+        profile={profile}
         account={{
           name: account.mover.name,
           email: account.email,

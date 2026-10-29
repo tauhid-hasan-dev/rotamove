@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
 import {
   Building2,
   Check,
@@ -148,11 +149,28 @@ const EXTRA_TOGGLES = [
   "cleaning",
 ] as const satisfies ReadonlyArray<keyof Dictionary["quote"]["extras"]>;
 
+/**
+ * Where the week slider starts when someone says yes to storage.
+ *
+ * Four, not one: the slider's job once it appears is to adjust a plausible
+ * answer, and opening on the minimum makes every partner who needs a month
+ * drag from one end. It is also the figure the pricing copy already quotes.
+ */
+const DEFAULT_STORAGE_WEEKS = 4;
+
 export function StepServices({ draft, update }: StepProps) {
   const { dict, t } = useI18n();
 
   const setExtra = <K extends keyof LeadDraft["extras"]>(key: K, value: LeadDraft["extras"][K]) =>
     update((d) => ({ ...d, extras: { ...d.extras, [key]: value } }));
+
+  /*
+   * Derived, not stored. "Wants storage" is exactly "more than nought weeks",
+   * so there is no second field to be contradicted by the first — and no
+   * change to the lead schema, the URL codec or the fee function, all of
+   * which already treat `storageWeeks > 0` as the fact that matters.
+   */
+  const wantsStorage = draft.extras.storageWeeks > 0;
 
   return (
     <div className="space-y-9">
@@ -182,21 +200,67 @@ export function StepServices({ draft, update }: StepProps) {
         </div>
       </FieldSet>
 
+      {/* Storage: the decision first, the duration second.
+          This was one 0–26 week slider whose zero position read "None",
+          which looks like a quantity of storage rather than the absence of
+          one — and left the commonest answer indistinguishable from a
+          control nobody had touched. Whether and how long are two
+          questions, so they are two controls, and the second only exists
+          once the first is yes. */}
       <FieldSet legend={dict.quote.storageLegend}>
-        <div className="rounded-3xl border bg-surface p-6">
-          <p className="text-[26px] font-medium leading-none tnum">
-            {t.weeks(draft.extras.storageWeeks)}
-          </p>
-          <Slider
-            className="mt-6"
-            value={[draft.extras.storageWeeks]}
-            min={0}
-            max={26}
-            step={1}
-            onValueChange={([v]) => setExtra("storageWeeks", v)}
-            aria-label={dict.quote.storageAria}
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          <OptionCard
+            compact
+            selected={!wantsStorage}
+            onSelect={() => setExtra("storageWeeks", 0)}
+            title={dict.quote.storageNo}
+            hint={dict.quote.storageNoHint}
+          />
+          <OptionCard
+            compact
+            selected={wantsStorage}
+            onSelect={() => setExtra("storageWeeks", DEFAULT_STORAGE_WEEKS)}
+            title={dict.quote.storageYes}
+            hint={dict.quote.storageYesHint}
           />
         </div>
+
+        <AnimatePresence initial={false}>
+          {wantsStorage && (
+            <motion.div
+              key="weeks"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="mt-2.5 rounded-3xl border bg-surface p-6">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-[13.5px] text-muted-foreground">
+                    {dict.quote.storageDuration}
+                  </p>
+                  <p className="text-[26px] font-medium leading-none tnum">
+                    {t.weeks(draft.extras.storageWeeks)}
+                  </p>
+                </div>
+                <Slider
+                  className="mt-5"
+                  value={[draft.extras.storageWeeks]}
+                  /* Floors at one week rather than zero. Zero is "no
+                     storage", and that answer belongs to the choice above —
+                     a slider that can reach it gives one state two controls
+                     and lets the panel read "Yes — None". */
+                  min={1}
+                  max={26}
+                  step={1}
+                  onValueChange={([v]) => setExtra("storageWeeks", v)}
+                  aria-label={dict.quote.storageAria}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </FieldSet>
 
       <FieldSet legend={dict.quote.specialistLegend}>

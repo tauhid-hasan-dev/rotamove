@@ -12,6 +12,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   Moon,
   Settings,
@@ -41,20 +42,46 @@ import { cn } from "@/lib/utils";
 /* The admin chrome: sidebar on desktop, sheet menu on mobile, one topbar.
    Uses the same sidebar tokens the rest of the design system defines. */
 
+type NavKey = keyof Dictionary["admin"]["shell"]["nav"];
+
+interface NavItem {
+  href: string;
+  key: NavKey;
+  icon: typeof Inbox;
+  exact: boolean;
+  /** Rendered indented beneath the parent when the parent section is open. */
+  children?: ReadonlyArray<{ href: string; key: NavKey; exact: boolean }>;
+}
+
 const NAV = [
   { href: "/admin", key: "dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/leads", key: "leads", icon: Inbox, exact: false },
-  { href: "/admin/companies", key: "companies", icon: Building2, exact: false },
+  {
+    href: "/admin/companies",
+    key: "companies",
+    icon: Building2,
+    exact: false,
+    children: [
+      /*
+       * `/admin/companies/pending` is a static segment sitting beside the
+       * `[id]` route for company detail. Next resolves static before dynamic,
+       * so this wins — and no mover id is ever the literal string "pending",
+       * so nothing is shadowed.
+       */
+      { href: "/admin/companies/pending", key: "companiesPending", exact: true },
+      // Exact, so it stops being highlighted once you are on the pending tab
+      // or inside a company — otherwise both parent entries light up at once.
+      { href: "/admin/companies", key: "companiesManage", exact: true },
+    ],
+  },
+  // Beside Companies rather than under Settings: it is the evidence for
+  // every decision taken on the page above it.
+  { href: "/admin/outbox", key: "outbox", icon: Mail, exact: false },
   { href: "/admin/reports", key: "reports", icon: BarChart3, exact: false },
   { href: "/admin/analytics", key: "analytics", icon: ChartSpline, exact: false },
   { href: "/admin/billing", key: "billing", icon: CreditCard, exact: false },
   { href: "/admin/settings", key: "settings", icon: Settings, exact: false },
-] as const satisfies ReadonlyArray<{
-  href: string;
-  key: keyof Dictionary["admin"]["shell"]["nav"];
-  icon: typeof Inbox;
-  exact: boolean;
-}>;
+] as const satisfies ReadonlyArray<NavItem>;
 
 function isActive(pathname: string, href: string, exact: boolean): boolean {
   return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -79,24 +106,64 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const { dict } = useI18n();
   return (
     <nav aria-label={dict.admin.shell.navAria} className="flex flex-col gap-1">
-      {NAV.map(({ href, key, icon: Icon, exact }) => {
-        const active = isActive(pathname, href, exact);
+      {NAV.map((item) => {
+        const { href, key, icon: Icon, exact } = item;
+        const children = "children" in item ? item.children : undefined;
+        // The parent highlights for anything in its subtree, so Companies
+        // stays lit while you are on Pending or inside a company record.
+        const inSection = isActive(pathname, href, exact);
+
         return (
-          <Link
-            key={href}
-            href={href}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
-              active
-                ? "bg-brand/20 text-ink dark:bg-brand/15 dark:text-brand"
-                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          <div key={href} className="contents">
+            <Link
+              href={href}
+              onClick={onNavigate}
+              aria-current={inSection && !children ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
+                inSection
+                  ? "bg-brand/20 text-ink dark:bg-brand/15 dark:text-brand"
+                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              )}
+            >
+              <Icon className={cn("size-4", inSection ? "" : "opacity-70")} aria-hidden />
+              {dict.admin.shell.nav[key]}
+            </Link>
+
+            {/* Sub-items, shown only while their section is open. Always
+                visible would put two more rows in a seven-item sidebar for
+                the benefit of whoever is not currently in that section. */}
+            {children && inSection && (
+              <div className="relative mb-1 ms-[1.6rem] flex flex-col gap-0.5 ps-3.5">
+                {/* The spine: one rule the whole group hangs off, which is
+                    what makes two indented links read as belonging to the
+                    entry above rather than as two more top-level items. */}
+                <span
+                  aria-hidden
+                  className="absolute inset-y-1 start-0 w-px bg-sidebar-border"
+                />
+                {children.map((child) => {
+                  const active = isActive(pathname, child.href, child.exact);
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={onNavigate}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+                        active
+                          ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {dict.admin.shell.nav[child.key]}
+                    </Link>
+                  );
+                })}
+              </div>
             )}
-          >
-            <Icon className={cn("size-4", active ? "" : "opacity-70")} aria-hidden />
-            {dict.admin.shell.nav[key]}
-          </Link>
+          </div>
         );
       })}
     </nav>

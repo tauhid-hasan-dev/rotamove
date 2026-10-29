@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { addDaysIso, todayLocalIso } from "@/lib/calendar";
 import { DEFAULT_ACCOUNT } from "@/lib/partner-session";
+import { serverSingleton } from "@/lib/server-singleton";
 import {
   lastCallActive,
   lastCallEndAt,
@@ -289,4 +290,13 @@ function seedLanes(): PartnerLane[] {
   ];
 }
 
-export const laneRepository: LaneRepository = new InMemoryLaneRepository(seedLanes());
+/**
+ * One instance per process. Without this the lanes a partner adds through
+ * `/api/partners/lanes` land in the route handler's copy of this module and
+ * the dashboard renders the seed from its own — so a new lane appeared on
+ * save and was gone on the next navigation. See `server-singleton.ts`.
+ */
+export const laneRepository: LaneRepository = serverSingleton(
+  "__rotamoveLanes",
+  () => new InMemoryLaneRepository(seedLanes()),
+);

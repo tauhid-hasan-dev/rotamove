@@ -69,6 +69,20 @@ export const paysPerUnlock = (plan: PlanId): boolean => plan !== "pro_unlimited"
 export const PLAN_IDS = ["pro_unlimited", "pay_per_lead", "pay_per_seen"] as const;
 
 /**
+ * Plan names in English.
+ *
+ * The UI reads plan names from the locale dictionaries and should keep doing
+ * so. This map exists for the one channel that has no locale to read from:
+ * outbound mail, composed on the server for an inbox that will be opened
+ * later and elsewhere. Anything rendered inside a page must not use it.
+ */
+export const PLAN_NAMES_EN: Record<PlanId, string> = {
+  pro_unlimited: "Pro Unlimited",
+  pay_per_lead: "Pay Per Lead",
+  pay_per_seen: "Pay Per Seen",
+};
+
+/**
  * Does this plan see leads masked until it pays to open one?
  *
  * Pro and Pay Per Lead are billed on the match itself, so the lead is theirs

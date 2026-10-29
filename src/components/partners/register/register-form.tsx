@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Check, Copy, Loader2, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, Loader2, Mail, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import {
   StepCompany,
@@ -55,7 +55,7 @@ const SCHEMAS = [
 type Issue = z.ZodIssue;
 
 export function RegisterForm() {
-  const { dict, locale, href, rtl } = useI18n();
+  const { dict, locale, href, rtl, t } = useI18n();
   const R = dict.register;
 
   const { draft, update, clear, restored, dismissRestored } = useApplicationDraft(locale);
@@ -65,6 +65,9 @@ export function RegisterForm() {
   const [invalid, setInvalid] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
+  // Captured before `clear()` wipes the draft, so the confirmation can name
+  // the inbox the acknowledgement went to.
+  const [sentTo, setSentTo] = useState("");
   const [copied, setCopied] = useState(false);
 
   const titles = [R.s1, R.s2, R.s3, R.s4, R.s5, R.s6];
@@ -113,6 +116,7 @@ export function RegisterForm() {
         throw new Error(data?.issues?.[0]?.message ?? data?.error ?? R.errorTitle);
       }
       const data = (await res.json()) as { reference: string };
+      setSentTo(draft.email.trim());
       setReference(data.reference);
       clear();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -164,6 +168,14 @@ export function RegisterForm() {
               {copied ? R.doneCopied : R.doneCopy}
             </button>
           </div>
+
+          {/* Names the inbox, so an applicant who mistyped and verified a
+              different address than they meant to can see it here rather
+              than discover it when nothing ever arrives. */}
+          <p className="mt-4 flex items-center justify-center gap-2 border-t pt-4 text-[13px] text-muted-foreground">
+            <Mail className="size-3.5 shrink-0 text-verify" aria-hidden />
+            <span>{t.fill(R.doneEmailed, { email: sentTo })}</span>
+          </p>
         </div>
 
         <Link
@@ -277,7 +289,14 @@ export function RegisterForm() {
 
       {touched && invalid.size > 0 && (
         <p role="alert" className="mt-5 text-[13.5px] text-destructive">
-          {R.fixErrors}
+          {/* "Fix the errors below" is no help when the only thing wrong is
+              that a well-formed field has not been confirmed yet — there is
+              nothing on screen to fix, and the applicant hunts for a typo
+              that is not there. Named only when it is the sole blocker;
+              otherwise the real errors take precedence. */}
+          {[...invalid].every((k) => k === "emailVerified" || k === "phoneVerified")
+            ? R.verifyRequired
+            : R.fixErrors}
         </p>
       )}
 

@@ -3,7 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Check, Eye, Infinity as InfinityIcon, Loader2, Ticket } from "lucide-react";
+import {
+  CalendarClock,
+  Check,
+  Eye,
+  Infinity as InfinityIcon,
+  Loader2,
+  Ticket,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { PANEL } from "@/components/partners/dashboard/surface";
 import { useI18n } from "@/i18n/provider";
+import { daysUntil, isUpgrade, nextCycleStartMs } from "@/lib/plan-cycle";
 import type { PlanSubscription } from "@/lib/plan-store";
 import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, PLAN_IDS, PRO_MONTHLY_USD } from "@/lib/plans";
 import type { PlanId } from "@/lib/types";
@@ -42,9 +51,18 @@ const PLAN_ICONS: Record<PlanId, typeof InfinityIcon> = {
 
 export function PlanPanel({
   subscription,
+  now,
   compact = false,
 }: {
   subscription: PlanSubscription;
+  /**
+   * The request clock, threaded through as data rather than read here.
+   *
+   * The countdown below is rendered on the server and then hydrated, and a
+   * fresh `Date.now()` on each side is how you get a text mismatch on the one
+   * render that straddles midnight UTC.
+   */
+  now: number;
   /** The mobile strip, where there is no room for the pending-change line. */
   compact?: boolean;
 }) {
@@ -110,16 +128,33 @@ export function PlanPanel({
         {px.changeCta}
       </Button>
 
-      {/* The queued change, where there is room to say it properly. */}
-      {subscription.pendingPlan && subscription.effectiveFrom && (
+      {/* The queued change, where there is room to say it properly.
+          The countdown leads and the date qualifies it: "19 days left" is
+          what a partner wants to know, and a date alone makes them do the
+          subtraction themselves. */}
+      {subscription.pendingPlan && subscription.effectiveFrom ? (
         <p className="mt-3 flex items-start gap-2 rounded-xl bg-surface px-3 py-2.5 text-[12px] leading-snug text-muted-foreground">
           <CalendarClock className="mt-0.5 size-3.5 shrink-0 text-brand" aria-hidden />
           <span>
-            {t.fill(px.pendingLine, {
-              plan: pd.planNames[subscription.pendingPlan],
-              date: t.dateLong(subscription.effectiveFrom),
-            })}
+            <span className="block font-medium text-foreground">
+              {t.fill(px.remaining, {
+                days: t.count(dict.units.days, daysUntil(now, subscription.effectiveFrom)),
+                plan: pd.planNames[subscription.pendingPlan],
+              })}
+            </span>
+            <span className="mt-0.5 block">
+              {t.fill(px.pendingLine, {
+                plan: pd.planNames[subscription.pendingPlan],
+                date: t.dateLong(subscription.effectiveFrom),
+              })}
+            </span>
           </span>
+        </p>
+      ) : (
+        /* No change queued, so the useful fact is when the period turns
+           over — the date every other sentence here is measured against. */
+        <p className="mt-3 text-[12px] leading-snug text-muted-foreground">
+          {t.fill(px.cycleRuns, { date: t.dateLong(subscription.cycleEnds) })}
         </p>
       )}
 
@@ -157,6 +192,16 @@ function ChangePlanDialog({
 
   const unchanged = choice === subscription.plan && !subscription.pendingPlan;
 
+  /*
+   * The day a queued change would land, by the same arithmetic the server
+   * uses — the day after the current period's last day. Derived rather than
+   * sent down, so the dialog cannot offer a date the repository would then
+   * decline to honour.
+   */
+  const nextStart = new Date(
+    nextCycleStartMs(Date.parse(subscription.cycleStart)),
+  ).toISOString();
+
   const submit = async () => {
     setWorking(true);
     try {
@@ -170,11 +215,21 @@ function ChangePlanDialog({
       });
       if (!response.ok) throw new Error("plan change failed");
 
-      const { subscription: next } = (await response.json()) as {
+      const { subscription: next, activated } = (await response.json()) as {
         subscription: PlanSubscription;
+        activated: boolean;
       };
 
-      if (next.pendingPlan && next.effectiveFrom) {
+      // Three outcomes, three different things to say. An upgrade that
+      // reported "scheduled" would send the partner away waiting for
+      // something that had already happened.
+      if (activated) {
+        toast.success(t.fill(px.toastActivated, { plan: pd.planNames[next.plan] }), {
+          description: t.fill(px.toastActivatedBody, {
+            date: t.dateLong(next.cycleEnds),
+          }),
+        });
+      } else if (next.pendingPlan && next.effectiveFrom) {
         toast.success(px.toastQueued, {
           description: t.fill(px.toastQueuedBody, {
             plan: pd.planNames[next.pendingPlan],
@@ -235,6 +290,34 @@ function ChangePlanDialog({
                   <span className="mt-1.5 block text-[12.5px] leading-snug text-muted-foreground">
                     {px.planNotes[plan]}
                   </span>
+
+                  {/* When this one would start. The rule is not obvious and
+                      not symmetrical, so it is stated on the option being
+                      chosen rather than only in the terms below. */}
+                  {!current && (
+                    <span
+                      className={cn(
+                        "mt-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                        isUpgrade(subscription.plan, plan)
+                          ? "bg-brand/20 text-ink dark:bg-brand/15 dark:text-brand"
+                          : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {isUpgrade(subscription.plan, plan) ? (
+                        <>
+                          <Zap className="size-3" strokeWidth={2.5} aria-hidden />
+                          {px.startsNow}
+                        </>
+                      ) : (
+                        <>
+                          <CalendarClock className="size-3" aria-hidden />
+                          {t.fill(px.startsNext, {
+                            date: t.dateShort(nextStart),
+                          })}
+                        </>
+                      )}
+                    </span>
+                  )}
                 </span>
                 {selected && <Check className="mt-0.5 size-4 shrink-0 text-brand" strokeWidth={3} />}
               </button>

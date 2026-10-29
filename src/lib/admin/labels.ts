@@ -5,6 +5,7 @@ import type {
   LeadStatus,
   PaymentMethod,
 } from "@/lib/admin/types";
+import type { ApplicationStatus } from "@/lib/partner-application";
 import type { DateFlexibility, PlanId, PropertySize, ServiceLevel } from "@/lib/types";
 
 /* Display metadata for every admin enum: one label + one set of badge
@@ -66,6 +67,36 @@ export const COMPANY_STATUS_META: Record<CompanyStatus, StatusMeta> = {
     label: "Deactivated",
     className: "bg-muted text-muted-foreground",
     dotClassName: "bg-muted-foreground/60",
+  },
+};
+
+/**
+ * Vetting states for a partner application.
+ *
+ * `awaiting_documents` takes the same amber as a pending company rather than
+ * a warning colour: nothing is wrong, the reviewer is simply waiting on
+ * somebody. Declined takes the destructive red because it is terminal.
+ */
+export const APPLICATION_STATUS_META: Record<ApplicationStatus, StatusMeta> = {
+  pending: {
+    label: "Awaiting review",
+    className: "bg-brand/25 text-ink dark:bg-brand/15 dark:text-brand",
+    dotClassName: "bg-brand-deep",
+  },
+  awaiting_documents: {
+    label: "Awaiting documents",
+    className: "bg-lastcall text-lastcall-foreground",
+    dotClassName: "bg-lastcall-accent",
+  },
+  approved: {
+    label: "Approved",
+    className: "bg-verify/12 text-verify dark:bg-verify/15",
+    dotClassName: "bg-verify",
+  },
+  declined: {
+    label: "Declined",
+    className: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+    dotClassName: "bg-destructive",
   },
 };
 

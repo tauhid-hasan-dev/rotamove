@@ -27,6 +27,9 @@ export interface ApplicationDraft {
   phone: string;
   altPhone: string;
   languages: Locale[];
+  /** Set by the one-time-code field, and never restored from storage. */
+  emailVerified: boolean;
+  phoneVerified: boolean;
 
   registrationNumber: string;
   vatNumber: string;
@@ -74,6 +77,8 @@ export function emptyDraft(locale: Locale): ApplicationDraft {
     // Seeded with the language they are reading the form in — almost always
     // one of the languages they actually work in.
     languages: [locale],
+    emailVerified: false,
+    phoneVerified: false,
 
     registrationNumber: "",
     vatNumber: "",
@@ -171,7 +176,20 @@ export function useApplicationDraft(locale: Locale) {
         const parsed = JSON.parse(stored) as Partial<ApplicationDraft>;
         // Merged over a fresh draft, so a copy stored before a field existed
         // cannot leave that field undefined.
-        setDraft((current) => ({ ...current, ...parsed }));
+        //
+        // The verification flags are forced back to false whatever storage
+        // says. A restored `true` would be a tick with nothing behind it: the
+        // code field pins the address it verified in its own state, which a
+        // new session does not have, so the flag would survive an edit to the
+        // address underneath it — exactly the "verified" badge that vouches
+        // for a value nobody ever confirmed. Re-sending a code costs the
+        // applicant one click.
+        setDraft((current) => ({
+          ...current,
+          ...parsed,
+          emailVerified: false,
+          phoneVerified: false,
+        }));
         setRestored(true);
       } catch {
         // Corrupt storage is not worth blocking the form over.

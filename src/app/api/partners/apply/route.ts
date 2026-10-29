@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { applicationReceivedMail, mailRepository } from "@/lib/mail";
 import { partnerApplicationSchema } from "@/lib/partner-application";
 import { partnerRepository } from "@/lib/partner-store";
 
@@ -39,6 +40,25 @@ export async function POST(request: NextRequest) {
   }
 
   const application = await partnerRepository.create(parsed.data);
+
+  /*
+   * The acknowledgement, carrying the reference.
+   *
+   * Sent from the server on the write rather than from the browser after it,
+   * so an applicant who closes the tab the instant the spinner stops still
+   * gets the code they will need to chase their application. The address is
+   * the one that came back a one-time code two steps ago, which is what makes
+   * sending to it worth doing at all.
+   */
+  await mailRepository.send(
+    applicationReceivedMail({
+      to: application.email,
+      name: application.contactName,
+      companyName: application.tradingName || application.legalName,
+      reference: application.reference,
+      locale: application.languages[0],
+    }),
+  );
 
   return Response.json(
     {

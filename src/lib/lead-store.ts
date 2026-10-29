@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import type { Lead, LeadDraft } from "@/lib/types";
+import { serverSingleton } from "@/lib/server-singleton";
 
 /**
  * Lead repository.
@@ -57,11 +58,7 @@ class InMemoryLeadRepository implements LeadRepository {
  * Module-level singleton. Next's dev server re-evaluates modules on edit, so we
  * stash it on globalThis to keep leads alive across hot reloads.
  */
-const globalForLeads = globalThis as unknown as { __rotamoveLeads?: LeadRepository };
-
-export const leadRepository: LeadRepository =
-  globalForLeads.__rotamoveLeads ?? new InMemoryLeadRepository();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForLeads.__rotamoveLeads = leadRepository;
-}
+export const leadRepository: LeadRepository = serverSingleton(
+  "__rotamoveLeads",
+  () => new InMemoryLeadRepository(),
+);

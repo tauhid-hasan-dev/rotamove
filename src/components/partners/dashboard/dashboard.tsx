@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   Route,
+  Settings,
   Sparkles,
   Wallet,
 } from "lucide-react";
@@ -29,8 +30,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
+import { NotificationsPanel } from "@/components/partners/dashboard/notifications-panel";
 import { PlanPanel } from "@/components/partners/dashboard/plan-panel";
 import { RoutesPanel } from "@/components/partners/dashboard/routes-panel";
+import { SettingsPanel } from "@/components/partners/dashboard/settings-panel";
 import {
   Select,
   SelectContent,
@@ -40,6 +43,8 @@ import {
 } from "@/components/ui/select";
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import type { PartnerLane } from "@/lib/lanes";
+import { DAY_MS, daysUntil } from "@/lib/plan-cycle";
+import type { PartnerProfile } from "@/lib/partner-profile";
 import type { PlanSubscription } from "@/lib/plan-store";
 import type { Mover, PlanId } from "@/lib/types";
 import { REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
@@ -50,15 +55,24 @@ import { useI18n } from "@/i18n/provider";
 import { regionName } from "@/i18n/geo-labels";
 import { cn } from "@/lib/utils";
 
-type SectionId = "overview" | "inbox" | "lanes" | "billing";
+/**
+ * `settings` is a section like the others but is deliberately absent from
+ * `SECTION_IDS`, so it does not appear in the rail. It is reached from the
+ * account menu, which is where someone looks for the things that are about
+ * them rather than about their leads — and a fifth rail entry would cost the
+ * four daily ones width on a phone to show the one opened once a quarter.
+ */
+type SectionId = "overview" | "inbox" | "lanes" | "billing" | "settings";
 
 const SECTION_ICONS: Record<SectionId, typeof Inbox> = {
   overview: LayoutDashboard,
   inbox: Inbox,
   lanes: Route,
   billing: CreditCard,
+  settings: Settings,
 };
 
+/** What the rail offers. Settings is reached from the account menu. */
 const SECTION_IDS: SectionId[] = ["overview", "inbox", "lanes", "billing"];
 
 /**
@@ -84,15 +98,18 @@ export function PartnerDashboard({
   initialUnlocked,
   subscription,
   account,
+  profile,
 }: {
   board: BoardLead[];
   now: number;
   lanes: PartnerLane[];
   /** Server-recorded pay-per-seen unlocks, so a refresh keeps them revealed. */
   initialUnlocked: string[];
-  /** The plan in force, plus any change queued for next month. */
+  /** The plan in force, plus any change queued for the next period. */
   subscription: PlanSubscription;
   account: PartnerAccount;
+  /** Editable account details, behind the account menu's Settings entry. */
+  profile: PartnerProfile;
 }) {
   const { dict, href } = useI18n();
   const pd = dict.partnerDashboard;
@@ -168,6 +185,7 @@ export function PartnerDashboard({
         plan={plan}
         copiedId={copiedId}
         onCopyId={copyPartnerId}
+        onOpenSettings={() => setSection("settings")}
         onSignOut={signOut}
       />
 
@@ -215,7 +233,7 @@ export function PartnerDashboard({
               here is the plan, which belongs beside the navigation because
               it changes what the sections show. */}
           <div className="mt-6 hidden border-t pt-6 lg:block">
-            <PlanPanel subscription={subscription} />
+            <PlanPanel subscription={subscription} now={now} />
           </div>
         </div>
       </aside>
@@ -223,7 +241,7 @@ export function PartnerDashboard({
       {/* content ------------------------------------------------- */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-3 lg:hidden">
-          <PlanPanel subscription={subscription} compact />
+          <PlanPanel subscription={subscription} now={now} compact />
         </div>
 
         {section === "overview" && (
@@ -240,6 +258,8 @@ export function PartnerDashboard({
             onGoTo={setSection}
           />
         )}
+
+        {section === "settings" && <SettingsPanel profile={profile} />}
 
         {section === "inbox" && (
           <div className="mt-4 lg:mt-0">
@@ -332,6 +352,7 @@ function DashboardBar({
   plan,
   copiedId,
   onCopyId,
+  onOpenSettings,
   onSignOut,
 }: {
   account: PartnerAccount;
@@ -339,6 +360,7 @@ function DashboardBar({
   plan: PlanId;
   copiedId: boolean;
   onCopyId: () => void;
+  onOpenSettings: () => void;
   onSignOut: () => void;
 }) {
   const { dict } = useI18n();
@@ -414,6 +436,16 @@ function DashboardBar({
               ) : (
                 <Copy className="size-3.5 shrink-0 text-muted-foreground" />
               )}
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            {/* Account settings. Here rather than in the section rail: this
+                is where someone looks for the things that are about them,
+                and the rail belongs to the four sections they open daily. */}
+            <DropdownMenuItem onSelect={onOpenSettings} className="gap-2">
+              <Settings className="size-4" aria-hidden />
+              {pd.sections.settings}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -514,12 +546,21 @@ function OverviewPanel({
 
   const activeLanes = lanes.filter((lane) => lane.status === "active").length;
 
-  // First of next month, from the request clock rather than a fresh `Date`.
-  const anchor = new Date(now);
-  const nextCycle = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+  /*
+   * The next charge is the day after this period's last day — the period the
+   * partner actually bought, not the calendar month. This used to be the 1st
+   * of next month, which told a carrier who joined on the 18th that their
+   * flat fee was due in twelve days when it was due in thirty.
+   */
+  const nextCycle = new Date(Date.parse(subscription.cycleEnds) + DAY_MS);
 
   return (
     <div className="mt-4 lg:mt-0">
+      {/* Above the greeting, because a document request holding up an
+          application is the most important thing on this page and renders
+          nothing at all when there is none. */}
+      <NotificationsPanel />
+
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-[20px] tracking-[-0.03em]">
@@ -649,6 +690,15 @@ function OverviewPanel({
             </dl>
             {subscription.pendingPlan && subscription.effectiveFrom && (
               <p className="mt-4 text-[12.5px] leading-snug text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {t.fill(pd.planChange.remaining, {
+                    days: t.count(
+                      dict.units.days,
+                      daysUntil(now, subscription.effectiveFrom),
+                    ),
+                    plan: pd.planNames[subscription.pendingPlan],
+                  })}
+                </span>{" "}
                 {t.fill(pd.planChange.pendingLine, {
                   plan: pd.planNames[subscription.pendingPlan],
                   date: t.dateLong(subscription.effectiveFrom),
@@ -784,9 +834,9 @@ function BillingPanel({
     { ref: "INV-2026-0361", period: pd.billing.periodTwoMonthsAgo, amount: isPro ? PRO_MONTHLY_USD : 164.8, paid: true },
   ];
 
-  // First of next month, from the request clock the board already carries.
-  const anchor = new Date(now);
-  const nextCycle = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 1);
+  // Same thirty-day boundary the overview shows, from the subscription rather
+  // than the calendar.
+  const nextCycle = new Date(Date.parse(subscription.cycleEnds) + DAY_MS);
 
   const planDescription = isPro
     ? t.fill(pd.billing.proDesc, { amount: t.usd(PRO_MONTHLY_USD) })
@@ -850,7 +900,7 @@ function BillingPanel({
         {/* The real control, not the toast-only button that used to sit
             here claiming an upgrade had happened. */}
         <div className="mt-7 border-t pt-6">
-          <PlanPanel subscription={subscription} />
+          <PlanPanel subscription={subscription} now={now} />
         </div>
       </div>
 
