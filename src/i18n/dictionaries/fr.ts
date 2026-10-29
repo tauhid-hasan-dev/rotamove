@@ -172,20 +172,6 @@ export const fr = {
     statCorridors: "Corridors nommés",
   },
 
-  partnerTeaser: {
-    eyebrow: "Pour les entreprises de transport",
-    title: "Achetez de la demande, pas des numéros de téléphone.",
-    body: "Forfait mensuel, paiement à la demande, ou paiement uniquement pour les demandes que vous débloquez. Rien d’autre.",
-    pricingCta: "Tarifs partenaires",
-    demoCta: "Voir la démo",
-    proBody: "Toutes les demandes, en illimité. Placement instantané dans la recherche.",
-    proUnit: "/ mois",
-    pplBody: "Sans abonnement. Jamais plus de {cap}.",
-    pplUnit: "/ demande",
-    ppsBody: "Parcourez toutes les demandes masquées. Jusqu’à {cap} uniquement pour celles que vous débloquez.",
-    ppsUnit: "/ déblocage",
-  },
-
   faq: {
     title: "Questions",
     items: [
@@ -287,6 +273,8 @@ export const fr = {
     lede: "{leads} demandes vérifiées par mois sur {corridors} corridors. Trois façons de les acheter.",
     plansNote:
       "Les deux formules incluent la vérification de la licence et de l’assurance, la médiation des litiges et le retrait du tableau si les standards baissent.",
+    creditTitle: "Recevez {credit} de crédit à la création de votre compte.",
+    creditBody: "Valable sur l’offre de votre choix. Les premières demandes sont pour nous.",
     chooserTitle: "Laquelle vous convient ?",
     feeTitle: "Jamais plus de {cap}. Quel que soit le chargement.",
     whyItems: [
@@ -306,10 +294,11 @@ export const fr = {
 
   plans: {
     mostChosen: "Le plus choisi",
+    /** One label on every plan card: they all open the same sign-up form. */
+    getStarted: "Commencer",
     proName: "Pro Illimité",
     proSuffix: "/mois",
     proNote: "Facturation mensuelle en USD. Résiliable à tout moment, sans préavis.",
-    proCta: "Démarrer l’essai gratuit de 14 jours",
     proFeatures: [
       "Demandes internationales illimitées",
       "Demandes nationales illimitées",
@@ -326,7 +315,6 @@ export const fr = {
     pplSuffix: "/demande",
     pplNote:
       "Plafond strict de {cap} par demande. Vous voyez le prix exact avant de débloquer.",
-    pplCta: "Créer un compte partenaire gratuit",
     pplFeatures: [
       "Aucun frais mensuel, aucun minimum",
       "Parcourir l’ensemble du tableau de demandes",
@@ -343,7 +331,6 @@ export const fr = {
     ppsSuffix: "/déblocage",
     ppsNote:
       "Parcourez toutes les demandes masquées — volume, accès et trajet sont gratuits. Vous ne payez qu’au déblocage d’une demande, plafonné à {cap}.",
-    ppsCta: "Créer un compte partenaire gratuit",
     ppsFeatures: [
       "Aucun frais mensuel, aucun minimum",
       "Volume, accès et trajet visibles gratuitement sur chaque demande",

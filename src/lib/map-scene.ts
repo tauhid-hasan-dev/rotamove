@@ -22,26 +22,40 @@ import type { City } from "@/lib/geo";
 /**
  * The central meridian. Istanbul's own longitude, so the city lands on the
  * vertical centre line and the world wraps behind it — the cut falls in the
- * Pacific at 151°W, which costs us nothing.
+ * Pacific, far outside the window below.
  */
 export const CENTRE_LON = 28.9784;
 
-/** 360° of longitude across this many units. */
+/**
+ * The window: the world this network works in, and no more.
+ *
+ * It was the whole globe, which spent two thirds of the canvas on the
+ * Pacific and the Americas to make an argument the lanes themselves refute.
+ * The frame is now the footprint — the Atlantic approaches, Europe, North
+ * Africa, the Levant and Gulf, the Caucasus, Central Asia and Russia as far
+ * as the network reaches into it.
+ *
+ * Chosen so the hub is the middle of it on both axes: Istanbul is 29°E of
+ * 124° of longitude and 41°N of 50° of latitude, which puts it at dead
+ * centre horizontally and within a pixel of it vertically. Every labelled
+ * hub clears the edge with room for its pill.
+ */
+export const LON_W = -33;
+export const LON_E = 91;
+export const LAT_N = 66;
+export const LAT_S = 16;
+
+/** The frame's width in view units; the rest is derived from the window. */
 export const VIEW_W = 1440;
 
-/**
- * The latitudes shown.
- *
- * Not the full 90°–to–90°: a sixth of a world map is ice nobody ships to, and
- * cropping it is what lifts the inhabited world — and Istanbul with it — into
- * the middle of the frame. The south stops where Tierra del Fuego and the
- * South Island do, so the crop never looks like a mistake.
- */
-export const LAT_N = 76;
-export const LAT_S = -50;
+const RAD = Math.PI / 180;
 
-const SCALE = VIEW_W / 360;
-export const VIEW_H = (LAT_N - LAT_S) * SCALE;
+/** d3 scales in radians, so this is units per radian of longitude. */
+export const PROJECTION_SCALE = VIEW_W / ((LON_E - LON_W) * RAD);
+export const VIEW_H = (LAT_N - LAT_S) * RAD * PROJECTION_SCALE;
+
+/** Puts `LAT_N` on the frame's top edge. */
+export const TRANSLATE_Y = LAT_N * RAD * PROJECTION_SCALE;
 
 /* ------------------------------------------------------------- the world -- */
 

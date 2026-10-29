@@ -7,7 +7,6 @@ import {
   CtaBand,
   Faq,
   HowItWorks,
-  PartnerTeaser,
   Testimonials,
   TrustStrip,
 } from "@/components/marketing/sections";
@@ -30,7 +29,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <CoverageMap dict={dict} locale={locale} />
         <CoverageGrid />
         <Testimonials dict={dict} locale={locale} />
-        <PartnerTeaser dict={dict} locale={locale} />
         <Faq dict={dict} />
         <CtaBand dict={dict} />
       </main>

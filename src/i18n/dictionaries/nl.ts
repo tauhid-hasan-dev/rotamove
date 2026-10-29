@@ -171,20 +171,6 @@ export const nl = {
     statCorridors: "Benoemde corridors",
   },
 
-  partnerTeaser: {
-    eyebrow: "Voor transportbedrijven",
-    title: "Koop vraag, geen telefoonnummers.",
-    body: "Vast maandbedrag, betalen per aanvraag, of alleen betalen voor de aanvragen die u vrijgeeft. Niets anders.",
-    pricingCta: "Partnertarieven",
-    demoCta: "Bekijk de demo",
-    proBody: "Alle aanvragen, onbeperkt. Directe plaatsing in de zoekresultaten.",
-    proUnit: "/ maand",
-    pplBody: "Geen abonnement. Nooit meer dan {cap}.",
-    pplUnit: "/ aanvraag",
-    ppsBody: "Bekijk elke aanvraag afgeschermd. Tot {cap} alleen voor de aanvragen die u vrijgeeft.",
-    ppsUnit: "/ vrijgave",
-  },
-
   faq: {
     title: "Vragen",
     items: [
@@ -286,6 +272,8 @@ export const nl = {
     lede: "{leads} gecontroleerde aanvragen per maand op {corridors} corridors. Drie manieren om ze te kopen.",
     plansNote:
       "Beide pakketten omvatten controle van vergunning en verzekering, bemiddeling bij geschillen en verwijdering uit het overzicht als de normen zakken.",
+    creditTitle: "Ontvang {credit} tegoed wanneer u uw account aanmaakt.",
+    creditBody: "Geldt voor elk pakket dat u kiest. De eerste aanvragen zijn van ons.",
     chooserTitle: "Welke past bij u?",
     feeTitle: "Nooit meer dan {cap}. Wat de lading ook is.",
     whyItems: [
@@ -305,10 +293,11 @@ export const nl = {
 
   plans: {
     mostChosen: "Meest gekozen",
+    /** One label on every plan card: they all open the same sign-up form. */
+    getStarted: "Aan de slag",
     proName: "Pro Onbeperkt",
     proSuffix: "/maand",
     proNote: "Maandelijks gefactureerd in USD. Altijd opzegbaar, geen opzegtermijn.",
-    proCta: "Start de gratis proefperiode van 14 dagen",
     proFeatures: [
       "Onbeperkt internationale aanvragen",
       "Onbeperkt binnenlandse aanvragen",
@@ -324,7 +313,6 @@ export const nl = {
     pplName: "Betalen per aanvraag",
     pplSuffix: "/aanvraag",
     pplNote: "Harde bovengrens van {cap} per aanvraag. U ziet de exacte prijs voordat u vrijgeeft.",
-    pplCta: "Maak een gratis partneraccount",
     pplFeatures: [
       "Geen maandbedrag, geen minimale besteding",
       "Het volledige aanvragenoverzicht doorkijken",
@@ -341,7 +329,6 @@ export const nl = {
     ppsSuffix: "/vrijgave",
     ppsNote:
       "Bekijk elke aanvraag afgeschermd — volume, toegang en route zijn gratis. U betaalt alleen wanneer u er één vrijgeeft, nooit meer dan {cap}.",
-    ppsCta: "Maak een gratis partneraccount",
     ppsFeatures: [
       "Geen maandbedrag, geen minimale besteding",
       "Volume, toegang en route van elke aanvraag gratis zichtbaar",

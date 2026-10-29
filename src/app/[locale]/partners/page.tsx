@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Clock3, Filter, Plug, ShieldCheck } from "lucide-react";
+import { ArrowRight, BarChart3, Clock3, Filter, Gift, Plug, ShieldCheck } from "lucide-react";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Shell } from "@/components/common/section";
@@ -14,7 +14,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { NETWORK_STATS } from "@/lib/geo";
-import { AVG_LEAD_FEE_USD, LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
+import {
+  AVG_LEAD_FEE_USD,
+  LEAD_FEE_CAP_USD,
+  PRO_MONTHLY_USD,
+  SIGNUP_CREDIT_USD,
+} from "@/lib/plans";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
 import { fill, formatNumber, formatUsd } from "@/i18n/format";
 import { alternateLanguages, localePath } from "@/i18n/paths";
@@ -43,6 +48,7 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
 
   const cap = formatUsd(locale, LEAD_FEE_CAP_USD);
   const pro = formatUsd(locale, PRO_MONTHLY_USD);
+  const credit = formatUsd(locale, SIGNUP_CREDIT_USD);
   const breakEven = formatNumber(locale, Math.ceil(PRO_MONTHLY_USD / AVG_LEAD_FEE_USD));
 
   return (
@@ -72,6 +78,32 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
         {/* plans ------------------------------------------------ */}
         <section className="pb-20">
           <Shell>
+            {/* The offer sits above the prices because it changes what they
+                mean: the first {credit} of whichever plan you pick is on us,
+                so the decision below is about fit rather than about spending
+                anything today. Same width as the cards, and the same door as
+                every button on them. */}
+            <Link
+              href={localePath(locale, "/partners/register")}
+              className="group mx-auto mb-4 flex max-w-6xl flex-col items-center gap-x-5 gap-y-3 rounded-3xl border border-brand/40 bg-brand-soft px-6 py-5 text-center transition-colors hover:border-brand/70 sm:flex-row sm:text-start"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-ink">
+                <Gift className="size-5" strokeWidth={2} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[16.5px] font-medium">
+                  {fill(page.creditTitle, { credit })}
+                </span>
+                <span className="mt-0.5 block text-[14px] leading-relaxed text-muted-foreground">
+                  {page.creditBody}
+                </span>
+              </span>
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-[14.5px] font-medium text-ink transition-all duration-200 group-hover:brightness-[0.97]">
+                {dict.plans.getStarted}
+                <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 rtl:-scale-x-100" />
+              </span>
+            </Link>
+
             <PricingPlans dict={dict} locale={locale} />
             <p className="mx-auto mt-6 max-w-2xl text-center text-[13.5px] leading-relaxed text-muted-foreground">
               {page.plansNote}

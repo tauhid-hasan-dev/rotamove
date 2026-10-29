@@ -15,7 +15,18 @@ import { cn } from "@/lib/utils";
 
 export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const cap = formatUsd(locale, LEAD_FEE_CAP_USD);
-  const dashboard = localePath(locale, "/partners/dashboard");
+
+  /*
+   * One destination, and it is the sign-up form.
+   *
+   * The three cards used to carry three different promises — "Start 14-day
+   * free trial", "Create free partner account", "Create free partner
+   * account" — and all three opened the demo dashboard, which is neither a
+   * trial nor an account. One label on one door is honest about what the
+   * button does, and it is the same door whichever plan brought you to it:
+   * the plan is chosen inside the account, not by which button you pressed.
+   */
+  const register = localePath(locale, "/partners/register");
 
   const plans = [
     {
@@ -24,7 +35,6 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
       priceLabel: formatUsd(locale, PRO_MONTHLY_USD),
       priceSuffix: dict.plans.proSuffix,
       priceNote: dict.plans.proNote,
-      cta: dict.plans.proCta,
       featured: true,
       // Pro includes the lot, which is the point of the tier.
       features: dict.plans.proFeatures.map((label) => ({ label, included: true })),
@@ -35,7 +45,6 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
       priceLabel: `${formatUsd(locale, LEAD_FEE_FLOOR_USD)}–${cap}`,
       priceSuffix: dict.plans.pplSuffix,
       priceNote: fill(dict.plans.pplNote, { cap }),
-      cta: dict.plans.pplCta,
       featured: false,
       // Labels translate; entitlements come from the plan model, not the copy.
       features: dict.plans.pplFeatures.map((label, i) => ({
@@ -49,7 +58,6 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
       priceLabel: `${formatUsd(locale, LEAD_FEE_FLOOR_USD)}–${cap}`,
       priceSuffix: dict.plans.ppsSuffix,
       priceNote: fill(dict.plans.ppsNote, { cap }),
-      cta: dict.plans.ppsCta,
       featured: false,
       features: dict.plans.ppsFeatures.map((label, i) => ({
         label,
@@ -98,13 +106,13 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
           </p>
 
           <Link
-            href={dashboard}
+            href={register}
             className={cn(
               "mt-8 rounded-full py-3.5 text-center text-[15.5px] font-medium transition-all duration-200 active:scale-[0.985]",
               plan.featured ? "bg-ink text-background hover:opacity-90" : "border hover:bg-muted",
             )}
           >
-            {plan.cta}
+            {dict.plans.getStarted}
           </Link>
 
           <ul className="mt-9 space-y-3">

@@ -175,20 +175,6 @@ export const tr = {
     statCorridors: "Tanımlı koridor",
   },
 
-  partnerTeaser: {
-    eyebrow: "Nakliye firmaları için",
-    title: "Telefon numarası değil, talep satın alın.",
-    body: "Sabit aylık ücret, talep başına ödeme ya da yalnızca açtığınız talepler için ödeme. Başka hiçbir şey.",
-    pricingCta: "Partner fiyatlandırması",
-    demoCta: "Demoyu görün",
-    proBody: "Sınırsız müşteri talebi. Aramada anında yerleşim.",
-    proUnit: "/ ay",
-    pplBody: "Abonelik yok. Asla {cap} üzeri değil.",
-    pplUnit: "/ talep",
-    ppsBody: "Tüm taleplere maskeli göz atın. Yalnızca açtıklarınız için en fazla {cap} ödeyin.",
-    ppsUnit: "/ kilit açma",
-  },
-
   faq: {
     title: "Sorular",
     items: [
@@ -290,6 +276,8 @@ export const tr = {
     lede: "{corridors} koridorda ayda {leads} doğrulanmış talep. Satın almanın üç yolu.",
     plansNote:
       "Her iki plan da lisans ve sigorta doğrulamasını, uyuşmazlık arabuluculuğunu ve standartlar düşerse panodan çıkarılmayı içerir.",
+    creditTitle: "Hesabınızı oluşturduğunuzda {credit} kredi kazanın.",
+    creditBody: "Hangi paketi seçerseniz seçin geçerlidir. İlk talepler bizden.",
     chooserTitle: "Hangisi size uygun?",
     feeTitle: "Asla {cap} üzeri değil. Yük ne olursa olsun.",
     whyItems: [
@@ -309,10 +297,11 @@ export const tr = {
 
   plans: {
     mostChosen: "En çok seçilen",
+    /** One label on every plan card: they all open the same sign-up form. */
+    getStarted: "Hemen başlayın",
     proName: "Pro Sınırsız",
     proSuffix: "/ay",
     proNote: "USD olarak aylık faturalanır. Dilediğiniz zaman iptal, ihbar süresi yok.",
-    proCta: "14 günlük ücretsiz denemeyi başlat",
     proFeatures: [
       "Sınırsız uluslararası talep",
       "Sınırsız yurt içi talep",
@@ -328,7 +317,6 @@ export const tr = {
     pplName: "Talep Başına Ödeme",
     pplSuffix: "/talep",
     pplNote: "Talep başına kesin {cap} üst sınırı. Kilidi açmadan önce tam fiyatı görürsünüz.",
-    pplCta: "Ücretsiz partner hesabı oluştur",
     pplFeatures: [
       "Aylık ücret yok, minimum harcama yok",
       "Tüm talep panosuna göz atın",
@@ -345,7 +333,6 @@ export const tr = {
     ppsSuffix: "/kilit açma",
     ppsNote:
       "Tüm taleplere maskeli göz atın — hacim, erişim ve güzergâh ücretsizdir. Yalnızca bir talebin kilidini açtığınızda ödersiniz, üst sınır {cap}.",
-    ppsCta: "Ücretsiz partner hesabı oluştur",
     ppsFeatures: [
       "Aylık ücret yok, minimum harcama yok",
       "Her talepte hacmi, erişimi ve güzergâhı ücretsiz görün",

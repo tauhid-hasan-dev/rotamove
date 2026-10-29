@@ -277,9 +277,20 @@ Türkiye-centric — TR to Western Europe, Southern Europe, the Nordics, the
 Balkans, the Middle East, the CIS, Central Asia, and the return leg of each.
 A map drawn on the Greenwich meridian puts the hub every one of those lanes
 passes through a third of the way in from the left and spends its middle on
-the Atlantic. Re-centred, the picture is what the corridor table says, and
-the crop that makes a world map legible on a 360px phone zooms into the
-network instead of cutting it in half.
+the Atlantic. Re-centred, the picture is what the corridor table says.
+
+**And the frame is the footprint, not the planet.** 33°W to 91°E, 66°N to
+16°N — the Atlantic approaches, Europe, North Africa, the Levant and Gulf,
+the Caucasus, Central Asia and Russia as far as the network reaches into it.
+Istanbul sits at dead centre on both axes. The window is enforced by
+`clipExtent` on the projection rather than by the SVG viewport, so the
+geometry outside it is never written: the two land paths are 24KB instead of
+80KB, and the home page 306KB instead of 431KB.
+
+From `sm` up the panel takes the frame's own aspect and nothing is cropped.
+A phone is the exception — 124° of longitude across 359px would put the hub
+labels at three pixels — so there it keeps a fixed height and crops inwards
+from both edges, giving up ocean and Sahara before it gives up a corridor.
 
 Lighting is per **landmass**, not per country, and the test is distance: a
 shape is lit if a hub stands on it or its centroid is within 20° of one.

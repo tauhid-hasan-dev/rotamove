@@ -171,20 +171,6 @@ export const de = {
     statCorridors: "Benannte Korridore",
   },
 
-  partnerTeaser: {
-    eyebrow: "Für Transportunternehmen",
-    title: "Kaufen Sie Nachfrage, nicht Telefonnummern.",
-    body: "Monatspauschale, Zahlung pro Anfrage oder nur für die Anfragen zahlen, die Sie freischalten. Nichts weiter.",
-    pricingCta: "Partner-Preise",
-    demoCta: "Demo ansehen",
-    proBody: "Alle Anfragen, unbegrenzt. Sofortplatzierung in der Suche.",
-    proUnit: "/ Monat",
-    pplBody: "Kein Abo. Niemals mehr als {cap}.",
-    pplUnit: "/ Anfrage",
-    ppsBody: "Alle Anfragen maskiert durchsuchen. Bis zu {cap} nur für die, die Sie freischalten.",
-    ppsUnit: "/ Freischaltung",
-  },
-
   faq: {
     title: "Fragen",
     items: [
@@ -286,6 +272,8 @@ export const de = {
     lede: "{leads} geprüfte Anfragen pro Monat auf {corridors} Korridoren. Drei Wege, sie zu kaufen.",
     plansNote:
       "Beide Tarife umfassen Lizenz- und Versicherungsprüfung, Streitschlichtung und den Ausschluss vom Board, wenn die Standards nachlassen.",
+    creditTitle: "Erhalten Sie {credit} Guthaben, wenn Sie Ihr Konto anlegen.",
+    creditBody: "Es gilt für jeden Tarif. Die ersten Anfragen gehen auf uns.",
     chooserTitle: "Welcher passt zu Ihnen?",
     feeTitle: "Niemals mehr als {cap}. Egal welche Ladung.",
     whyItems: [
@@ -305,10 +293,11 @@ export const de = {
 
   plans: {
     mostChosen: "Am häufigsten gewählt",
+    /** One label on every plan card: they all open the same sign-up form. */
+    getStarted: "Jetzt starten",
     proName: "Pro Unlimited",
     proSuffix: "/Monat",
     proNote: "Monatliche Abrechnung in USD. Jederzeit kündbar, keine Kündigungsfrist.",
-    proCta: "14 Tage kostenlos testen",
     proFeatures: [
       "Unbegrenzt internationale Anfragen",
       "Unbegrenzt Inlandsanfragen",
@@ -325,7 +314,6 @@ export const de = {
     pplSuffix: "/Anfrage",
     pplNote:
       "Harte Obergrenze von {cap} pro Anfrage. Sie sehen den genauen Preis vor dem Freischalten.",
-    pplCta: "Kostenloses Partnerkonto erstellen",
     pplFeatures: [
       "Keine Monatsgebühr, kein Mindestumsatz",
       "Das komplette Anfragen-Board durchsehen",
@@ -342,7 +330,6 @@ export const de = {
     ppsSuffix: "/Freischaltung",
     ppsNote:
       "Durchsuchen Sie jede Anfrage maskiert — Volumen, Zugang und Route sind kostenlos. Sie zahlen nur, wenn Sie eine freischalten, gedeckelt bei {cap}.",
-    ppsCta: "Kostenloses Partnerkonto erstellen",
     ppsFeatures: [
       "Keine Monatsgebühr, kein Mindestumsatz",
       "Volumen, Zugang und Route jeder Anfrage kostenlos sehen",

@@ -11,8 +11,12 @@ import {
   LAND_SERVED,
   LAT_N,
   LAT_S,
+  LON_E,
+  LON_W,
   NODES,
   PAINT,
+  PROJECTION_SCALE,
+  TRANSLATE_Y,
   VIEW_H,
   VIEW_W,
 } from "@/lib/map-scene";
@@ -40,15 +44,24 @@ import type { Locale } from "@/i18n/config";
 /* ------------------------------------------------------------ projection -- */
 
 /*
- * `rotate` is what re-centres the world. d3 cuts the map at the antimeridian
- * of the rotated frame — 151°W, mid-Pacific — and splits any country that
- * crosses it, which is why Chukotka and the Aleutians appear at the correct
- * edge rather than smeared across the whole frame.
+ * `rotate` is what re-centres the world on Istanbul; `clipExtent` is what
+ * makes the window in `map-scene.ts` real.
+ *
+ * Without the clip, d3 happily projects Patagonia and Japan to coordinates
+ * thousands of units outside the frame, the SVG viewport throws them away at
+ * paint time, and the page has carried every one of them down the wire for
+ * nothing. Clipping at the projection drops them before they are written:
+ * the two land paths fall from 80KB to 24KB, and the home page with them
+ * from 431KB to 306KB.
  */
 const projection = geoEquirectangular()
   .rotate([-CENTRE_LON, 0])
-  .scale(VIEW_W / (2 * Math.PI))
-  .translate([VIEW_W / 2, VIEW_H / 2 + ((LAT_N + LAT_S) / 2) * (VIEW_W / 360)])
+  .scale(PROJECTION_SCALE)
+  .translate([VIEW_W / 2, TRANSLATE_Y])
+  .clipExtent([
+    [0, 0],
+    [VIEW_W, VIEW_H],
+  ])
   .precision(0.5);
 
 const rawPath = geoPath(projection);
@@ -118,12 +131,12 @@ const minorDots = CITIES.filter((c) => !named.has(c.code)).map((city) => {
   return { code: city.code, x, y };
 });
 
-/** 20° meridians and 20° parallels, clipped to the frame. */
+/** 10° meridians and parallels across the window, and no further. */
 const graticule = geoGraticule()
-  .step([20, 20])
+  .step([10, 10])
   .extent([
-    [-180, LAT_S],
-    [180, LAT_N],
+    [LON_W, LAT_S],
+    [LON_E, LAT_N],
   ]);
 
 /* ------------------------------------------------------------------ view -- */
@@ -149,20 +162,29 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
 
         <figure className="relative mt-12 overflow-hidden rounded-3xl bg-map-ink">
           {/*
-            The panel sets its own height at every width and the map is told
-            to cover it. `xMidYMid slice` crops from the edges inwards —
-            which, on a map centred on Istanbul, means it gives up the
-            Pacific first and the network last.
+            From `sm` up the panel takes the frame's own aspect, so the whole
+            window is on screen and nothing is cropped: Madrid and Almaty are
+            the two ends of this network and losing either to a letterbox
+            would be losing the point.
 
-            That is the whole reason to re-centre: the crop that makes a
-            world map legible on a 360px phone is exactly the crop that would
-            have cut this network in half on a Greenwich-centred one. Here it
-            zooms into the corridors instead.
+            A phone is the exception. 124° of longitude across 359px puts the
+            hub labels at three pixels, so there the panel keeps a fixed
+            height and `slice` crops inwards from both edges — and because
+            the frame is centred on Istanbul, what it gives up is ocean and
+            Sahara before it gives up a corridor.
+
+            200px is chosen so both edges land in a gap. Taller and Madrid's
+            pill is sliced down its middle; shorter and it is Tashkent's —
+            and a label cut in half reads as a bug, where a label absent
+            reads as a map continuing past the frame. At this height eight
+            of the nine are whole and Almaty falls cleanly outside. On a
+            phone the choice is between legible labels and the full span,
+            and a label nobody can read serves neither.
           */}
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
             preserveAspectRatio="xMidYMid slice"
-            className="relative block h-[300px] w-full sm:h-[400px] lg:h-[470px]"
+            className="relative block h-[200px] w-full sm:h-auto sm:aspect-[1440/581]"
             role="img"
             aria-label={wm.mapLabel}
           >
@@ -239,7 +261,7 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
               // The pill is sized from the glyph count: there is no text
               // metric on a server, and at this size the estimate is within
               // a couple of units either way.
-              const w = name.length * 6.4 + 18;
+              const w = name.length * 8.4 + 24;
               const dx = label?.dx ?? 14;
               const dy = label?.dy ?? -18;
               const anchor = label?.anchor ?? "start";
@@ -262,22 +284,22 @@ export function CoverageMap({ dict, locale }: { dict: Dictionary; locale: Locale
                     <>
                       <rect
                         x={px}
-                        y={y + dy - 9}
+                        y={y + dy - 12}
                         width={w}
-                        height="18"
-                        rx="9"
+                        height="24"
+                        rx="12"
                         fill={isHub ? "var(--brand)" : PAINT.pill}
                         stroke={isHub ? "none" : PAINT.pillEdge}
-                        strokeWidth="0.8"
+                        strokeWidth="0.9"
                       />
                       <text
                         x={px + w / 2}
                         y={y + dy + 1}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fontSize="9.5"
+                        fontSize="12.5"
                         fontWeight="600"
-                        letterSpacing="0.6"
+                        letterSpacing="0.8"
                         fill={isHub ? "var(--ink)" : PAINT.label}
                         // The map is a picture, not a reading order; the
                         // names are already in the caption's description.

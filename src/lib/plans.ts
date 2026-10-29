@@ -27,6 +27,16 @@ export const LEAD_FEE_CAP_USD = 7;
 export const LEAD_FEE_FLOOR_USD = 2;
 export const PRO_MONTHLY_USD = 100;
 
+/**
+ * Credited to a partner's account when they sign up.
+ *
+ * A number rather than a string in the copy, because it is a billing fact
+ * and the pricing page states it in the reader's own currency formatting.
+ * At the current fee cap it is worth at least fourteen leads, and a month of
+ * Pro — which is the comparison the sign-up banner is inviting.
+ */
+export const SIGNUP_CREDIT_USD = 100;
+
 /** The blended fee a pay-per-lead partner pays, used for break-even maths. */
 export const AVG_LEAD_FEE_USD = 5.2;
 

@@ -1,21 +1,15 @@
-import Link from "next/link";
-import { ArrowRight, Check, MessageCircle, Search, ShieldCheck } from "lucide-react";
+import { Check, MessageCircle, Search, ShieldCheck } from "lucide-react";
 import { Shell } from "@/components/common/section";
 import { Stars } from "@/components/common/stars";
 import { RouteSearch } from "@/components/search/route-search";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
 import { quote, type Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { fill, formatUsd } from "@/i18n/format";
-import { cn } from "@/lib/utils";
-import { localePath } from "@/i18n/paths";
 
 type SectionProps = { dict: Dictionary; locale: Locale };
 
@@ -129,108 +123,6 @@ export function Testimonials({ dict, locale }: SectionProps) {
         </div>
       </Shell>
     </section>
-  );
-}
-
-/* ---------------------------------------------------- partner teaser -- */
-
-export function PartnerTeaser({ dict, locale }: SectionProps) {
-  const cap = formatUsd(locale, LEAD_FEE_CAP_USD);
-
-  return (
-    <section className="py-24 sm:py-32">
-      <Shell>
-        {/* 35 / 65. The copy needs a readable measure and no more; the three
-            plans need every pixel that leaves over, because each one carries a
-            price, a unit and a sentence. Expressed in fr so the ratio applies
-            to what is left after the gap rather than overflowing by it. */}
-        <div className="mx-auto grid max-w-6xl items-center gap-10 rounded-3xl bg-surface px-7 py-12 sm:px-12 sm:py-16 lg:grid-cols-[35fr_65fr] lg:gap-12">
-          <div>
-            <p className="eyebrow">{dict.partnerTeaser.eyebrow}</p>
-            <h2 className="mt-4 text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.04]">
-              {dict.partnerTeaser.title}
-            </h2>
-            <p className="mt-4 max-w-md text-[16px] leading-relaxed text-muted-foreground">
-              {dict.partnerTeaser.body}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-full">
-                <Link href={localePath(locale, "/partners")}>
-                  {dict.partnerTeaser.pricingCta}
-                  <ArrowRight className="size-4 rtl:-scale-x-100" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full">
-                <Link href={localePath(locale, "/partners/dashboard")}>
-                  {dict.partnerTeaser.demoCta}
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Three plans, three columns — equal width, because ranking them
-              by tile size would contradict the pricing page, where which one
-              wins depends entirely on your volume. */}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <PlanTile
-              price={formatUsd(locale, PRO_MONTHLY_USD)}
-              unit={dict.partnerTeaser.proUnit}
-              title={dict.plans.proName}
-              body={dict.partnerTeaser.proBody}
-              highlight
-            />
-            <PlanTile
-              price={`${formatUsd(locale, 2)}–${cap}`}
-              unit={dict.partnerTeaser.pplUnit}
-              title={dict.plans.pplName}
-              body={fill(dict.partnerTeaser.pplBody, { cap })}
-            />
-            <PlanTile
-              price={`${formatUsd(locale, 2)}–${cap}`}
-              unit={dict.partnerTeaser.ppsUnit}
-              title={dict.plans.ppsName}
-              body={fill(dict.partnerTeaser.ppsBody, { cap })}
-            />
-          </div>
-        </div>
-      </Shell>
-    </section>
-  );
-}
-
-function PlanTile({
-  price,
-  unit,
-  title,
-  body,
-  highlight,
-  className,
-}: {
-  price: string;
-  unit: string;
-  title: string;
-  body: string;
-  highlight?: boolean;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-3xl p-5",
-        highlight ? "bg-brand text-ink" : "border bg-card",
-        className,
-      )}
-    >
-      <p className="text-[11.5px] font-medium uppercase tracking-[0.1em] opacity-70">{title}</p>
-      {/* The price wraps under its unit rather than shrinking it: three
-          columns at this width cannot hold "$2–$12 per unlocked lead" on
-          one line in any language, and a truncated price is useless. */}
-      <p className="mt-4 flex flex-wrap items-baseline gap-x-1.5">
-        <span className="text-[26px] font-semibold tracking-[-0.04em] tnum">{price}</span>
-        <span className="text-[12.5px] opacity-60">{unit}</span>
-      </p>
-      <p className="mt-2.5 text-[13.5px] leading-relaxed opacity-75">{body}</p>
-    </div>
   );
 }
 

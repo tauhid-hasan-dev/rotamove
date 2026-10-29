@@ -14,6 +14,23 @@ import { useI18n } from "@/i18n/provider";
 const APPEAR_AFTER_MS = 900;
 
 /**
+ * Has this document already had its one showing?
+ *
+ * Module scope, and that is the entire mechanism: a module instance lives
+ * exactly as long as the document that loaded it. Client-side navigation
+ * keeps it; a reload or a fresh visit throws it away and starts a new one.
+ * So this is true for the rest of the page view no matter what the visitor
+ * clicks, and false again the moment they actually reload.
+ *
+ * Component state could not do this job. The popup is mounted by the
+ * `[locale]` layout, so switching language remounts it with the state
+ * initialisers run afresh — which is precisely how the popup came back
+ * every time someone changed language, on a page they had already dismissed
+ * it on.
+ */
+let hadItsTurn = false;
+
+/**
  * The last-call offer popup.
  *
  * The home page, on arrival, and nowhere else.
@@ -46,19 +63,23 @@ export function LastCallPopup() {
   const path = stripLocale(pathname);
 
   /*
-   * It starts closed anywhere but the home page.
+   * It starts closed anywhere but the home page, and closed anywhere at all
+   * once this document has had its showing.
    *
    * A lazy initialiser rather than an effect, so a direct load of the login
-   * page never has a window in which the popup could arm. Recomputed on
-   * every fresh mount, which is why a reload of the home page still shows
-   * today's departures.
+   * page never has a window in which the popup could arm, and a remount
+   * from a language switch is shut before it renders rather than after.
    */
-  const [dismissed, setDismissed] = useState(() => path !== "/");
+  const [dismissed, setDismissed] = useState(() => hadItsTurn || path !== "/");
   const [armed, setArmed] = useState(false);
 
   const target = href("/last-call");
 
+  // Mounting at all spends this document's turn, whether or not the popup
+  // ends up opening. A visitor who landed on the login page and walked to
+  // the home page has had their page view; they have simply had it quietly.
   useEffect(() => {
+    hadItsTurn = true;
     const timer = setTimeout(() => setArmed(true), APPEAR_AFTER_MS);
     return () => clearTimeout(timer);
   }, []);

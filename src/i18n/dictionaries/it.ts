@@ -171,20 +171,6 @@ export const it = {
     statCorridors: "Corridoi nominati",
   },
 
-  partnerTeaser: {
-    eyebrow: "Per le aziende di trasporto",
-    title: "Compra domanda, non numeri di telefono.",
-    body: "Quota mensile fissa, pagamento per contatto, o pagamento solo per le richieste che sblocchi. Nient’altro.",
-    pricingCta: "Prezzi partner",
-    demoCta: "Guarda la demo",
-    proBody: "Tutti i contatti, illimitati. Posizionamento immediato nella ricerca.",
-    proUnit: "/ mese",
-    pplBody: "Nessun abbonamento. Mai più di {cap}.",
-    pplUnit: "/ contatto",
-    ppsBody: "Sfoglia tutte le richieste mascherate. Massimo {cap} solo per quelle che sblocchi.",
-    ppsUnit: "/ sblocco",
-  },
-
   faq: {
     title: "Domande",
     items: [
@@ -286,6 +272,8 @@ export const it = {
     lede: "{leads} richieste verificate al mese su {corridors} corridoi. Tre modi per acquistarle.",
     plansNote:
       "Entrambi i piani includono la verifica di licenza e assicurazione, la mediazione delle controversie e la rimozione dalla bacheca se gli standard calano.",
+    creditTitle: "Ricevi {credit} di credito quando crei il tuo account.",
+    creditBody: "Vale per il piano che scegli. Le prime richieste le offriamo noi.",
     chooserTitle: "Quale fa per te?",
     feeTitle: "Mai più di {cap}. Qualunque sia il carico.",
     whyItems: [
@@ -305,10 +293,11 @@ export const it = {
 
   plans: {
     mostChosen: "Il più scelto",
+    /** One label on every plan card: they all open the same sign-up form. */
+    getStarted: "Inizia ora",
     proName: "Pro Illimitato",
     proSuffix: "/mese",
     proNote: "Fatturazione mensile in USD. Disdetta in qualsiasi momento, senza preavviso.",
-    proCta: "Inizia la prova gratuita di 14 giorni",
     proFeatures: [
       "Richieste internazionali illimitate",
       "Richieste nazionali illimitate",
@@ -324,7 +313,6 @@ export const it = {
     pplName: "Pagamento per contatto",
     pplSuffix: "/contatto",
     pplNote: "Tetto massimo di {cap} per contatto. Vedi il prezzo esatto prima di sbloccare.",
-    pplCta: "Crea un account partner gratuito",
     pplFeatures: [
       "Nessun costo mensile, nessuna spesa minima",
       "Sfoglia tutta la bacheca delle richieste",
@@ -341,7 +329,6 @@ export const it = {
     ppsSuffix: "/sblocco",
     ppsNote:
       "Sfoglia tutte le richieste mascherate — volume, accesso e tratta sono gratuiti. Paghi solo quando ne sblocchi una, con tetto massimo di {cap}.",
-    ppsCta: "Crea un account partner gratuito",
     ppsFeatures: [
       "Nessun costo mensile, nessuna spesa minima",
       "Volume, accesso e tratta visibili gratis su ogni richiesta",

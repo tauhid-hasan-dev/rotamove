@@ -191,20 +191,6 @@ export const en = {
   },
 
   /* --------------------------------------------------- partner teaser -- */
-  partnerTeaser: {
-    eyebrow: "For transport companies",
-    title: "Buy demand, not phone numbers.",
-    body: "Flat monthly, pay per lead, or pay only for the leads you open. Nothing else.",
-    pricingCta: "Partner pricing",
-    demoCta: "See the demo",
-    proBody: "Every lead, unlimited. Instant placement in search.",
-    proUnit: "/ month",
-    pplBody: "No subscription. Never more than {cap}.",
-    pplUnit: "/ lead",
-    ppsBody: "Browse every lead masked. Pay up to {cap} only for the ones you open.",
-    ppsUnit: "/ unlock",
-  },
-
   /* -------------------------------------------------------------- faq -- */
   faq: {
     title: "Questions",
@@ -311,6 +297,8 @@ export const en = {
     lede: "{leads} verified enquiries a month across {corridors} corridors. Three ways to buy them.",
     plansNote:
       "Both plans include licence and insurance verification, dispute mediation, and removal from the board if standards slip.",
+    creditTitle: "Get {credit} in credit when you create your account.",
+    creditBody: "It applies to whichever plan you pick. The first leads are on us.",
     chooserTitle: "Which one fits you?",
     feeTitle: "Never more than {cap}. Whatever the load.",
     whyItems: [
@@ -330,10 +318,11 @@ export const en = {
 
   plans: {
     mostChosen: "Most chosen",
+    /** One label on every plan card: they all open the same sign-up form. */
+    getStarted: "Get started",
     proName: "Pro Unlimited",
     proSuffix: "/month",
     proNote: "Billed monthly in USD. Cancel any time, no notice period.",
-    proCta: "Start 14-day free trial",
     proFeatures: [
       "Unlimited international leads",
       "Unlimited domestic leads",
@@ -349,7 +338,6 @@ export const en = {
     pplName: "Pay Per Lead",
     pplSuffix: "/lead",
     pplNote: "Hard cap of {cap} per lead. You see the exact price before you unlock.",
-    pplCta: "Create free partner account",
     pplFeatures: [
       "No monthly fee, no minimum spend",
       "Browse the full lead board",
@@ -366,7 +354,6 @@ export const en = {
     ppsSuffix: "/unlock",
     ppsNote:
       "Browse every lead masked — volume, access and route are free. You pay only when you unlock one, capped at {cap}.",
-    ppsCta: "Create free partner account",
     ppsFeatures: [
       "No monthly fee, no minimum spend",
       "See volume, access and route on every lead, free",
