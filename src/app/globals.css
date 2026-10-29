@@ -111,10 +111,10 @@
 
   --ink: #10140e;
 
-  /* The coverage map panel. Dark in both themes on purpose, and therefore
+  /* The coverage globe panel. Dark in both themes on purpose, and therefore
      not `--ink`: that token is "text that sits on brand green" and flips to
-     near-white in dark mode, which turned the map inside out. A dotted map
-     needs an unlit sky to read against, the same way a radar screen does. */
+     near-white in dark mode, which turned the panel inside out. A lit sphere
+     needs an unlit sky behind it, the same way a radar screen does. */
   --map-ink: #0d1109;
   --paper: #ffffff;
   --surface: #f6f8f4;
@@ -613,26 +613,13 @@
   transform-origin: 50% 55%;
 }
 
-/* Coverage map ----------------------------------------------------------
-   A short dash chasing a long gap along the lane path: the dash is the
-   shipment, the gap is the wait between departures. Slow — nine seconds end
-   to end — because this sits behind the reader while they read the copy
-   above it, and anything quicker turns a map into a screensaver. */
-@keyframes coverage-pulse {
-  from {
-    stroke-dashoffset: 1200;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
+/* The travelling shipment that used to live here — a short dash chasing a
+   long gap along each lane — moved into the globe's canvas when the flat map
+   became a sphere. It is the same nine-second cadence and the same idea; it
+   is drawn in `globe-canvas.tsx` now because a lane on a turning globe has
+   no fixed path for CSS to animate along. */
 
-.coverage-pulse {
-  stroke-dasharray: 26 1174;
-  animation: coverage-pulse 9s linear infinite;
-}
-
-/* The same idea on the last-call strip above the search: a short bright
+/* A short bright run travelling left to right along the last-call strip
    run travelling left to right along the bar, on the same slow cadence as
    the lanes. It says "live" about a strip advertising stock that expires
    in hours, using the one gesture the rest of the page already uses for
@@ -656,13 +643,6 @@
     transparent 100%
   );
   animation: last-call-run 6.5s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* The lane itself still reads; only the traffic stops. */
-  .coverage-pulse {
-    display: none;
-  }
 }
 
 @keyframes last-call-sheen {

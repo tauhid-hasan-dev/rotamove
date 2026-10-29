@@ -2,7 +2,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { Hero } from "@/components/marketing/hero";
 import { CoverageGrid } from "@/components/marketing/coverage-grid";
-import { CoverageMap } from "@/components/marketing/coverage-map";
+import { CoverageGlobe } from "@/components/marketing/coverage-globe";
 import {
   CtaBand,
   Faq,
@@ -25,9 +25,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <Hero dict={dict} rtl={dirFor(locale) === "rtl"} />
         <TrustStrip dict={dict} />
         <HowItWorks dict={dict} locale={locale} />
-        {/* The map answers "do you go where I need?" before the region list
+        {/* The globe answers "do you go where I need?" before the region list
             below it answers "which cities exactly?". */}
-        <CoverageMap dict={dict} locale={locale} />
+        <CoverageGlobe dict={dict} locale={locale} />
         <CoverageGrid />
         <Testimonials dict={dict} locale={locale} />
         <PartnerTeaser dict={dict} locale={locale} />

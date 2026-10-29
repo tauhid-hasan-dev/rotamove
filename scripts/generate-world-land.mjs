@@ -1,134 +1,154 @@
 /**
- * Build-time geometry for the coverage map.
+ * Build-time geometry for the coverage globe.
  *
- *   node scripts/generate-world-land.mjs
+ *   npm run generate:map
  *
- * Turns Natural Earth's country polygons (via `world-atlas`) into the SVG
- * paths `src/lib/world-land.ts` ships, already projected into the map's own
- * frame and clipped to it. The map used to draw a hand-written dot mask of
- * land; this is the real coastline instead.
+ * Turns Natural Earth's country polygons (via `world-atlas`) into the compact
+ * lon/lat rings `src/lib/world-land.ts` ships.
  *
- * Done at build time rather than in the component for three reasons: the
- * source topology is megabytes and none of it should reach the browser, the
- * projection maths wants a real geo library that the app otherwise has no
- * use for, and the output is a pure function of two files in this repo — so
- * the committed result is reproducible by re-running this script.
+ * Unprojected, deliberately. The globe re-projects every frame as it turns,
+ * so what it needs is geography, not a picture of geography — the projection
+ * is the renderer's job, on the server for the still frame and in the canvas
+ * for the live one.
  *
- * Frame constants and hub coordinates are read out of the app's own source,
- * not restated here. A map whose land and whose lanes were plotted from two
- * different sets of numbers is exactly the failure this avoids.
+ * Done at build time rather than in the component because the source topology
+ * is megabytes of quantised arcs, none of which should reach a browser, and
+ * because the output is a pure function of two files in this repo: re-running
+ * this script reproduces it exactly.
+ *
+ * Hub coordinates are read out of the app's own source rather than restated
+ * here. A globe that lit different countries from the ones the search can
+ * quote is exactly the failure this avoids.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { geoIdentity, geoPath, geoContains } from "d3-geo";
+import { geoContains } from "d3-geo";
 import { feature } from "topojson-client";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* ------------------------------------------------- the app's own numbers -- */
 
-function readConst(source, name) {
-  const match = source.match(new RegExp(`${name}\\s*=\\s*(-?[\\d.]+)`));
-  if (!match) throw new Error(`could not find ${name} in map-projection.ts`);
-  return Number(match[1]);
-}
-
-const projectionSrc = readFileSync(join(root, "src/lib/map-projection.ts"), "utf8");
-const LON_W = readConst(projectionSrc, "LON_W");
-const LON_E = readConst(projectionSrc, "LON_E");
-const LAT_N = readConst(projectionSrc, "LAT_N");
-const LAT_S = readConst(projectionSrc, "LAT_S");
-const VIEW_W = readConst(projectionSrc, "VIEW_W");
-const VIEW_H = (VIEW_W * (LAT_N - LAT_S)) / (LON_E - LON_W);
-
 /** Hub coordinates, straight out of `RAW_CITIES`. */
 const geoSrc = readFileSync(join(root, "src/lib/geo.ts"), "utf8");
-const HUBS = [...geoSrc.matchAll(/\["[A-Z]{3}",\s*"[^"]+",\s*"[A-Z]{2}",\s*(-?[\d.]+),\s*(-?[\d.]+)/g)].map(
-  (m) => [Number(m[2]), Number(m[1])], // [lon, lat], the order d3 wants
-);
+const HUBS = [
+  ...geoSrc.matchAll(/\["[A-Z]{3}",\s*"[^"]+",\s*"[A-Z]{2}",\s*(-?[\d.]+),\s*(-?[\d.]+)/g),
+].map((m) => [Number(m[2]), Number(m[1])]); // [lon, lat], the order d3 wants
 if (HUBS.length === 0) throw new Error("no hubs parsed out of geo.ts");
 
-/* ------------------------------------------------------------ projection -- */
-
-/*
- * Equirectangular is linear in both axes, so it is just a uniform scale with
- * the y axis flipped — which means `geoIdentity` can express it, and unlike a
- * hand-rolled transform it brings `clipExtent` with it. Clipping at source is
- * what keeps Siberia and the Sahara out of the shipped file instead of
- * shipping them to be thrown away by the SVG viewport.
- */
-const scale = VIEW_W / (LON_E - LON_W);
-const projection = geoIdentity()
-  .reflectY(true)
-  .scale(scale)
-  .translate([-LON_W * scale, LAT_N * scale])
-  .clipExtent([
-    [0, 0],
-    [VIEW_W, VIEW_H],
-  ]);
-
-const toPath = geoPath(projection);
-
-/** Six significant figures of a 1400-unit viewBox is noise. One decimal is not. */
-const round = (d) => d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * 10) / 10));
-
 /* ----------------------------------------------------------------- build -- */
+
+/**
+ * One decimal degree is about 11km, which is a third of a pixel on a globe
+ * drawn 600px wide. Anything finer is bytes the visitor downloads and cannot
+ * see. Rounding also collapses runs of near-identical coastline points, which
+ * is where most of the saving actually comes from.
+ */
+const q = (n) => Math.round(n * 10) / 10;
+
+/**
+ * Islands too small to draw.
+ *
+ * At this scale a ring under about a quarter of a degree across lands inside
+ * one pixel, so it costs bytes and renders as nothing. Kept regardless if a
+ * hub stands on it — Bahrain and Singapore are small and are not optional.
+ */
+function ringWorthDrawing(ring, keepAnyway) {
+  if (keepAnyway) return true;
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  for (const [lon, lat] of ring) {
+    if (lon < minLon) minLon = lon;
+    if (lon > maxLon) maxLon = lon;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+  return maxLon - minLon > 0.25 || maxLat - minLat > 0.25;
+}
+
+/** Flat `[lon, lat, lon, lat, …]`, with points the rounding made duplicates dropped. */
+function flatten(ring) {
+  const out = [];
+  for (const [lon, lat] of ring) {
+    const x = q(lon);
+    const y = q(lat);
+    if (out.length >= 2 && out[out.length - 2] === x && out[out.length - 1] === y) continue;
+    out.push(x, y);
+  }
+  // A ring that collapsed to a line under rounding is not a shape any more.
+  return out.length >= 8 ? out : null;
+}
 
 const topology = JSON.parse(
   readFileSync(join(root, "node_modules/world-atlas/countries-110m.json"), "utf8"),
 );
 const countries = feature(topology, topology.objects.countries).features;
 
-const shapes = [];
-for (const country of countries) {
-  const d = toPath(country);
-  if (!d) continue; // entirely outside the frame
+const out = [];
+let points = 0;
 
-  shapes.push({
-    name: country.properties?.name ?? "",
-    // Served if a hub stands on it. Tested against the polygon rather than
-    // matched on a country name or ISO code: the hub list already knows where
-    // it is, and no two datasets agree on what to call Türkiye.
-    served: HUBS.some((hub) => geoContains(country, hub)),
-    d: round(d),
-  });
+for (const country of countries) {
+  // Served if a hub stands on it. Tested against the polygon rather than
+  // matched on a country name or ISO code: the hub list already knows where
+  // it is, and no two datasets agree on what to call Türkiye.
+  const served = HUBS.some((hub) => geoContains(country, hub));
+  const hubsHere = served ? HUBS.filter((hub) => geoContains(country, hub)) : [];
+
+  const polygons =
+    country.geometry.type === "Polygon"
+      ? [country.geometry.coordinates]
+      : country.geometry.coordinates;
+
+  const rings = [];
+  for (const polygon of polygons) {
+    // Outer ring only. Holes at 110m are a handful of inland seas, and a
+    // filled globe reads perfectly well without them.
+    const outer = polygon[0];
+    const keep = hubsHere.length > 0 && outer.length < 40;
+    if (!ringWorthDrawing(outer, keep)) continue;
+    const flat = flatten(outer);
+    if (!flat) continue;
+    rings.push(flat);
+    points += flat.length / 2;
+  }
+
+  if (rings.length) out.push({ name: country.properties?.name ?? "", served, rings });
 }
 
-shapes.sort((a, b) => a.name.localeCompare(b.name));
+out.sort((a, b) => a.name.localeCompare(b.name));
+const served = out.filter((c) => c.served).length;
 
-const served = shapes.filter((s) => s.served).length;
-
-const out = `/**
- * Real country outlines for the coverage map. GENERATED — do not edit.
+const file = `/**
+ * The world, as lon/lat rings. GENERATED — do not edit.
  *
- *   node scripts/generate-world-land.mjs
+ *   npm run generate:map
  *
- * Natural Earth 1:50m country polygons (public domain, via \`world-atlas\`),
- * projected into the frame declared in \`map-projection.ts\` and clipped to it.
- * \`served\` is true where one of the hubs in \`geo.ts\` stands on the country,
- * so the shading cannot claim a country the search cannot quote.
+ * Natural Earth 1:110m country polygons (public domain, via \`world-atlas\`),
+ * rounded to a tenth of a degree and flattened. \`served\` is true where one of
+ * the hubs in \`geo.ts\` stands inside the country, so the globe cannot light
+ * somewhere the search will not quote.
  *
- * ${shapes.length} countries in frame, ${served} of them served.
+ * Unprojected on purpose: the globe turns, so it re-projects these every
+ * frame. See \`scripts/generate-world-land.mjs\`.
+ *
+ * ${out.length} countries, ${served} served, ${points.toLocaleString("en-GB")} points.
  */
 
-export interface LandShape {
-  /** Country name, for the generator's benefit and for debugging. Not rendered. */
+export interface LandCountry {
+  /** For debugging and for the generator's benefit. Never rendered. */
   name: string;
   /** True when a hub in \`geo.ts\` falls inside this country. */
   served: boolean;
-  /** SVG path data, already in \`map-projection.ts\` view units. */
-  d: string;
+  /** Outer rings, each flat: \`[lon, lat, lon, lat, …]\`. */
+  rings: number[][];
 }
 
-export const LAND_SHAPES: LandShape[] = [
-${shapes.map((s) => `  { name: ${JSON.stringify(s.name)}, served: ${s.served}, d: ${JSON.stringify(s.d)} },`).join("\n")}
-];
+export const WORLD: LandCountry[] = ${JSON.stringify(out)};
 `;
 
 const target = join(root, "src/lib/world-land.ts");
-writeFileSync(target, out, "utf8");
+writeFileSync(target, file, "utf8");
 console.log(
-  `world-land.ts: ${shapes.length} countries (${served} served), ${(out.length / 1024).toFixed(0)} KB`,
+  `world-land.ts: ${out.length} countries (${served} served), ${points} points, ${(file.length / 1024).toFixed(0)} KB`,
 );

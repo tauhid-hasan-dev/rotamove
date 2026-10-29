@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
-import { ArrowRight, ArrowLeftRight, CalendarRange, Clock3, Loader2, Search } from "lucide-react";
+import { AlarmClock, ArrowRight, ArrowLeftRight, CalendarRange, Loader2, Search } from "lucide-react";
 import { CityField } from "@/components/search/city-field";
 import { DateRangeField } from "@/components/search/date-range-field";
 import type { DateRange } from "@/components/common/range-calendar";
@@ -127,7 +127,29 @@ export function RouteSearch({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <Clock3 className="size-3.5" />
+          {/*
+            The same clock, ringing the same way, as the one in the header.
+
+            It was a plain `Clock3`, which is the wrong face to animate: the
+            keyframes rock the icon about its base the way a bell rings, and
+            without bells on top that reads as a wobble rather than an alarm.
+            One icon for one idea, in both places.
+
+            It rings only while this mode is unchosen. The ring is there to
+            say "there is a second way to search here" — once the visitor has
+            taken it and an hour window is set, it has made its point, and a
+            control that keeps shaking after you have used it is just noise.
+            On the yellow of the chosen state the icon takes the ink colour;
+            unchosen, it carries the one token minted for exactly this —
+            last-call yellow, darkened enough to read on a neutral card.
+          */}
+          <AlarmClock
+            className={cn(
+              "size-3.5",
+              lastCall ? "text-ink" : "last-call-ring text-lastcall-icon motion-reduce:animate-none",
+            )}
+            strokeWidth={2.2}
+          />
           {dict.dates.modeLastCall}
         </button>
       </div>

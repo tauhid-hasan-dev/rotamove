@@ -261,18 +261,36 @@ src/
     lead-codec.ts           PII-free results-URL token
     lead-store.ts           repository interface + in-memory impl
     rand.ts                 seeded PRNG — results must be reproducible
-    map-projection.ts       the coverage map's frame and equirectangular projection
-    world-land.ts           GENERATED country outlines — `npm run generate:map`
+    globe-scene.ts          what the coverage globe draws, renderer-agnostic
+    world-land.ts           GENERATED country rings — `npm run generate:map`
 ```
 
-**The coverage map is real geography.** `world-land.ts` is Natural Earth's
-country polygons (public domain, via `world-atlas`), projected into the frame
-in `map-projection.ts` and clipped to it at build time by
-`scripts/generate-world-land.mjs`. A country is lit only when a hub in
-`geo.ts` physically stands inside its polygon, so the shading cannot claim
-somewhere the search will not quote. The generator reads the frame and the hub
-coordinates out of the app's own source: change either and re-run
+**The coverage globe is real geography, and it turns.** `world-land.ts` is
+Natural Earth's country polygons (public domain, via `world-atlas`), rounded
+to a tenth of a degree by `scripts/generate-world-land.mjs` and shipped
+unprojected — the globe re-projects them every frame. A country is lit only
+when a hub in `geo.ts` physically stands inside its polygon, so the shading
+cannot claim somewhere the search will not quote. The generator reads the hub
+coordinates out of the app's own source: change `geo.ts` and re-run
 `npm run generate:map`. None of the source topology ships to the browser.
+
+Two renderers share `globe-scene.ts`, so what paints first and what replaces
+it cannot disagree:
+
+- the **server** draws one still frame as SVG. It is a complete picture — it
+  survives JavaScript being off, paints with the HTML, and holds the panel's
+  height so nothing shifts;
+- the **canvas** fades in over it and spins. Orthographic projection and a
+  fill, not WebGL: a sphere with a fixed light and no user camera does not
+  need a scene graph or half a megabyte of engine.
+
+It is built not to cost anything until it is looked at. The renderer, d3's
+projection maths and the geometry sit behind a dynamic import fired by an
+observer, so the home page loads **zero bytes** of globe; reaching the section
+pulls one ~50KB chunk. The loop runs only while the panel is on screen *and*
+the tab is foreground, draws at 30fps rather than 60, and caps its backing
+store at 2× whatever the display claims. Under `prefers-reduced-motion` it
+paints one frame and never starts.
 
 **Deterministic results.** Everything "random" derives from
 `hash(leadId + moverId)`. Refresh, re-sort or share the link: same order.
