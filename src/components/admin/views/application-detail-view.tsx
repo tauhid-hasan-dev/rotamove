@@ -5,6 +5,8 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Check,
+  Download,
+  ExternalLink,
   FileText,
   FileWarning,
   Loader2,
@@ -264,6 +266,8 @@ export function ApplicationDetailView({ reference }: { reference: string }) {
           <Section title={R.s4}>
             <Row label={R.lorries} value={t.number(a.lorries)} />
             <Row label={R.vans} value={t.number(a.vans)} />
+            <Row label={R.frigo} value={t.number(a.frigo)} />
+            <Row label={R.crane} value={t.number(a.crane)} />
             <Row label={R.ownership} value={ownLabel[a.ownership] ?? a.ownership} />
             <Row label={R.capacity} value={t.volume(a.weeklyCapacityM3)} />
             <Row
@@ -298,17 +302,25 @@ export function ApplicationDetailView({ reference }: { reference: string }) {
         <div className="space-y-4">
           <Section title={R.documents}>
             <div className="space-y-2">
-              <DocumentRow label={R.docRegistration} doc={a.registrationDoc} />
-              <DocumentRow label={R.docInsurance} doc={a.insuranceDoc} />
-              <DocumentRow label={R.docLicence} doc={a.licenceDoc ?? null} />
+              <DocumentRow
+                label={R.docRegistration}
+                doc={a.registrationDoc}
+                reference={a.reference}
+                slot="registration"
+              />
+              <DocumentRow
+                label={R.docInsurance}
+                doc={a.insuranceDoc}
+                reference={a.reference}
+                slot="insurance"
+              />
+              <DocumentRow
+                label={R.docLicence}
+                doc={a.licenceDoc ?? null}
+                reference={a.reference}
+                slot="licence"
+              />
             </div>
-            {/* The honest note. The bytes were validated in the browser and
-                deliberately never transmitted, so there is nothing to open —
-                and a download button that did nothing would be worse than
-                saying so. */}
-            <p className="mt-3 rounded-lg border border-dashed bg-surface px-3 py-2.5 text-[12px] leading-relaxed text-muted-foreground">
-              {R.docDemoNote}
-            </p>
           </Section>
 
           {a.status === "awaiting_documents" && a.requestedDocuments?.length ? (
@@ -399,8 +411,33 @@ function Confirmed({ label }: { label: string }) {
   );
 }
 
-function DocumentRow({ label, doc }: { label: string; doc: DocumentMeta | null }) {
+/**
+ * One attached document, with the two things a reviewer does with it.
+ *
+ * Open renders it inline in a new tab — a one-page insurance certificate is
+ * read, not filed — and Download saves it under the applicant's own
+ * filename. Both go through the admin route keyed on this application, so
+ * the storage id never reaches the page.
+ *
+ * A document with no stored bytes is not given buttons that would 410. It
+ * says so instead, because "attached, no copy held" and "never attached" ask
+ * different things of the reviewer.
+ */
+function DocumentRow({
+  label,
+  doc,
+  reference,
+  slot,
+}: {
+  label: string;
+  doc: DocumentMeta | null;
+  reference: string;
+  slot: "registration" | "insurance" | "licence";
+}) {
   const { dict, t } = useI18n();
+  const ax = dict.admin.pending;
+  const href = `/api/admin/applications/${encodeURIComponent(reference)}/documents/${slot}`;
+
   return (
     <div
       className={cn(
@@ -421,16 +458,38 @@ function DocumentRow({ label, doc }: { label: string; doc: DocumentMeta | null }
             {/* KB via `t.number`, the same way the upload field reports it
                 back to the applicant. */}
             <p className="mt-0.5 text-[11.5px] text-muted-foreground tnum">
-              {t.fill(dict.admin.pending.docMeta, {
+              {t.fill(ax.docMeta, {
                 size: `${t.number(Math.max(1, Math.round(doc.sizeBytes / 1024)))} KB`,
                 type: doc.mimeType.replace(/^(application|image)\//, "").toUpperCase(),
               })}
             </p>
+
+            {doc.storageId ? (
+              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-brand-deep underline decoration-brand decoration-2 underline-offset-4 dark:text-brand"
+                >
+                  <ExternalLink className="size-3.5" aria-hidden />
+                  {ax.docOpen}
+                </a>
+                <a
+                  href={`${href}?download=1`}
+                  download={doc.name}
+                  className="inline-flex items-center gap-1.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Download className="size-3.5" aria-hidden />
+                  {ax.docDownload}
+                </a>
+              </p>
+            ) : (
+              <p className="mt-1.5 text-[11.5px] text-muted-foreground">{ax.docUnavailable}</p>
+            )}
           </>
         ) : (
-          <p className="mt-0.5 text-[13px] text-muted-foreground">
-            {dict.admin.pending.docMissing}
-          </p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">{ax.docMissing}</p>
         )}
       </div>
     </div>

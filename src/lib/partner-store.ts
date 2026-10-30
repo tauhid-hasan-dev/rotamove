@@ -1,8 +1,10 @@
+import { documentStore, placeholderPdf } from "@/lib/document-store";
 import {
   applicationReference,
   scoreApplication,
   normaliseWebsite,
   type ApplicationStatus,
+  type DocumentMeta,
   type PartnerApplication,
   type PartnerApplicationInput,
   type ReviewEvent,
@@ -145,10 +147,39 @@ class InMemoryPartnerRepository implements PartnerRepository {
  * it waiting. That is the one path through this feature that crosses both
  * sides of the product, and it needs a seeded application to be walkable.
  */
+/**
+ * A seeded attachment a reviewer can actually open.
+ *
+ * The three applications below were never submitted through the form, so
+ * nothing uploaded their paperwork — and a queue whose only walkable records
+ * said "no copy held" would demonstrate the absence of the feature rather
+ * than the feature. Each one gets a real one-page PDF, filed in the same
+ * store a genuine upload lands in and served by the same route, so Open and
+ * Download behave here exactly as they do for a live application.
+ */
+function seedDocument(filename: string, title: string, lines: string[]): DocumentMeta {
+  const bytes = placeholderPdf(title, lines);
+  const stored = documentStore.put({ name: filename, mimeType: "application/pdf", bytes });
+  return {
+    name: filename,
+    sizeBytes: bytes.byteLength,
+    mimeType: "application/pdf",
+    storageId: stored.id,
+  };
+}
+
+const SEED_DOC_NOTE = "Sample document generated for the Rotamove demo review queue.";
+
 function seedApplication(
   over: Partial<PartnerApplication> & Pick<PartnerApplication, "legalName" | "countryIso" | "city" | "email" | "contactName">,
   daysAgo: number,
 ): PartnerApplication {
+  const registrationNumber = over.registrationNumber ?? "TR-884120";
+  const transportLicence = over.transportLicence ?? "L2-44190";
+  const cargoCoverEur = over.cargoCoverEur ?? 150_000;
+  const liabilityCoverEur = over.liabilityCoverEur ?? 300_000;
+  const company = over.tradingName || over.legalName;
+
   const base: PartnerApplicationInput = {
     legalName: over.legalName,
     tradingName: over.tradingName ?? "",
@@ -167,18 +198,47 @@ function seedApplication(
     emailVerified: true,
     phoneVerified: true,
 
-    registrationNumber: over.registrationNumber ?? "TR-884120",
+    registrationNumber,
     vatNumber: over.vatNumber ?? "",
-    transportLicence: over.transportLicence ?? "L2-44190",
-    cargoCoverEur: over.cargoCoverEur ?? 150_000,
-    liabilityCoverEur: over.liabilityCoverEur ?? 300_000,
+    transportLicence,
+    cargoCoverEur,
+    liabilityCoverEur,
     memberships: over.memberships ?? ["none"],
-    registrationDoc: { name: "registration.pdf", sizeBytes: 182_400, mimeType: "application/pdf" },
-    insuranceDoc: { name: "insurance.pdf", sizeBytes: 241_880, mimeType: "application/pdf" },
-    licenceDoc: over.licenceDoc ?? null,
+    registrationDoc: seedDocument("registration-extract.pdf", "Company registration extract", [
+      over.legalName,
+      `Registered office: ${over.city}, ${over.countryIso}`,
+      `Registration number: ${registrationNumber}`,
+      `Founded: ${over.foundedYear ?? 2011}`,
+      "",
+      SEED_DOC_NOTE,
+    ]),
+    insuranceDoc: seedDocument("insurance-certificate.pdf", "Certificate of cargo insurance", [
+      `Insured: ${over.legalName}`,
+      `Cargo cover: EUR ${cargoCoverEur.toLocaleString("en-GB")} per consignment`,
+      `Liability cover: EUR ${liabilityCoverEur.toLocaleString("en-GB")}`,
+      "",
+      SEED_DOC_NOTE,
+    ]),
+    /*
+     * `in` rather than `??`, so a seed can say "no licence on file" and mean
+     * it. Caspian Freight is parked on `awaiting_documents` precisely because
+     * its licence scan is missing, and a nullish default would have handed it
+     * the very document the reviewer is chasing.
+     */
+    licenceDoc: "licenceDoc" in over
+      ? (over.licenceDoc ?? null)
+      : seedDocument("transport-licence.pdf", "Operating licence", [
+          `Holder: ${company}`,
+          `Licence number: ${transportLicence}`,
+          `Issued in: ${over.countryIso}`,
+          "",
+          SEED_DOC_NOTE,
+        ]),
 
     lorries: over.lorries ?? 6,
     vans: over.vans ?? 3,
+    frigo: over.frigo ?? 0,
+    crane: over.crane ?? 0,
     ownership: over.ownership ?? "owned",
     weeklyCapacityM3: over.weeklyCapacityM3 ?? 320,
     modes: over.modes ?? ["road"],
@@ -218,6 +278,8 @@ const SEED_APPLICATIONS: PartnerApplication[] = [
       memberships: ["tobb", "iso_9001"],
       lorries: 14,
       vans: 6,
+      frigo: 3,
+      crane: 1,
       weeklyCapacityM3: 780,
       regions: ["TR", "EU_SOUTH", "BALKANS"],
       availability: "immediate",
@@ -247,6 +309,8 @@ const SEED_APPLICATIONS: PartnerApplication[] = [
       size: "medium",
       lorries: 32,
       vans: 11,
+      frigo: 8,
+      crane: 2,
       ownership: "mixed",
       weeklyCapacityM3: 1_640,
       modes: ["road", "rail"],
@@ -268,6 +332,8 @@ const SEED_APPLICATIONS: PartnerApplication[] = [
       languages: ["ru", "en"],
       registrationNumber: "UZ-5520914",
       transportLicence: "TRACECA-1182",
+      // The document the reviewer below is still waiting for. See `seedDocument`.
+      licenceDoc: null,
       cargoCoverEur: 80_000,
       liabilityCoverEur: 120_000,
       foundedYear: 2019,

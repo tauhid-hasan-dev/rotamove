@@ -79,6 +79,8 @@ const toDraft = (p: PartnerProfile): Draft => ({
 
   lorries: p.lorries,
   vans: p.vans,
+  frigo: p.frigo,
+  crane: p.crane,
   ownership: p.ownership,
   weeklyCapacityM3: p.weeklyCapacityM3,
   modes: [...p.modes],

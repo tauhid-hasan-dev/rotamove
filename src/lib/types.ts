@@ -17,7 +17,9 @@ export type PropertySize =
   | "villa"
   | "office"
   /** Out-of-gauge one-offs: a turbine, a yacht, a boat, cars. */
-  | "project";
+  | "project"
+  /** Temperature-controlled freight — a reefer trailer, not a removals lorry. */
+  | "reefer";
 
 export type ServiceLevel = "full_service" | "door_to_door" | "transport_only";
 

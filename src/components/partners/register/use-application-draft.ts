@@ -43,6 +43,8 @@ export interface ApplicationDraft {
 
   lorries: number;
   vans: number;
+  frigo: number;
+  crane: number;
   ownership: string;
   weeklyCapacityM3: number;
   modes: string[];
@@ -92,6 +94,11 @@ export function emptyDraft(locale: Locale): ApplicationDraft {
 
     lorries: 4,
     vans: 2,
+    // Nought rather than a guess: a reefer unit and a crane are specialist
+    // kit most applicants do not own, and a prefilled "1" is a claim the
+    // form made on their behalf.
+    frigo: 0,
+    crane: 0,
     ownership: "owned",
     weeklyCapacityM3: 240,
     modes: ["road"],

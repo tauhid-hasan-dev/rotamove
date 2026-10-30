@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileCheck2, Paperclip, X } from "lucide-react";
+import { FileCheck2, Loader2, Paperclip, X } from "lucide-react";
 import { useI18n } from "@/i18n/provider";
 import {
   ACCEPTED_DOCUMENT_TYPES,
@@ -13,10 +13,15 @@ import { cn } from "@/lib/utils";
 /**
  * A supporting document.
  *
- * Validates type and size in the browser and keeps only the metadata. This
- * demo has no object storage, so the bytes deliberately never leave the page
- * — pretending to upload, and recording a filename we could never produce
- * again, would be worse than being plain about it.
+ * Type and size are checked in the browser first — instantly, and in the
+ * applicant's language — and then the file is uploaded and the server's own
+ * answer is what gets stored. Uploading on selection rather than at submit is
+ * what keeps the final application request small enough to be reliable, and
+ * puts a failed upload next to the field that caused it instead of behind the
+ * one button the applicant cannot afford to have fail.
+ *
+ * Until the upload comes back there is no value, so a required slot keeps the
+ * step from advancing on a file that is still in flight.
  */
 export function DocumentField({
   id,
@@ -36,8 +41,9 @@ export function DocumentField({
   const { dict, t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  const accept = (file: File | undefined) => {
+  const accept = async (file: File | undefined) => {
     if (!file) return;
     if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type as (typeof ACCEPTED_DOCUMENT_TYPES)[number])) {
       setError(dict.register.docWrongType);
@@ -49,12 +55,24 @@ export function DocumentField({
       onChange(null);
       return;
     }
+
     setError(null);
-    onChange({
-      name: file.name,
-      sizeBytes: file.size,
-      mimeType: file.type as DocumentMeta["mimeType"],
-    });
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/partners/documents", { method: "POST", body });
+      if (!response.ok) throw new Error("upload failed");
+      const data = (await response.json()) as { document: DocumentMeta };
+      onChange(data.document);
+    } catch {
+      setError(dict.register.docUploadFailed);
+      onChange(null);
+      // Cleared so picking the same file again re-fires `change` and retries.
+      if (input.current) input.current.value = "";
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -72,10 +90,15 @@ export function DocumentField({
         type="file"
         className="sr-only"
         accept={ACCEPTED_DOCUMENT_TYPES.join(",")}
-        onChange={(e) => accept(e.target.files?.[0])}
+        onChange={(e) => void accept(e.target.files?.[0])}
       />
 
-      {value ? (
+      {uploading ? (
+        <p className="flex items-center gap-3 rounded-2xl border border-dashed bg-surface p-3.5 text-[13.5px] text-muted-foreground">
+          <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+          {dict.register.docUploading}
+        </p>
+      ) : value ? (
         <div className="flex items-center gap-3 rounded-2xl border border-verify/40 bg-surface p-3.5">
           <FileCheck2 className="size-4 shrink-0 text-verify" />
           <span className="min-w-0 flex-1">

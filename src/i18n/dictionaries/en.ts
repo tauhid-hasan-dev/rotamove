@@ -43,6 +43,8 @@ export const en = {
     tryAgain: "Try again",
     optional: "(optional)",
     any: "Any",
+    yes: "Yes",
+    no: "No",
     free: "Free · no account · no cold calls",
     appearance: "Appearance",
     toggleTheme: "Toggle light and dark mode",
@@ -540,8 +542,7 @@ export const en = {
     peakSeason:
       "June to September is peak season. Shifting a fortnight either way opens up a lot more capacity.",
     addOns: "Add-ons",
-    storageLegend: "Storage",
-    storageAria: "Weeks of storage",
+    storageLegend: "Need storage service?",
     specialistLegend: "Anything specialist?",
     preferredChannel: "Preferred channel",
     name: "Name",
@@ -577,12 +578,6 @@ export const en = {
       customsClearance: "Customs handled for me",
       cleaning: "End-of-tenancy cleaning",
     },
-
-    storageNo: "No storage",
-    storageNoHint: "Collected and delivered straight through.",
-    storageYes: "Store my items",
-    storageYesHint: "We hold the load between collection and delivery.",
-    storageDuration: "How long do you need it?",
   },
 
   /* ----------------------------------------------------- verification -- */
@@ -836,9 +831,13 @@ export const en = {
     docRemove: "Remove",
     docTooBig: "That file is over 8 MB.",
     docWrongType: "Use a PDF, JPG or PNG.",
-    docDemoNote: "Files are checked in your browser and not uploaded in this demo — only the name, type and size are recorded.",
+    docUploading: "Uploading…",
+    docUploadFailed: "That file did not upload. Try again.",
+    docDemoNote: "Files are checked in your browser and then uploaded so our reviewers can open them. Only the vetting team ever sees them.",
     lorries: "Lorries",
     vans: "Vans",
+    frigo: "Frigo (refrigerated transport)",
+    crane: "Crane",
     fleetHint: "Vehicles you can dispatch, not total ever owned.",
     ownership: "Fleet ownership",
     ownOwned: "Owned",
@@ -1160,8 +1159,6 @@ export const en = {
 
         companiesPending: "Pending review",
         companiesManage: "Manage companies",
-
-        outbox: "Outbox",
       },
       demoData: "Demo data",
       demoTooltip:
@@ -1876,34 +1873,13 @@ export const en = {
       historyEmpty: "No decisions recorded yet.",
       docMeta: "{size} · {type}",
       docMissing: "Not attached",
+      docOpen: "Open",
+      docDownload: "Download",
+      docUnavailable: "Attached before file storage — no copy held",
       notFoundTitle: "No such application",
       notFoundBody: "That reference does not match anything in the queue. It may have been evicted on a restart.",
     },
 
-    outbox: {
-      title: "Outbox",
-      notice: "This build has no mail provider connected. Every message below was composed for real and recorded here instead of being transmitted — same subject, same body, same recipient a provider would be handed. Swap in SMTP and nothing else changes.",
-      count: "{n} messages",
-      searchPlaceholder: "Recipient, subject, reference…",
-      kindFilterAria: "Filter by message type",
-      allKinds: "All types",
-      toLine: "{from} → {to}",
-      loading: "Loading messages…",
-      emptyNone: "Nothing sent yet",
-      emptyNoneBody: "Approve an application, request documents or change a plan, and the message lands here.",
-      emptyFiltered: "No messages match",
-      errorTitle: "Could not load the outbox",
-      errorBody: "The outbox API did not respond. Check the dev server and retry.",
-      kinds: {
-        application_received: "Application received",
-        application_approved: "Application approved",
-        application_declined: "Application declined",
-        documents_requested: "Documents requested",
-        plan_queued: "Plan change queued",
-        plan_activated: "Plan activated",
-        contact_changed: "Contact details changed",
-      },
-    },
   },
 
   /* ------------------------------------------------------------ enums -- */
@@ -1917,7 +1893,14 @@ export const en = {
       four_bed: { label: "4+ bedrooms", hint: "~170 m² home" },
       villa: { label: "Villa / detached", hint: "220 m² and up" },
       office: { label: "Office / commercial freight", hint: "Desks, IT, archive, pallets" },
-      project: { label: "Project cargo", hint: "Turbine, yacht, boat, cars — the unusual loads" },
+      project: {
+        label: "Specialized Project Transport",
+        hint: "Turbine, yacht, boat, cars — the unusual loads",
+      },
+      reefer: {
+        label: "Refrigerated Transport (Frigo)",
+        hint: "Chilled or frozen, temperature logged end to end",
+      },
     },
     access: {
       ground: { label: "Ground floor", hint: "No stairs at all" },

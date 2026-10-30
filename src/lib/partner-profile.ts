@@ -57,7 +57,7 @@ export const partnerProfileSchema = companyStepSchema
   .extend(credentialsForProfile.shape)
   .extend(fleetStepSchema.shape)
   .extend(coverageStepSchema.omit({ declaration: true }).shape)
-  .refine((a) => a.lorries + a.vans > 0, {
+  .refine((a) => a.lorries + a.vans + a.frigo + a.crane > 0, {
     message: "Tell us about at least one vehicle",
     path: ["lorries"],
   });
@@ -184,6 +184,11 @@ export function seedProfile(opts: {
 
     lorries: mover.fleetTrucks,
     vans: Math.max(1, Math.round(mover.fleetTrucks / 3)),
+    // The catalogue records neither, so they are derived from the one fleet
+    // figure it does have — and only for carriers whose service list already
+    // implies the kit, so a two-van house mover is not credited with a crane.
+    frigo: mover.services.storage ? Math.round(mover.fleetTrucks / 5) : 0,
+    crane: mover.services.vehicle ? Math.round(mover.fleetTrucks / 8) : 0,
     ownership: "owned",
     weeklyCapacityM3: Math.max(40, mover.fleetTrucks * 60),
     modes: mover.modes.length ? [...mover.modes] : ["road"],

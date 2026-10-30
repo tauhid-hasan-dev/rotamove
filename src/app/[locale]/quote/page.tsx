@@ -54,6 +54,7 @@ const SIZES: PropertySize[] = [
   "villa",
   "office",
   "project",
+  "reefer",
 ];
 
 export default async function QuotePage({ params, searchParams }: PageProps<"/[locale]/quote">) {

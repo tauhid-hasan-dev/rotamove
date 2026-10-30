@@ -12,7 +12,6 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
-  Mail,
   Menu,
   Moon,
   Settings,
@@ -74,9 +73,6 @@ const NAV = [
       { href: "/admin/companies", key: "companiesManage", exact: true },
     ],
   },
-  // Beside Companies rather than under Settings: it is the evidence for
-  // every decision taken on the page above it.
-  { href: "/admin/outbox", key: "outbox", icon: Mail, exact: false },
   { href: "/admin/reports", key: "reports", icon: BarChart3, exact: false },
   { href: "/admin/analytics", key: "analytics", icon: ChartSpline, exact: false },
   { href: "/admin/billing", key: "billing", icon: CreditCard, exact: false },

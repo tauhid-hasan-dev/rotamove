@@ -33,6 +33,7 @@ const SIZES: PropertySize[] = [
   // Appended, never reordered: the codec stores the index, so position is
   // part of every token already out in the wild.
   "project",
+  "reefer",
 ];
 const LEVELS: ServiceLevel[] = ["full_service", "door_to_door", "transport_only"];
 const SPECIAL_KEYS: Array<keyof SpecialItems> = [

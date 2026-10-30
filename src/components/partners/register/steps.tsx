@@ -500,6 +500,15 @@ export function StepCredentials({
 
 /* ----------------------------------------------------------- 4 · Fleet -- */
 
+/**
+ * The vehicle counts, in the order they are asked.
+ *
+ * The key doubles as the input id, the draft field and the dictionary key, so
+ * a fifth kind of vehicle is one entry here plus one line in each dictionary
+ * rather than a fourteen-line block copied a fourth time.
+ */
+const FLEET_COUNTS = ["lorries", "vans", "frigo", "crane"] as const;
+
 export function StepFleet({ draft, update, touched, invalid }: StepProps) {
   const { dict, t } = useI18n();
   const R = dict.register;
@@ -517,36 +526,31 @@ export function StepFleet({ draft, update, touched, invalid }: StepProps) {
 
   return (
     <div className="space-y-7">
+      {/* Two rows of two rather than four in a line: the general fleet is one
+          question and the specialist kit is another, and the row break is
+          what says so without a second legend. */}
       <FieldSet legend={R.lorries} hint={R.fleetHint}>
         <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <FieldLabel htmlFor="lorries" required>
-              {R.lorries}
-            </FieldLabel>
-            <Input
-              id="lorries"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={draft.lorries}
-              onChange={(e) => update({ lorries: Number(e.target.value) })}
-              className={cn(field(invalid, touched, "lorries"), "tnum")}
-            />
-          </div>
-          <div>
-            <FieldLabel htmlFor="vans" required>
-              {R.vans}
-            </FieldLabel>
-            <Input
-              id="vans"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={draft.vans}
-              onChange={(e) => update({ vans: Number(e.target.value) })}
-              className={cn(field(invalid, touched, "vans"), "tnum")}
-            />
-          </div>
+          {FLEET_COUNTS.map((key) => (
+            <div key={key}>
+              {/* Only the first two are required. A carrier with no reefer
+                  and no crane is a complete answer, not an unfinished one. */}
+              <FieldLabel htmlFor={key} required={key === "lorries" || key === "vans"}>
+                {R[key]}
+              </FieldLabel>
+              <Input
+                id={key}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={draft[key]}
+                onChange={(e) =>
+                  update({ [key]: Number(e.target.value) } as Partial<ApplicationDraft>)
+                }
+                className={cn(field(invalid, touched, key), "tnum")}
+              />
+            </div>
+          ))}
         </div>
       </FieldSet>
 

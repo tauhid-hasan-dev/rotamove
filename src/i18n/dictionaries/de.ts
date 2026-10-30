@@ -31,6 +31,8 @@ export const de = {
     tryAgain: "Erneut versuchen",
     optional: "(optional)",
     any: "Alle",
+    yes: "Ja",
+    no: "Nein",
     free: "Kostenlos · kein Konto · keine Kaltakquise",
     appearance: "Darstellung",
     toggleTheme: "Zwischen hellem und dunklem Modus wechseln",
@@ -516,8 +518,7 @@ export const de = {
     peakSeason:
       "Juni bis September ist Hochsaison. Zwei Wochen früher oder später eröffnet deutlich mehr Kapazität.",
     addOns: "Zusatzleistungen",
-    storageLegend: "Lagerung",
-    storageAria: "Wochen Lagerung",
+    storageLegend: "Lagerung erforderlich?",
     specialistLegend: "Etwas Besonderes dabei?",
     preferredChannel: "Bevorzugter Kanal",
     name: "Name",
@@ -555,11 +556,6 @@ export const de = {
       cleaning: "Endreinigung",
     },
 
-    storageNo: "Keine Einlagerung",
-    storageNoHint: "Direkt abgeholt und geliefert.",
-    storageYes: "Einlagern",
-    storageYesHint: "Wir lagern die Ladung zwischen Abholung und Lieferung.",
-    storageDuration: "Wie lange brauchen Sie sie?",
   },
 
   verify: {
@@ -813,9 +809,13 @@ export const de = {
     docRemove: "Entfernen",
     docTooBig: "Diese Datei ist größer als 8 MB.",
     docWrongType: "Bitte PDF, JPG oder PNG verwenden.",
-    docDemoNote: "Dateien werden in dieser Demo im Browser geprüft und nicht hochgeladen — gespeichert werden nur Name, Typ und Größe.",
+    docUploading: "Wird hochgeladen…",
+    docUploadFailed: "Diese Datei wurde nicht hochgeladen. Bitte erneut versuchen.",
+    docDemoNote: "Dateien werden in Ihrem Browser geprüft und dann hochgeladen, damit unsere Prüfer sie öffnen können. Nur das Prüfteam sieht sie.",
     lorries: "Lkw",
     vans: "Transporter",
+    frigo: "Frigo (Kühlfahrzeuge)",
+    crane: "Kran",
     fleetHint: "Fahrzeuge, die Sie disponieren können — nicht der Gesamtbestand.",
     ownership: "Eigentum an der Flotte",
     ownOwned: "Eigentum",
@@ -1138,8 +1138,6 @@ export const de = {
 
         companiesPending: "Ausstehende Prüfung",
         companiesManage: "Unternehmen verwalten",
-
-        outbox: "Postausgang",
       },
       demoData: "Demodaten",
       demoTooltip:
@@ -1861,34 +1859,13 @@ export const de = {
       historyEmpty: "Noch keine Entscheidungen erfasst.",
       docMeta: "{size} · {type}",
       docMissing: "Nicht beigefügt",
+      docOpen: "Öffnen",
+      docDownload: "Herunterladen",
+      docUnavailable: "Vor der Dateiablage beigefügt — keine Kopie vorhanden",
       notFoundTitle: "Kein solcher Antrag",
       notFoundBody: "Zu dieser Referenz gibt es nichts in der Warteschlange. Möglicherweise wurde sie bei einem Neustart verworfen.",
     },
 
-    outbox: {
-      title: "Postausgang",
-      notice: "In diesem Build ist kein Mailanbieter angebunden. Jede Nachricht unten wurde echt verfasst und hier festgehalten statt versendet — gleicher Betreff, gleicher Text, gleicher Empfänger, wie ein Anbieter sie erhalten würde. SMTP einsetzen, und sonst ändert sich nichts.",
-      count: "{n} Nachrichten",
-      searchPlaceholder: "Empfänger, Betreff, Referenz…",
-      kindFilterAria: "Nach Nachrichtentyp filtern",
-      allKinds: "Alle Typen",
-      toLine: "{from} → {to}",
-      loading: "Nachrichten werden geladen…",
-      emptyNone: "Noch nichts gesendet",
-      emptyNoneBody: "Geben Sie einen Antrag frei, fordern Sie Dokumente an oder ändern Sie einen Tarif — die Nachricht landet hier.",
-      emptyFiltered: "Keine passenden Nachrichten",
-      errorTitle: "Postausgang konnte nicht geladen werden",
-      errorBody: "Die Postausgangs-API hat nicht geantwortet. Dev-Server prüfen und erneut versuchen.",
-      kinds: {
-        application_received: "Antrag eingegangen",
-        application_approved: "Antrag freigegeben",
-        application_declined: "Antrag abgelehnt",
-        documents_requested: "Dokumente angefordert",
-        plan_queued: "Tarifwechsel geplant",
-        plan_activated: "Tarif aktiviert",
-        contact_changed: "Kontaktdaten geändert",
-      },
-    },
   },
 
   enums: {
@@ -1901,7 +1878,14 @@ export const de = {
       four_bed: { label: "4+ Schlafzimmer", hint: "Wohnung ca. 170 m²" },
       villa: { label: "Villa / Einfamilienhaus", hint: "Ab 220 m²" },
       office: { label: "Büro / gewerbliche Fracht", hint: "Schreibtische, IT, Archiv, Paletten" },
-      project: { label: "Projektladung", hint: "Turbine, Yacht, Boot, Autos — ungewöhnliche Ladungen" },
+      project: {
+        label: "Spezialisierter Projekttransport",
+        hint: "Turbine, Yacht, Boot, Autos — ungewöhnliche Ladungen",
+      },
+      reefer: {
+        label: "Kühltransport (Frigo)",
+        hint: "Gekühlt oder tiefgefroren, durchgehend temperaturprotokolliert",
+      },
     },
     access: {
       ground: { label: "Erdgeschoss", hint: "Überhaupt keine Treppen" },

@@ -36,6 +36,8 @@ export const tr = {
     tryAgain: "Tekrar dene",
     optional: "(isteğe bağlı)",
     any: "Hepsi",
+    yes: "Evet",
+    no: "Hayır",
     free: "Ücretsiz · üyelik yok · rahatsız edici arama yok",
     appearance: "Görünüm",
     toggleTheme: "Açık ve koyu temayı değiştir",
@@ -517,8 +519,7 @@ export const tr = {
     peakSeason:
       "Haziran–Eylül yoğun sezon. Tarihi iki hafta öne veya arkaya almak çok daha fazla kapasite açıyor.",
     addOns: "Ek hizmetler",
-    storageLegend: "Depolama",
-    storageAria: "Depolama haftası",
+    storageLegend: "Depolama hizmeti gerekli mi?",
     specialistLegend: "Özel bir şey var mı?",
     preferredChannel: "Tercih edilen kanal",
     name: "Ad soyad",
@@ -555,12 +556,6 @@ export const tr = {
       customsClearance: "Gümrük benim için halledilsin",
       cleaning: "Çıkış temizliği",
     },
-
-    storageNo: "Depolama yok",
-    storageNoHint: "Doğrudan alınır ve teslim edilir.",
-    storageYes: "Eşyalarımı depola",
-    storageYesHint: "Yükü alım ve teslim arasında biz saklarız.",
-    storageDuration: "Ne kadar süreyle?",
   },
 
   verify: {
@@ -812,9 +807,13 @@ export const tr = {
     docRemove: "Kaldır",
     docTooBig: "Bu dosya 8 MB'ı aşıyor.",
     docWrongType: "PDF, JPG veya PNG kullanın.",
-    docDemoNote: "Bu demoda dosyalar tarayıcınızda kontrol edilir, yüklenmez — yalnızca ad, tür ve boyut kaydedilir.",
+    docUploading: "Yükleniyor…",
+    docUploadFailed: "Dosya yüklenemedi. Tekrar deneyin.",
+    docDemoNote: "Dosyalar tarayıcınızda kontrol edilir, ardından inceleme ekibimiz açabilsin diye yüklenir. Yalnızca değerlendirme ekibi görür.",
     lorries: "Kamyon",
     vans: "Minivan",
+    frigo: "Frigo (soğutmalı araç)",
+    crane: "Vinç",
     fleetHint: "Sevk edebileceğiniz araçlar, sahip olunan toplam değil.",
     ownership: "Filo mülkiyeti",
     ownOwned: "Öz mal",
@@ -1135,8 +1134,6 @@ export const tr = {
 
         companiesPending: "İnceleme bekleyenler",
         companiesManage: "Şirketleri yönet",
-
-        outbox: "Giden kutusu",
       },
       demoData: "Demo verisi",
       demoTooltip:
@@ -1852,34 +1849,13 @@ export const tr = {
       historyEmpty: "Henüz kayıtlı bir karar yok.",
       docMeta: "{size} · {type}",
       docMissing: "Eklenmedi",
+      docOpen: "Aç",
+      docDownload: "İndir",
+      docUnavailable: "Dosya saklama öncesinde eklendi — kopya tutulmuyor",
       notFoundTitle: "Böyle bir başvuru yok",
       notFoundBody: "Bu referans kuyruktaki hiçbir kayıtla eşleşmiyor. Yeniden başlatmada düşmüş olabilir.",
     },
 
-    outbox: {
-      title: "Giden kutusu",
-      notice: "Bu derlemede bağlı bir e-posta sağlayıcısı yok. Aşağıdaki her mesaj gerçekten yazıldı ve iletilmek yerine burada kaydedildi — bir sağlayıcıya verilecek olanla aynı konu, aynı metin, aynı alıcı. SMTP'yi bağlayın, başka hiçbir şey değişmez.",
-      count: "{n} mesaj",
-      searchPlaceholder: "Alıcı, konu, referans…",
-      kindFilterAria: "Mesaj türüne göre filtrele",
-      allKinds: "Tüm türler",
-      toLine: "{from} → {to}",
-      loading: "Mesajlar yükleniyor…",
-      emptyNone: "Henüz bir şey gönderilmedi",
-      emptyNoneBody: "Bir başvuruyu onaylayın, belge isteyin veya bir plan değiştirin; mesaj burada görünür.",
-      emptyFiltered: "Eşleşen mesaj yok",
-      errorTitle: "Giden kutusu yüklenemedi",
-      errorBody: "Giden kutusu API'si yanıt vermedi. Dev sunucusunu kontrol edip tekrar deneyin.",
-      kinds: {
-        application_received: "Başvuru alındı",
-        application_approved: "Başvuru onaylandı",
-        application_declined: "Başvuru reddedildi",
-        documents_requested: "Belge istendi",
-        plan_queued: "Plan değişikliği planlandı",
-        plan_activated: "Plan etkinleştirildi",
-        contact_changed: "İletişim bilgileri değişti",
-      },
-    },
   },
 
   enums: {
@@ -1892,7 +1868,14 @@ export const tr = {
       four_bed: { label: "4+ yatak odası", hint: "~170 m² ev" },
       villa: { label: "Villa / müstakil", hint: "220 m² ve üzeri" },
       office: { label: "Ofis / ticari yük", hint: "Masalar, BT, arşiv, palet" },
-      project: { label: "Proje kargo", hint: "Türbin, yat, tekne, araçlar — alışılmadık yükler" },
+      project: {
+        label: "Özel Proje Taşımacılığı",
+        hint: "Türbin, yat, tekne, araçlar — alışılmadık yükler",
+      },
+      reefer: {
+        label: "Frigorifik Taşıma (Frigo)",
+        hint: "Soğutmalı veya donuk, baştan sona sıcaklık kaydı",
+      },
     },
     access: {
       ground: { label: "Zemin kat", hint: "Hiç merdiven yok" },

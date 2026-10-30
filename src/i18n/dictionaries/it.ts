@@ -31,6 +31,8 @@ export const it = {
     tryAgain: "Riprova",
     optional: "(facoltativo)",
     any: "Tutti",
+    yes: "Sì",
+    no: "No",
     free: "Gratuito · senza account · senza telefonate a freddo",
     appearance: "Aspetto",
     toggleTheme: "Alterna tema chiaro e scuro",
@@ -514,8 +516,7 @@ export const it = {
     peakSeason:
       "Da giugno a settembre è alta stagione. Spostarsi di due settimane in un verso o nell’altro libera molta più capacità.",
     addOns: "Servizi aggiuntivi",
-    storageLegend: "Deposito",
-    storageAria: "Settimane di deposito",
+    storageLegend: "Serve un servizio di deposito?",
     specialistLegend: "Qualcosa di particolare?",
     preferredChannel: "Canale preferito",
     name: "Nome",
@@ -553,11 +554,6 @@ export const it = {
       cleaning: "Pulizia di fine locazione",
     },
 
-    storageNo: "Nessun deposito",
-    storageNoHint: "Ritiro e consegna diretti.",
-    storageYes: "Metti in deposito",
-    storageYesHint: "Custodiamo il carico tra ritiro e consegna.",
-    storageDuration: "Per quanto tempo?",
   },
 
   verify: {
@@ -809,9 +805,13 @@ export const it = {
     docRemove: "Rimuovi",
     docTooBig: "Questo file supera gli 8 MB.",
     docWrongType: "Usa un PDF, JPG o PNG.",
-    docDemoNote: "In questa demo i file sono controllati nel browser e non caricati: registriamo solo nome, tipo e dimensione.",
+    docUploading: "Caricamento…",
+    docUploadFailed: "Il file non è stato caricato. Riprova.",
+    docDemoNote: "I file vengono controllati nel browser e poi caricati perché i nostri revisori possano aprirli. Li vede solo il team di verifica.",
     lorries: "Camion",
     vans: "Furgoni",
+    frigo: "Frigo (veicoli refrigerati)",
+    crane: "Gru",
     fleetHint: "Mezzi che puoi mettere in strada, non il parco totale.",
     ownership: "Proprietà della flotta",
     ownOwned: "Di proprietà",
@@ -1135,8 +1135,6 @@ export const it = {
 
         companiesPending: "In attesa di verifica",
         companiesManage: "Gestisci aziende",
-
-        outbox: "Posta inviata",
       },
       demoData: "Dati dimostrativi",
       demoTooltip:
@@ -1855,34 +1853,13 @@ export const it = {
       historyEmpty: "Nessuna decisione registrata finora.",
       docMeta: "{size} · {type}",
       docMissing: "Non allegato",
+      docOpen: "Apri",
+      docDownload: "Scarica",
+      docUnavailable: "Allegato prima dell'archiviazione file — nessuna copia conservata",
       notFoundTitle: "Candidatura inesistente",
       notFoundBody: "Questo riferimento non corrisponde a nulla in coda. Potrebbe essere stato rimosso a un riavvio.",
     },
 
-    outbox: {
-      title: "Posta inviata",
-      notice: "Questa build non ha un provider di posta collegato. Ogni messaggio qui sotto è stato scritto davvero e registrato qui invece di essere trasmesso: stesso oggetto, stesso corpo, stesso destinatario che un provider riceverebbe. Collega SMTP e non cambia nient'altro.",
-      count: "{n} messaggi",
-      searchPlaceholder: "Destinatario, oggetto, riferimento…",
-      kindFilterAria: "Filtra per tipo di messaggio",
-      allKinds: "Tutti i tipi",
-      toLine: "{from} → {to}",
-      loading: "Caricamento messaggi…",
-      emptyNone: "Niente di inviato",
-      emptyNoneBody: "Approva una candidatura, richiedi documenti o cambia un piano: il messaggio arriva qui.",
-      emptyFiltered: "Nessun messaggio corrisponde",
-      errorTitle: "Impossibile caricare la posta inviata",
-      errorBody: "L'API della posta non ha risposto. Controlla il server di sviluppo e riprova.",
-      kinds: {
-        application_received: "Candidatura ricevuta",
-        application_approved: "Candidatura approvata",
-        application_declined: "Candidatura rifiutata",
-        documents_requested: "Documenti richiesti",
-        plan_queued: "Cambio di piano programmato",
-        plan_activated: "Piano attivato",
-        contact_changed: "Contatti modificati",
-      },
-    },
   },
 
   enums: {
@@ -1895,7 +1872,14 @@ export const it = {
       four_bed: { label: "4 o più camere", hint: "Casa di circa 170 m²" },
       villa: { label: "Villa / indipendente", hint: "Da 220 m² in su" },
       office: { label: "Ufficio / merce commerciale", hint: "Scrivanie, IT, archivio, pallet" },
-      project: { label: "Carico progetto", hint: "Turbina, yacht, barca, auto — i carichi fuori dal comune" },
+      project: {
+        label: "Trasporto di progetto specializzato",
+        hint: "Turbina, yacht, barca, auto — i carichi fuori dal comune",
+      },
+      reefer: {
+        label: "Trasporto refrigerato (Frigo)",
+        hint: "Fresco o surgelato, temperatura registrata da un capo all'altro",
+      },
     },
     access: {
       ground: { label: "Piano terra", hint: "Nessuna scala" },

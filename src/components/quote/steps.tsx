@@ -1,14 +1,15 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
 import {
   Building2,
   Check,
+  Container,
   Mail,
   MessageCircle,
   Package,
   PackageOpen,
   Phone,
+  Snowflake,
   Sparkles,
   Truck,
   Users,
@@ -41,6 +42,21 @@ type StepProps = {
 
 /* --------------------------------------------------------------- Home -- */
 
+/**
+ * Icons for the sizes that are not a home.
+ *
+ * Everything from a few boxes to a villa is the same job at a different
+ * scale, so it takes the same crate mark. The three that are a different job
+ * entirely — an office clearance, out-of-gauge project freight, a reefer run
+ * — get their own, because that is the distinction worth drawing in a grid
+ * someone scans rather than reads.
+ */
+const SIZE_ICONS: Partial<Record<PropertySize, React.ReactNode>> = {
+  office: <Building2 className="size-4" />,
+  project: <Container className="size-4" />,
+  reefer: <Snowflake className="size-4" />,
+};
+
 export function StepHome({ draft, update }: StepProps) {
   const { dict, t } = useI18n();
 
@@ -60,13 +76,7 @@ export function StepHome({ draft, update }: StepProps) {
             onSelect={() => setSize(option.id)}
             title={dict.enums.propertySize[option.id].label}
             meta={t.volume(option.volume)}
-            icon={
-              option.id === "office" ? (
-                <Building2 className="size-4" />
-              ) : (
-                <Package className="size-4" />
-              )
-            }
+            icon={SIZE_ICONS[option.id] ?? <Package className="size-4" />}
           />
         ))}
       </div>
@@ -150,16 +160,19 @@ const EXTRA_TOGGLES = [
 ] as const satisfies ReadonlyArray<keyof Dictionary["quote"]["extras"]>;
 
 /**
- * Where the week slider starts when someone says yes to storage.
+ * How long we assume a yes means.
  *
- * Four, not one: the slider's job once it appears is to adjust a plausible
- * answer, and opening on the minimum makes every partner who needs a month
- * drag from one end. It is also the figure the pricing copy already quotes.
+ * Storage used to be asked twice — whether, then how many weeks on a slider.
+ * The duration is a detail the carrier settles on the call, and asking for it
+ * here put a second control in front of every customer to refine a figure
+ * nobody is held to. Four weeks is the figure the pricing copy already quotes
+ * and the one a month of bonded storage costs, so a yes books that and the
+ * conversation adjusts it.
  */
 const DEFAULT_STORAGE_WEEKS = 4;
 
 export function StepServices({ draft, update }: StepProps) {
-  const { dict, t } = useI18n();
+  const { dict } = useI18n();
 
   const setExtra = <K extends keyof LeadDraft["extras"]>(key: K, value: LeadDraft["extras"][K]) =>
     update((d) => ({ ...d, extras: { ...d.extras, [key]: value } }));
@@ -200,67 +213,25 @@ export function StepServices({ draft, update }: StepProps) {
         </div>
       </FieldSet>
 
-      {/* Storage: the decision first, the duration second.
-          This was one 0–26 week slider whose zero position read "None",
-          which looks like a quantity of storage rather than the absence of
-          one — and left the commonest answer indistinguishable from a
-          control nobody had touched. Whether and how long are two
-          questions, so they are two controls, and the second only exists
-          once the first is yes. */}
+      {/* Storage: one question, two answers.
+          This was a yes/no pair with a sentence of explanation each, and a
+          0–26 week slider that unfolded underneath a yes. Three controls for
+          a question whose answer the carrier settles on the call. */}
       <FieldSet legend={dict.quote.storageLegend}>
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          <OptionCard
-            compact
-            selected={!wantsStorage}
-            onSelect={() => setExtra("storageWeeks", 0)}
-            title={dict.quote.storageNo}
-            hint={dict.quote.storageNoHint}
-          />
+        <div className="grid max-w-sm gap-2.5 sm:grid-cols-2">
           <OptionCard
             compact
             selected={wantsStorage}
             onSelect={() => setExtra("storageWeeks", DEFAULT_STORAGE_WEEKS)}
-            title={dict.quote.storageYes}
-            hint={dict.quote.storageYesHint}
+            title={dict.common.yes}
+          />
+          <OptionCard
+            compact
+            selected={!wantsStorage}
+            onSelect={() => setExtra("storageWeeks", 0)}
+            title={dict.common.no}
           />
         </div>
-
-        <AnimatePresence initial={false}>
-          {wantsStorage && (
-            <motion.div
-              key="weeks"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="mt-2.5 rounded-3xl border bg-surface p-6">
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-[13.5px] text-muted-foreground">
-                    {dict.quote.storageDuration}
-                  </p>
-                  <p className="text-[26px] font-medium leading-none tnum">
-                    {t.weeks(draft.extras.storageWeeks)}
-                  </p>
-                </div>
-                <Slider
-                  className="mt-5"
-                  value={[draft.extras.storageWeeks]}
-                  /* Floors at one week rather than zero. Zero is "no
-                     storage", and that answer belongs to the choice above —
-                     a slider that can reach it gives one state two controls
-                     and lets the panel read "Yes — None". */
-                  min={1}
-                  max={26}
-                  step={1}
-                  onValueChange={([v]) => setExtra("storageWeeks", v)}
-                  aria-label={dict.quote.storageAria}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </FieldSet>
 
       <FieldSet legend={dict.quote.specialistLegend}>

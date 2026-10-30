@@ -31,6 +31,8 @@ export const fr = {
     tryAgain: "Réessayer",
     optional: "(facultatif)",
     any: "Tous",
+    yes: "Oui",
+    no: "Non",
     free: "Gratuit · sans compte · sans démarchage",
     appearance: "Apparence",
     toggleTheme: "Basculer entre le mode clair et sombre",
@@ -517,8 +519,7 @@ export const fr = {
     peakSeason:
       "De juin à septembre, c’est la haute saison. Décaler de quinze jours libère beaucoup plus de capacité.",
     addOns: "Options",
-    storageLegend: "Stockage",
-    storageAria: "Semaines de stockage",
+    storageLegend: "Besoin d'un service de stockage ?",
     specialistLegend: "Quelque chose de particulier ?",
     preferredChannel: "Canal préféré",
     name: "Nom",
@@ -556,11 +557,6 @@ export const fr = {
       cleaning: "Nettoyage de fin de bail",
     },
 
-    storageNo: "Pas de stockage",
-    storageNoHint: "Enlèvement et livraison directs.",
-    storageYes: "Stocker mes biens",
-    storageYesHint: "Nous gardons le chargement entre l'enlèvement et la livraison.",
-    storageDuration: "Pour combien de temps ?",
   },
 
   verify: {
@@ -813,9 +809,13 @@ export const fr = {
     docRemove: "Retirer",
     docTooBig: "Ce fichier dépasse 8 Mo.",
     docWrongType: "Utilisez un PDF, JPG ou PNG.",
-    docDemoNote: "Dans cette démo, les fichiers sont vérifiés dans le navigateur et ne sont pas téléversés : seuls le nom, le type et la taille sont enregistrés.",
+    docUploading: "Téléversement…",
+    docUploadFailed: "Ce fichier n'a pas été téléversé. Réessayez.",
+    docDemoNote: "Les fichiers sont vérifiés dans votre navigateur puis téléversés pour que nos évaluateurs puissent les ouvrir. Seule l'équipe de vérification les voit.",
     lorries: "Camions",
     vans: "Fourgons",
+    frigo: "Frigo (véhicules frigorifiques)",
+    crane: "Grue",
     fleetHint: "Véhicules que vous pouvez affréter, pas le parc total.",
     ownership: "Propriété de la flotte",
     ownOwned: "En propre",
@@ -1139,8 +1139,6 @@ export const fr = {
 
         companiesPending: "En attente de validation",
         companiesManage: "Gérer les entreprises",
-
-        outbox: "Messages envoyés",
       },
       demoData: "Données de démo",
       demoTooltip:
@@ -1858,34 +1856,13 @@ export const fr = {
       historyEmpty: "Aucune décision enregistrée pour l'instant.",
       docMeta: "{size} · {type}",
       docMissing: "Non jointe",
+      docOpen: "Ouvrir",
+      docDownload: "Télécharger",
+      docUnavailable: "Jointe avant le stockage de fichiers — aucune copie conservée",
       notFoundTitle: "Candidature introuvable",
       notFoundBody: "Cette référence ne correspond à rien dans la file. Elle a peut-être été écartée lors d'un redémarrage.",
     },
 
-    outbox: {
-      title: "Messages envoyés",
-      notice: "Cette version n'a aucun fournisseur d'e-mail connecté. Chaque message ci-dessous a été réellement rédigé puis enregistré ici au lieu d'être transmis — même objet, même corps, même destinataire qu'un fournisseur recevrait. Branchez SMTP et rien d'autre ne change.",
-      count: "{n} messages",
-      searchPlaceholder: "Destinataire, objet, référence…",
-      kindFilterAria: "Filtrer par type de message",
-      allKinds: "Tous les types",
-      toLine: "{from} → {to}",
-      loading: "Chargement des messages…",
-      emptyNone: "Rien d'envoyé pour l'instant",
-      emptyNoneBody: "Approuvez une candidature, demandez des documents ou changez une formule : le message arrive ici.",
-      emptyFiltered: "Aucun message correspondant",
-      errorTitle: "Impossible de charger les messages envoyés",
-      errorBody: "L'API des messages n'a pas répondu. Vérifiez le serveur de dev et réessayez.",
-      kinds: {
-        application_received: "Candidature reçue",
-        application_approved: "Candidature approuvée",
-        application_declined: "Candidature refusée",
-        documents_requested: "Documents demandés",
-        plan_queued: "Changement de formule programmé",
-        plan_activated: "Formule activée",
-        contact_changed: "Coordonnées modifiées",
-      },
-    },
   },
 
   enums: {
@@ -1898,7 +1875,14 @@ export const fr = {
       four_bed: { label: "4 chambres ou plus", hint: "Logement d’environ 170 m²" },
       villa: { label: "Villa / maison individuelle", hint: "À partir de 220 m²" },
       office: { label: "Bureau / fret commercial", hint: "Bureaux, informatique, archives, palettes" },
-      project: { label: "Fret projet", hint: "Turbine, yacht, bateau, voitures — les charges hors norme" },
+      project: {
+        label: "Transport de projet spécialisé",
+        hint: "Turbine, yacht, bateau, voitures — les charges hors norme",
+      },
+      reefer: {
+        label: "Transport frigorifique (Frigo)",
+        hint: "Réfrigéré ou surgelé, température enregistrée de bout en bout",
+      },
     },
     access: {
       ground: { label: "Rez-de-chaussée", hint: "Aucun escalier" },

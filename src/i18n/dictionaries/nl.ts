@@ -31,6 +31,8 @@ export const nl = {
     tryAgain: "Opnieuw proberen",
     optional: "(optioneel)",
     any: "Alle",
+    yes: "Ja",
+    no: "Nee",
     free: "Gratis · geen account · geen koude acquisitie",
     appearance: "Weergave",
     toggleTheme: "Wisselen tussen licht en donker",
@@ -516,8 +518,7 @@ export const nl = {
     peakSeason:
       "Juni tot september is hoogseizoen. Twee weken schuiven, voor of achteruit, geeft veel meer capaciteit.",
     addOns: "Extra diensten",
-    storageLegend: "Opslag",
-    storageAria: "Weken opslag",
+    storageLegend: "Opslagdienst nodig?",
     specialistLegend: "Iets bijzonders?",
     preferredChannel: "Voorkeurskanaal",
     name: "Naam",
@@ -555,11 +556,6 @@ export const nl = {
       cleaning: "Eindschoonmaak",
     },
 
-    storageNo: "Geen opslag",
-    storageNoHint: "Direct ophalen en bezorgen.",
-    storageYes: "Mijn spullen opslaan",
-    storageYesHint: "Wij bewaren de lading tussen ophalen en bezorgen.",
-    storageDuration: "Hoe lang heeft u die nodig?",
   },
 
   verify: {
@@ -811,9 +807,13 @@ export const nl = {
     docRemove: "Verwijderen",
     docTooBig: "Dit bestand is groter dan 8 MB.",
     docWrongType: "Gebruik een PDF, JPG of PNG.",
-    docDemoNote: "In deze demo worden bestanden in de browser gecontroleerd en niet geüpload — alleen naam, type en grootte worden vastgelegd.",
+    docUploading: "Uploaden…",
+    docUploadFailed: "Dat bestand is niet geüpload. Probeer het opnieuw.",
+    docDemoNote: "Bestanden worden in uw browser gecontroleerd en daarna geüpload zodat onze beoordelaars ze kunnen openen. Alleen het screeningteam ziet ze.",
     lorries: "Vrachtwagens",
     vans: "Bestelwagens",
+    frigo: "Frigo (koeltransport)",
+    crane: "Kraan",
     fleetHint: "Voertuigen die u kunt inzetten, niet het totale wagenpark.",
     ownership: "Eigendom van de vloot",
     ownOwned: "In eigendom",
@@ -1136,8 +1136,6 @@ export const nl = {
 
         companiesPending: "Te beoordelen",
         companiesManage: "Bedrijven beheren",
-
-        outbox: "Postvak uit",
       },
       demoData: "Demodata",
       demoTooltip:
@@ -1857,34 +1855,13 @@ export const nl = {
       historyEmpty: "Nog geen beslissingen vastgelegd.",
       docMeta: "{size} · {type}",
       docMissing: "Niet bijgevoegd",
+      docOpen: "Openen",
+      docDownload: "Downloaden",
+      docUnavailable: "Bijgevoegd vóór bestandsopslag — geen kopie bewaard",
       notFoundTitle: "Geen zo'n aanvraag",
       notFoundBody: "Die referentie komt met niets in de wachtrij overeen. Mogelijk is die bij een herstart vervallen.",
     },
 
-    outbox: {
-      title: "Postvak uit",
-      notice: "Deze build heeft geen e-mailprovider aangesloten. Elk bericht hieronder is echt opgesteld en hier vastgelegd in plaats van verzonden — zelfde onderwerp, zelfde tekst, zelfde ontvanger als een provider zou krijgen. Zet SMTP ervoor en er verandert niets anders.",
-      count: "{n} berichten",
-      searchPlaceholder: "Ontvanger, onderwerp, referentie…",
-      kindFilterAria: "Filteren op berichttype",
-      allKinds: "Alle types",
-      toLine: "{from} → {to}",
-      loading: "Berichten laden…",
-      emptyNone: "Nog niets verzonden",
-      emptyNoneBody: "Keur een aanvraag goed, vraag documenten op of wijzig een pakket — het bericht komt hier terecht.",
-      emptyFiltered: "Geen overeenkomende berichten",
-      errorTitle: "Kon postvak uit niet laden",
-      errorBody: "De postvak-API reageerde niet. Controleer de dev-server en probeer opnieuw.",
-      kinds: {
-        application_received: "Aanvraag ontvangen",
-        application_approved: "Aanvraag goedgekeurd",
-        application_declined: "Aanvraag afgewezen",
-        documents_requested: "Documenten opgevraagd",
-        plan_queued: "Pakketwijziging gepland",
-        plan_activated: "Pakket geactiveerd",
-        contact_changed: "Contactgegevens gewijzigd",
-      },
-    },
   },
 
   enums: {
@@ -1897,7 +1874,14 @@ export const nl = {
       four_bed: { label: "4 of meer slaapkamers", hint: "Woning van circa 170 m²" },
       villa: { label: "Villa / vrijstaand", hint: "Vanaf 220 m²" },
       office: { label: "Kantoor / commerciële vracht", hint: "Bureaus, ICT, archief, pallets" },
-      project: { label: "Projectlading", hint: "Turbine, jacht, boot, auto's — de ongewone ladingen" },
+      project: {
+        label: "Gespecialiseerd projecttransport",
+        hint: "Turbine, jacht, boot, auto's — de ongewone ladingen",
+      },
+      reefer: {
+        label: "Gekoeld transport (Frigo)",
+        hint: "Gekoeld of bevroren, temperatuur van begin tot eind gelogd",
+      },
     },
     access: {
       ground: { label: "Begane grond", hint: "Helemaal geen trappen" },

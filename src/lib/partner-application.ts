@@ -90,14 +90,23 @@ export const ACCEPTED_DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/
 /**
  * What the server keeps about an uploaded file.
  *
- * Metadata only. This demo has no object storage, so the bytes are validated
- * in the browser and deliberately not transmitted — recording a filename we
- * cannot produce later would be worse than recording nothing.
+ * `storageId` is the handle the bytes were filed under by
+ * `POST /api/partners/documents` — see `document-store.ts`. It is optional
+ * because a record written before file storage existed, or one whose bytes
+ * have since been evicted, is still a valid application: the reviewer sees
+ * the name, the type and the size, and is told plainly that there is no copy
+ * to open. A missing id degrades the row; it does not invalidate the
+ * application.
  */
 export const documentMetaSchema = z.object({
   name: z.string().trim().min(1).max(200),
   sizeBytes: z.number().int().positive().max(MAX_DOCUMENT_BYTES),
   mimeType: z.enum(ACCEPTED_DOCUMENT_TYPES),
+  /** Hex, from `document-store.ts`. Narrow on format so it cannot be a path. */
+  storageId: z
+    .string()
+    .regex(/^[0-9a-f]{32}$/)
+    .optional(),
 });
 export type DocumentMeta = z.infer<typeof documentMetaSchema>;
 
@@ -168,6 +177,17 @@ export const credentialsStepSchema = z.object({
 export const fleetStepSchema = z.object({
   lorries: z.number().int().min(0).max(5000),
   vans: z.number().int().min(0).max(5000),
+  /*
+   * Counted separately rather than folded into the services list.
+   *
+   * A reefer unit and a lorry-mounted crane are capital assets with their own
+   * licences and their own day rate, and a carrier with two of each can take
+   * work a carrier with none cannot — which is a number, not a tick. They sit
+   * beside the lorry and van counts because that is the same question asked
+   * about two more kinds of vehicle.
+   */
+  frigo: z.number().int().min(0).max(5000),
+  crane: z.number().int().min(0).max(5000),
   ownership: z.enum(FLEET_OWNERSHIP),
   weeklyCapacityM3: z.number().int().min(1).max(100_000),
   modes: z.array(z.enum(MODE_KEYS)).min(1, "Pick at least one mode"),
@@ -205,7 +225,7 @@ export const partnerApplicationSchema = companyStepSchema
   .extend(fleetStepSchema.shape)
   .extend(coverageStepSchema.shape)
   .extend(planStepSchema.shape)
-  .refine((a) => a.lorries + a.vans > 0, {
+  .refine((a) => a.lorries + a.vans + a.frigo + a.crane > 0, {
     message: "Tell us about at least one vehicle",
     path: ["lorries"],
   });
@@ -332,7 +352,7 @@ export function scoreApplication(a: PartnerApplicationInput): number {
   score += Math.min(12, accredited.length * 4);
 
   // Capacity, with owned fleet counting for more than brokered.
-  const vehicles = a.lorries + a.vans;
+  const vehicles = a.lorries + a.vans + a.frigo + a.crane;
   score += Math.min(10, Math.round(vehicles / 3));
   score +=
     a.ownership === "owned" ? 8 : a.ownership === "mixed" ? 5 : a.ownership === "leased" ? 4 : 0;
