@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildInvoicePdf, invoiceFilename, type InvoicePartner } from "@/lib/invoice-pdf";
+import { PLAN_IDS } from "@/lib/plans";
 import type { ArchivedInvoice, PartnerHistory } from "@/lib/partner-history";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
@@ -63,21 +64,19 @@ export function ArchivePanel({
 
 /* ---------------------------------------------------------------- shared -- */
 
-function ArchiveHead({
-  title,
-  lede,
-  children,
-}: {
-  title: string;
-  lede: string;
-  children: ReactNode;
-}) {
+/**
+ * The lede and the filter row.
+ *
+ * No heading: the bar carries it. What is left is the sentence that says
+ * what "archived" means on this particular day, which is the part a partner
+ * has to read rather than the part they already clicked.
+ */
+function ArchiveHead({ lede, children }: { lede: string; children: ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-      <div className="min-w-0">
-        <h2 className="text-[20px] tracking-[-0.03em]">{title}</h2>
-        <p className="mt-1 max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">{lede}</p>
-      </div>
+      <p className="min-w-0 max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">
+        {lede}
+      </p>
       <div className="flex flex-wrap items-center gap-2">{children}</div>
     </div>
   );
@@ -132,15 +131,26 @@ function InvoiceArchive({
   const pd = dict.partnerDashboard;
   const ax = pd.archive;
   const [year, setYear] = useState("all");
+  const [month, setMonth] = useState("all");
   const [plan, setPlan] = useState("all");
 
+  /*
+   * Year and month match the **period**, not the issue date.
+   *
+   * An invoice for August is issued on 1 September, so filtering the two
+   * dates differently — or filtering on the issue date at all — hands you
+   * July's invoice when you ask for August. The period is what a partner
+   * means by "the August invoice", and it is the column they are reading.
+   */
   const invoices = useMemo(
     () =>
       history.invoices.filter(
         (i) =>
-          (year === "all" || i.issued.startsWith(year)) && (plan === "all" || i.plan === plan),
+          (year === "all" || i.periodStart.startsWith(year)) &&
+          (month === "all" || i.periodStart.slice(5, 7) === month) &&
+          (plan === "all" || i.plan === plan),
       ),
-    [history.invoices, year, plan],
+    [history.invoices, year, month, plan],
   );
 
   const total = invoices.reduce((sum, i) => sum + i.amountEur, 0);
@@ -149,27 +159,25 @@ function InvoiceArchive({
 
   return (
     <div className="mt-4 lg:mt-0">
-      <ArchiveHead
-        title={ax.invoicesTitle}
-        lede={t.fill(ax.invoicesBody, { date: t.dateLong(history.archiveBefore) })}
-      >
-        {history.invoicePlans.length > 1 && (
-          <Select value={plan} onValueChange={setPlan}>
-            <SelectTrigger className="w-[170px]">
-              <SelectValue placeholder={ax.planAll} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{ax.planAll}</SelectItem>
-              {history.invoicePlans.map((id) => (
-                <SelectItem key={id} value={id}>
-                  {pd.planNames[id]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+      <ArchiveHead lede={t.fill(ax.invoicesBody, { date: t.dateLong(history.archiveBefore) })}>
+        {/* Every plan, not only the ones the archive happens to hold. An
+            account that has never been on a plan still gets it offered, so
+            the menu is the same three everywhere in the product. */}
+        <Select value={plan} onValueChange={setPlan}>
+          <SelectTrigger className="w-[170px]">
+            <SelectValue placeholder={ax.planAll} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{ax.planAll}</SelectItem>
+            {PLAN_IDS.map((id) => (
+              <SelectItem key={id} value={id}>
+                {pd.planNames[id]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={year} onValueChange={setYear}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[130px]">
             <SelectValue placeholder={ax.yearAll} />
           </SelectTrigger>
           <SelectContent>
@@ -177,6 +185,19 @@ function InvoiceArchive({
             {history.years.map((y) => (
               <SelectItem key={y} value={y}>
                 {t.year(Number(y))}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={month} onValueChange={setMonth}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder={ax.monthAll} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{ax.monthAll}</SelectItem>
+            {MONTHS.map((m) => (
+              <SelectItem key={m} value={m}>
+                {t.monthName(Number(m))}
               </SelectItem>
             ))}
           </SelectContent>
@@ -195,9 +216,10 @@ function InvoiceArchive({
           <Empty>{ax.noMatch}</Empty>
         ) : (
           <TableScroll>
-            <Table className="min-w-[760px]">
+            <Table className="min-w-[820px]">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">{ax.colNo}</TableHead>
                   <TableHead>{ax.colRef}</TableHead>
                   <TableHead>{ax.colPeriod}</TableHead>
                   <TableHead>{ax.colIssued}</TableHead>
@@ -208,8 +230,11 @@ function InvoiceArchive({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => (
+                {invoices.map((invoice, i) => (
                   <TableRow key={invoice.ref}>
+                    <TableCell className="text-[12.5px] text-muted-foreground tnum">
+                      {t.number(i + 1)}
+                    </TableCell>
                     <TableCell className="text-[12.5px] tnum">{invoice.ref}</TableCell>
                     <TableCell className="text-[12.5px]">
                       {t.monthShort(invoice.periodStart)}
@@ -304,10 +329,7 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
 
   return (
     <div className="mt-4 lg:mt-0">
-      <ArchiveHead
-        title={ax.leadsTitle}
-        lede={t.fill(ax.leadsBody, { date: t.dateLong(history.archiveBefore) })}
-      >
+      <ArchiveHead lede={t.fill(ax.leadsBody, { date: t.dateLong(history.archiveBefore) })}>
         <div className="relative">
           <Search
             className="pointer-events-none absolute start-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
@@ -378,14 +400,18 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
         ) : (
           <>
             <TableScroll>
-              <Table className="min-w-[720px]">
+              {/* No fee column. What a lead cost is a billing fact, and
+                  billing states it per period on the invoice beside this —
+                  per row it was a column of near-identical small numbers
+                  that never added up to anything on screen. The range total
+                  is still in the line above the table. */}
+              <Table className="min-w-[640px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">{ax.colNo}</TableHead>
                     <TableHead>{ax.colLeadId}</TableHead>
                     <TableHead>{ax.colRoute}</TableHead>
                     <TableHead>{ax.colReceived}</TableHead>
-                    <TableHead className="text-end">{ax.colFee}</TableHead>
                     <TableHead className="text-end">{ax.colOpened}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -400,9 +426,6 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
                       <TableCell className="text-[12.5px] tnum">{lead.ref}</TableCell>
                       <TableCell className="text-[12.5px]">{lead.routeLabel}</TableCell>
                       <TableCell className="text-[12.5px]">{t.dateLong(lead.received)}</TableCell>
-                      <TableCell className="text-end text-[12.5px] tnum">
-                        {lead.feeEur > 0 ? t.eur(lead.feeEur) : "—"}
-                      </TableCell>
                       <TableCell className="text-end">
                         <span
                           className={cn(

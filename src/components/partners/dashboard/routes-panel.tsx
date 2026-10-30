@@ -156,8 +156,8 @@ export function RoutesPanel({ initial, now }: { initial: PartnerLane[]; now: num
     <div className="mt-8">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
-          <h2 className="text-[20px] tracking-[-0.03em]">{lx.title}</h2>
-          <p className="mt-1 text-[13px] text-muted-foreground tnum">
+          {/* Heading in the bar; this is the count it used to sit above. */}
+          <p className="text-[13px] text-muted-foreground tnum">
             {t.fill(lx.liveCount, { n: active.length })}
             {dated > 0 && ` · ${t.fill(lx.datedCount, { n: dated })}`} ·{" "}
             {t.fill(lx.capacityDeclared, { n: t.number(capacity) })}

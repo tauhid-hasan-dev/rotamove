@@ -871,7 +871,6 @@ export const tr = {
       settings: "Ayarlar",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "Panonuzda {n} yeni talep bekliyor.",
       awaitingNone: "Şu anda panoda yeni bir şey yok.",
       openBoard: "Panoyu aç",
@@ -967,7 +966,6 @@ export const tr = {
       colStatus: "Durum",
       colRoute: "Güzergâh",
       colReceived: "Alınma",
-      colFee: "Ücret",
       colOpened: "Açıldı",
       colNo: "No",
       colLeadId: "Talep kimliği",

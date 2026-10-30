@@ -254,10 +254,8 @@ export function SettingsPanel({ profile }: { profile: PartnerProfile }) {
     <div className="mt-4 lg:mt-0">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-[20px] tracking-[-0.03em]">{st.title}</h2>
-          <p className="mt-1 max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">
-            {st.lede}
-          </p>
+          {/* Heading in the bar; the lede stays with the form it explains. */}
+          <p className="max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">{st.lede}</p>
         </div>
         {saved.updatedAt && (
           <p className="text-[12px] text-muted-foreground">

@@ -896,7 +896,6 @@ export const en = {
       settings: "Settings",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "{n} new leads are waiting on your board.",
       awaitingNone: "Nothing new on the board right now.",
       openBoard: "Open the board",
@@ -990,7 +989,6 @@ export const en = {
       colStatus: "Status",
       colRoute: "Route",
       colReceived: "Received",
-      colFee: "Fee",
       colOpened: "Opened",
       colNo: "#",
       colLeadId: "Lead ID",

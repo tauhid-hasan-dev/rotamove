@@ -871,7 +871,6 @@ export const nl = {
       settings: "Instellingen",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "{n} nieuwe aanvragen wachten op uw bord.",
       awaitingNone: "Op dit moment niets nieuws op het bord.",
       openBoard: "Bord openen",
@@ -965,7 +964,6 @@ export const nl = {
       colStatus: "Status",
       colRoute: "Route",
       colReceived: "Ontvangen",
-      colFee: "Vergoeding",
       colOpened: "Vrijgegeven",
       colNo: "Nr.",
       colLeadId: "Aanvraag-ID",

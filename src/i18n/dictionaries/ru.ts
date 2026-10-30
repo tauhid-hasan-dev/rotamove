@@ -891,7 +891,6 @@ export const ru = {
       settings: "Настройки",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "На вашей доске ждут {n} новых заявок.",
       awaitingNone: "Сейчас на доске ничего нового.",
       openBoard: "Открыть доску",
@@ -995,7 +994,6 @@ export const ru = {
       colStatus: "Статус",
       colRoute: "Маршрут",
       colReceived: "Получена",
-      colFee: "Плата",
       colOpened: "Открыта",
       colNo: "№",
       colLeadId: "ID заявки",

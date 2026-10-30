@@ -933,7 +933,6 @@ export const ar = {
       settings: "الإعدادات",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "تنتظرك {n} طلبات جديدة على لوحتك.",
       awaitingNone: "لا جديد على اللوحة في الوقت الحالي.",
       openBoard: "افتح اللوحة",
@@ -1041,7 +1040,6 @@ export const ar = {
       colStatus: "الحالة",
       colRoute: "المسار",
       colReceived: "تاريخ الاستلام",
-      colFee: "الرسم",
       colOpened: "مفتوح",
       colNo: "م",
       colLeadId: "معرّف الطلب",

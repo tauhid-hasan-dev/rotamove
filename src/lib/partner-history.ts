@@ -3,7 +3,6 @@ import {
   AVG_LEAD_FEE_EUR,
   LEAD_FEE_CAP_EUR,
   LEAD_FEE_FLOOR_EUR,
-  PLAN_IDS,
   PRO_MONTHLY_EUR,
   paysPerUnlock,
 } from "@/lib/plans";
@@ -264,8 +263,6 @@ export interface PartnerHistory {
   leads: ArchivedLead[];
   /** Every year the archive holds something for, newest first. */
   years: string[];
-  /** Every plan the archive holds an invoice for, in presentation order. */
-  invoicePlans: PlanId[];
   /** Every corridor the archived leads ran, busiest first. */
   leadRoutes: ArchiveRoute[];
 }
@@ -412,13 +409,11 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
     ]),
   ].sort((a, b) => b.localeCompare(a));
 
-  // Only the plans the archive actually holds an invoice for. Offering a
-  // filter for a plan with nothing behind it is a control that can only
-  // produce an empty table.
-  const invoicePlans = PLAN_IDS.filter((id) => invoices.some((i) => i.plan === id));
-
-  // Same rule for the route filter, and busiest first so the corridors a
-  // partner actually runs are the ones at the top of the menu.
+  // Only corridors with leads behind them, busiest first, so the ones a
+  // partner actually runs are at the top of the menu. The plan filter used
+  // to be built the same way and is now the full list — three fixed options
+  // read as a property of the product; a corridor menu that changes length
+  // per account reads as the account's own data, which it is.
   const routeTally = new Map<string, ArchiveRoute>();
   for (const lead of leads) {
     const entry = routeTally.get(lead.routeKey);
@@ -427,5 +422,5 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
   }
   const leadRoutes = [...routeTally.values()].sort((a, b) => b.count - a.count);
 
-  return { days, archiveBefore, invoices, leads, years, invoicePlans, leadRoutes };
+  return { days, archiveBefore, invoices, leads, years, leadRoutes };
 }

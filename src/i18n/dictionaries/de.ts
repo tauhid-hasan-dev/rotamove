@@ -873,7 +873,6 @@ export const de = {
       settings: "Einstellungen",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "{n} neue Anfragen warten auf Ihrem Board.",
       awaitingNone: "Derzeit nichts Neues auf dem Board.",
       openBoard: "Board öffnen",
@@ -967,7 +966,6 @@ export const de = {
       colStatus: "Status",
       colRoute: "Route",
       colReceived: "Erhalten",
-      colFee: "Gebühr",
       colOpened: "Geöffnet",
       colNo: "Nr.",
       colLeadId: "Anfrage-ID",

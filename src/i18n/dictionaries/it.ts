@@ -869,7 +869,6 @@ export const it = {
       settings: "Impostazioni",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "{n} nuove richieste ti aspettano sulla bacheca.",
       awaitingNone: "Al momento non c’è nulla di nuovo sulla bacheca.",
       openBoard: "Apri la bacheca",
@@ -963,7 +962,6 @@ export const it = {
       colStatus: "Stato",
       colRoute: "Tratta",
       colReceived: "Ricevuta il",
-      colFee: "Commissione",
       colOpened: "Sbloccata",
       colNo: "N.",
       colLeadId: "ID richiesta",

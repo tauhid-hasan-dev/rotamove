@@ -873,7 +873,6 @@ export const fr = {
       settings: "Paramètres",
     },
     overview: {
-      greeting: "{name}",
       awaiting: "{n} nouvelles demandes attendent sur votre tableau.",
       awaitingNone: "Rien de nouveau sur le tableau pour le moment.",
       openBoard: "Ouvrir le tableau",
@@ -967,7 +966,6 @@ export const fr = {
       colStatus: "Statut",
       colRoute: "Trajet",
       colReceived: "Reçue le",
-      colFee: "Frais",
       colOpened: "Débloquée",
       colNo: "N°",
       colLeadId: "ID de demande",

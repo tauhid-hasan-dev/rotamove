@@ -206,6 +206,24 @@ export function PartnerDashboard({
    */
   const history = useMemo(() => generatePartnerHistory(plan, now), [plan, now]);
 
+  /*
+   * The heading for whatever is on screen, which the bar renders.
+   *
+   * Each section's own words rather than the rail label, where it has them:
+   * the rail says "Routes" because it has a column of four to fit, and the
+   * page says "Your lanes" because it has a line to itself. Losing the
+   * second to centralise the first would be a downgrade dressed as tidying.
+   */
+  const sectionTitle: string = {
+    overview: pd.sections.overview,
+    inbox: pd.sections.inbox,
+    lanes: pd.lanes.title,
+    billing: pd.sections.billing,
+    settings: pd.settings.title,
+    "archive/invoices": pd.archive.invoicesTitle,
+    "archive/leads": pd.archive.leadsTitle,
+  }[section];
+
   const visible = useMemo(
     () =>
       board.filter((item) => {
@@ -263,6 +281,7 @@ export function PartnerDashboard({
         account={account}
         mover={mover}
         plan={plan}
+        title={sectionTitle}
         copiedId={copiedId}
         onCopyId={copyPartnerId}
         onOpenSettings={() => setSection("settings")}
@@ -378,7 +397,6 @@ export function PartnerDashboard({
 
         {section === "overview" && (
           <OverviewPanel
-            account={account}
             board={board}
             unlocked={unlocked}
             lanes={lanes}
@@ -410,9 +428,9 @@ export function PartnerDashboard({
 
         {section === "inbox" && (
           <div className="mt-4 lg:mt-0">
+            {/* The heading moved to the bar, so the filters are what the
+                section opens with — which is what a partner reaches for. */}
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-[20px] tracking-[-0.03em]">{pd.sections.inbox}</h2>
-
               <div className="ms-auto flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -502,6 +520,7 @@ function DashboardBar({
   account,
   mover,
   plan,
+  title,
   copiedId,
   onCopyId,
   onOpenSettings,
@@ -510,6 +529,8 @@ function DashboardBar({
   account: PartnerAccount;
   mover: Mover;
   plan: PlanId;
+  /** The current section's name. The only page heading there is. */
+  title: string;
   copiedId: boolean;
   onCopyId: () => void;
   onOpenSettings: () => void;
@@ -520,11 +541,25 @@ function DashboardBar({
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-      <div className={cn(DASHBOARD_GUTTER, "flex h-16 items-center gap-4")}>
+      <div className={cn(DASHBOARD_GUTTER, "flex h-16 items-center gap-3 sm:gap-4")}>
         {/* `Logo` is already a link home with its own label. Wrapping it in
             another one nested an <a> inside an <a>, which the HTML parser
             unpicks on the server and React then refuses to hydrate. */}
         <Logo className="shrink-0" />
+
+        {/* The page heading, which used to sit at the top of each section.
+            In the bar it survives scrolling — the bar is sticky and the
+            sections are long — and the content area starts on the thing the
+            partner came to read rather than on a restatement of the rail
+            entry they just clicked.
+
+            It is the page's only <h1>. Truncated rather than wrapped,
+            because the bar is a fixed sixteen units tall and "Archived
+            invoices" on two lines would break it. */}
+        <span className="hidden h-5 w-px shrink-0 bg-border sm:block" aria-hidden />
+        <h1 className="min-w-0 flex-1 truncate text-[15px] font-medium tracking-[-0.02em]">
+          {title}
+        </h1>
 
         {/* Language sits immediately before the account block, which is
             where a signed-in partner looks for the things that are about
@@ -532,7 +567,7 @@ function DashboardBar({
             public site uses, so it keeps the path and only swaps the
             locale — changing language on the dashboard returns you to the
             dashboard. */}
-        <div className="ms-auto flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <LanguageSwitcher />
 
           <DropdownMenu>
@@ -628,7 +663,6 @@ function DashboardBar({
  * partner is already looking at on the other three sections.
  */
 function OverviewPanel({
-  account,
   board,
   unlocked,
   lanes,
@@ -640,7 +674,6 @@ function OverviewPanel({
   now,
   onGoTo,
 }: {
-  account: PartnerAccount;
   board: BoardLead[];
   unlocked: Set<string>;
   lanes: PartnerLane[];
@@ -709,17 +742,13 @@ function OverviewPanel({
           nothing at all when there is none. */}
       <NotificationsPanel />
 
+      {/* The greeting was an <h2> of the company name, which the bar now
+          carries — and the account menu beside it already said so. What is
+          left is the line that was doing the work: what is waiting. */}
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-[20px] tracking-[-0.03em]">
-            {t.fill(ov.greeting, { name: account.name })}
-          </h2>
-          <p className="mt-1 text-[13.5px] text-muted-foreground">
-            {awaiting > 0
-              ? t.fill(ov.awaiting, { n: t.number(awaiting) })
-              : ov.awaitingNone}
-          </p>
-        </div>
+        <p className="text-[13.5px] text-muted-foreground">
+          {awaiting > 0 ? t.fill(ov.awaiting, { n: t.number(awaiting) }) : ov.awaitingNone}
+        </p>
         <button
           type="button"
           onClick={() => onGoTo("inbox")}
