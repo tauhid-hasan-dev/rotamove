@@ -396,6 +396,13 @@ export function PartnerDashboard({
           <ArchivePanel
             view={section === "archive/invoices" ? "invoices" : "leads"}
             history={history}
+            // The trading name off the mover record rather than the contact's
+            // own name: an invoice is addressed to the company that owes it.
+            partner={{
+              companyName: mover.name,
+              partnerId: account.partnerId,
+              email: account.email,
+            }}
           />
         )}
 

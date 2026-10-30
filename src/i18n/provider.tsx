@@ -45,6 +45,7 @@ interface I18nValue {
     dateLong: (iso: string) => string;
     dateShort: (iso: string) => string;
     monthShort: (iso: string) => string;
+    monthName: (month: number) => string;
     dateRange: (range: [string, string]) => string;
     dateTime: (iso: string) => string;
     relative: (timestamp: number, now: number) => string;
@@ -119,6 +120,7 @@ export function I18nProvider({
         dateLong: (iso) => fmt.formatDateLong(locale, iso, tz),
         dateShort: (iso) => fmt.formatDateShort(locale, iso, tz),
         monthShort: (iso) => fmt.formatMonthShort(locale, iso),
+        monthName: (month) => fmt.formatMonthName(locale, month),
         dateRange: (range) => fmt.formatDateRange(locale, range, tz),
         dateTime: (iso) => fmt.formatDateTime(locale, iso, tz),
         relative: (timestamp, now) => fmt.formatRelative(locale, timestamp, now),

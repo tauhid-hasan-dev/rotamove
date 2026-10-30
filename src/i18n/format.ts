@@ -169,6 +169,19 @@ export function formatMonthShort(locale: Locale, iso: string): string {
   return dateFormat(locale, { month: "short", year: "2-digit", timeZone: "UTC" }).format(date);
 }
 
+/**
+ * A month on its own — "August", "août", "أغسطس" — for a month picker.
+ *
+ * Takes 1–12 rather than JS's 0–11. A menu of months is written by hand in
+ * the component that offers it, and off-by-one in a list of month names is
+ * the kind of bug that ships because every entry still looks like a month.
+ */
+export function formatMonthName(locale: Locale, month: number): string {
+  return dateFormat(locale, { month: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(2000, month - 1, 15)),
+  );
+}
+
 export function formatDateShort(locale: Locale, iso: string, timeZone?: TimeZone): string {
   const { date, zone } = resolve(iso, timeZone);
   if (Number.isNaN(date.getTime())) return iso;

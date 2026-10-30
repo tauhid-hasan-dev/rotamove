@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { PANEL } from "@/components/partners/dashboard/surface";
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -17,15 +19,14 @@ import { cn } from "@/lib/utils";
 /**
  * Leads over time, at whichever grain the partner asks for.
  *
- * One series, so there is no legend: the heading names what the bars are, and
- * a single hue cannot encode an identity the reader has to decode. The exact
- * figure for a bucket comes from hovering it, and the line under the control
- * row states the total for the range — which is the number most partners
- * actually came for.
+ * Built to match the admin console's own leads chart: a monotone area on the
+ * brand green with the same gradient under it, the same recessive dashed
+ * grid, the same legend. Two charts of the same measurement in one product
+ * should not disagree about what that measurement looks like, and the admin
+ * one is the elder — so this followed it rather than the other way round.
  *
- * Bars rather than an area, at every grain. The grain switch moves between
- * thirty buckets and four, and an area drawn through four points is a shape
- * with no data in three quarters of it. Bars read the same either way.
+ * What it adds is the grain switch, because a partner looking at their own
+ * account wants a different window than an operator looking at the platform.
  *
  * The green is slot one of the admin palette, reused deliberately: it is the
  * set that was validated against both surfaces, and a partner-side chart
@@ -133,7 +134,11 @@ export function LeadTrendPanel({ days }: { days: PartnerDay[] }) {
           leads: t.number(totals.leads),
         })}
       >
-        <BarChart data={data} margin={{ left: 4, right: 4, top: 8 }}>
+        {/* Wider side margins than the admin chart uses. An area puts its
+            first and last point hard against the plot edges, and an axis
+            label is centred on its tick — so at the yearly grain half of
+            "2026" fell outside the SVG. Half a label is the margin. */}
+        <AreaChart data={data} margin={{ left: 12, right: 18, top: 8 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis
             dataKey="label"
@@ -153,16 +158,24 @@ export function LeadTrendPanel({ days }: { days: PartnerDay[] }) {
             allowDecimals={false}
           />
           <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar
+          <ChartLegend content={<ChartLegendContent />} />
+          <defs>
+            {/* Its own gradient id, not the admin chart's. Two <defs> with
+                one id in a document is a coin toss over which fill wins,
+                and these two live on different pages only by convention. */}
+            <linearGradient id="partnerLeadsFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-leads)" stopOpacity={0.28} />
+              <stop offset="100%" stopColor="var(--color-leads)" stopOpacity={0.03} />
+            </linearGradient>
+          </defs>
+          <Area
             dataKey="leads"
-            fill="var(--color-leads)"
-            radius={[4, 4, 0, 0]}
-            // A surface-coloured hairline between neighbours, so adjacent
-            // bars stay countable at the daily grain.
-            stroke="var(--background)"
-            strokeWidth={1}
+            type="monotone"
+            stroke="var(--color-leads)"
+            strokeWidth={2}
+            fill="url(#partnerLeadsFill)"
           />
-        </BarChart>
+        </AreaChart>
       </ChartContainer>
     </section>
   );

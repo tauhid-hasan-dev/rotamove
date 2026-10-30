@@ -3,11 +3,12 @@ import {
   AVG_LEAD_FEE_EUR,
   LEAD_FEE_CAP_EUR,
   LEAD_FEE_FLOOR_EUR,
+  PLAN_IDS,
   PRO_MONTHLY_EUR,
   paysPerUnlock,
 } from "@/lib/plans";
 import { DEMO_LANES } from "@/lib/demo-leads";
-import { createRng } from "@/lib/rand";
+import { createRng, hashString } from "@/lib/rand";
 import type { PlanId } from "@/lib/types";
 
 /**
@@ -196,18 +197,59 @@ export interface ArchivedInvoice {
   periodStart: string;
   /** The day it was issued: the first of the month after the period. */
   issued: string;
+  /** The plan in force over the period, which is what it was billed on. */
+  plan: PlanId;
+  /** Leads opened in the period. Zero on Pro, which is not billed per unit. */
+  units: number;
+  /** What one unlock cost. Zero on Pro, where unlocks are included. */
+  unitEur: number;
   amountEur: number;
   paid: boolean;
 }
 
+/**
+ * What the account was on before it moved to its current plan.
+ *
+ * An archive that lists the same plan on every line of three years has a
+ * dead column in it. Accounts do move — the whole of `plan-store` exists so
+ * they can — and an invoice is the one record that has to say which plan it
+ * was raised under, because that is what decides whether it is a flat fee or
+ * a count of unlocks.
+ */
+const PREVIOUS_PLAN: Record<PlanId, PlanId> = {
+  pro_unlimited: "pay_per_lead",
+  pay_per_lead: "pay_per_seen",
+  pay_per_seen: "pay_per_lead",
+};
+
+/** How long the account has been on its current plan. */
+const PLAN_SWITCH_MONTHS = 20;
+
 export interface ArchivedLead {
-  id: string;
+  /**
+   * The reference a partner quotes at us: `LD-202408-0137`.
+   *
+   * Month plus a running number within it, rather than an opaque hash. A
+   * reference you can read tells you when the lead landed before you have
+   * found the row, which is most of what someone searching an archive is
+   * trying to establish.
+   */
+  ref: string;
+  /** Lane key, for filtering. Two leads on the same corridor share it. */
+  routeKey: string;
   routeLabel: string;
   /** `yyyy-mm-dd`. */
   received: string;
   /** What the partner was charged. Zero on Pro, where it is included. */
   feeEur: number;
   opened: boolean;
+}
+
+/** A corridor the archive holds leads on, for the route filter. */
+export interface ArchiveRoute {
+  key: string;
+  label: string;
+  count: number;
 }
 
 export interface PartnerHistory {
@@ -222,6 +264,10 @@ export interface PartnerHistory {
   leads: ArchivedLead[];
   /** Every year the archive holds something for, newest first. */
   years: string[];
+  /** Every plan the archive holds an invoice for, in presentation order. */
+  invoicePlans: PlanId[];
+  /** Every corridor the archived leads ran, busiest first. */
+  leadRoutes: ArchiveRoute[];
 }
 
 /** First of the month, `n` whole months before the month `from` falls in. */
@@ -245,7 +291,8 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
   const days = generatePartnerDays(plan, now);
   const archiveBefore = isoDay(Math.floor(now / DAY_MS) * DAY_MS - ARCHIVE_AFTER_DAYS * DAY_MS);
   const today = isoDay(now);
-  const billed = paysPerUnlock(plan);
+  /** The day the account moved onto its current plan. */
+  const switchedOn = monthStart(today, PLAN_SWITCH_MONTHS);
 
   // Every month, not the twelve the chart shows — an invoice from three years
   // ago has to find its own period in here.
@@ -254,16 +301,23 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
   /* ----- invoices: one a month, issued the day the period closed ----- */
 
   const invoices: ArchivedInvoice[] = [];
-  // Month 1 back is the earliest that can have closed; month 48 is the far
+  // Month 1 back is the earliest that can have closed; month 47 is the far
   // edge of what the history holds.
   for (let back = 1; back <= 47; back++) {
     const periodStart = monthStart(today, back);
     const issued = monthStart(today, back - 1);
     if (issued >= archiveBefore) continue;
 
+    // The plan the period opened on is the plan it bills on — the same rule
+    // the live product applies to a mid-period change, see `plan-store`.
+    const periodPlan = back <= PLAN_SWITCH_MONTHS ? plan : PREVIOUS_PLAN[plan];
+    const perUnlock = paysPerUnlock(periodPlan);
+
     const point = byMonth.get(periodStart.slice(0, 7));
-    const amountEur = billed
-      ? Math.round((point?.opened ?? 0) * AVG_LEAD_FEE_EUR * 100) / 100
+    const units = perUnlock ? (point?.opened ?? 0) : 0;
+    const unitEur = perUnlock ? AVG_LEAD_FEE_EUR : 0;
+    const amountEur = perUnlock
+      ? Math.round(units * unitEur * 100) / 100
       : PRO_MONTHLY_EUR;
     // A period with nothing opened on a per-unlock plan was never invoiced.
     if (amountEur <= 0) continue;
@@ -274,6 +328,9 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
       ref: `INV-${periodStart.slice(0, 4)}-${String(400 - back * 7).padStart(4, "0")}`,
       periodStart,
       issued,
+      plan: periodPlan,
+      units,
+      unitEur,
       amountEur,
       // Everything this old has been settled. The one unpaid invoice a
       // partner can have is the open one, and that is not in the archive.
@@ -281,32 +338,66 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
     });
   }
 
-  /* ----- leads: a sample of what each archived month actually sent ----- */
+  /* ----- leads: every one the board sent, not a sample ----- */
 
+  /*
+   * One row per lead.
+   *
+   * This used to keep a tenth of them, on the reasoning that a readable
+   * table beats a long one. That was wrong the moment the archive grew a
+   * count: "how many leads came in August 2024" is the question the filters
+   * exist to answer, and a tenth of the answer is not a smaller answer, it
+   * is a wrong one. The table pages instead.
+   */
   const leads: ArchivedLead[] = [];
+  // A lead carries a fee only on a per-unlock plan. Read from the plan in
+  // force on the day, not today's, so a row from before the switch agrees
+  // with the invoice that billed it.
+  const planOn = (date: string) => (date >= switchedOn ? plan : PREVIOUS_PLAN[plan]);
+  /** Running reference number within each month. */
+  const monthSeq = new Map<string, number>();
+
   for (const day of days) {
     if (day.date >= archiveBefore || day.leads === 0) continue;
-    const rng = createRng("archive-lead", plan, day.date);
-    // One row per lead would be thousands; this keeps a readable sample of
-    // each month while staying consistent with that day's totals.
-    if (!rng.bool(0.1)) continue;
+    const month = day.date.slice(0, 7).replace("-", "");
+    const billable = paysPerUnlock(planOn(day.date));
 
-    const [fromCode, toCode] = rng.pick(DEMO_LANES);
-    const from = getCity(fromCode);
-    const to = getCity(toCode);
-    if (!from || !to) continue;
+    /*
+     * Exactly `day.opened` of the day's leads are opened, and which ones is
+     * decided by ordering the indices on a hash rather than by taking the
+     * first n. Taking the first n would put every opened lead above every
+     * unopened one inside each day, which is a pattern the eye picks up
+     * immediately and which nothing in the world produces.
+     */
+    const openedIndices = new Set(
+      Array.from({ length: day.leads }, (_, i) => i)
+        .sort((a, b) => hashString(`${day.date}:${a}`) - hashString(`${day.date}:${b}`))
+        .slice(0, day.opened),
+    );
 
-    const opened = rng.next() < day.opened / day.leads;
-    leads.push({
-      id: `ld_arc_${day.date}_${leads.length}`,
-      routeLabel: `${from.name}, ${cityCountry(from).iso} → ${to.name}, ${cityCountry(to).iso}`,
-      received: day.date,
-      feeEur:
-        billed && opened
-          ? Math.round(rng.gauss(LEAD_FEE_FLOOR_EUR, LEAD_FEE_CAP_EUR) * 100) / 100
-          : 0,
-      opened,
-    });
+    for (let i = 0; i < day.leads; i++) {
+      const rng = createRng("archive-lead", plan, day.date, i);
+      const [fromCode, toCode] = rng.pick(DEMO_LANES);
+      const from = getCity(fromCode);
+      const to = getCity(toCode);
+      if (!from || !to) continue;
+
+      const seq = (monthSeq.get(month) ?? 0) + 1;
+      monthSeq.set(month, seq);
+      const opened = openedIndices.has(i);
+
+      leads.push({
+        ref: `LD-${month}-${String(seq).padStart(4, "0")}`,
+        routeKey: `${fromCode}-${toCode}`,
+        routeLabel: `${from.name}, ${cityCountry(from).iso} → ${to.name}, ${cityCountry(to).iso}`,
+        received: day.date,
+        feeEur:
+          opened && billable
+            ? Math.round(rng.gauss(LEAD_FEE_FLOOR_EUR, LEAD_FEE_CAP_EUR) * 100) / 100
+            : 0,
+        opened,
+      });
+    }
   }
 
   // Newest first in both tables. The invoice loop already counts backwards
@@ -321,5 +412,20 @@ export function generatePartnerHistory(plan: PlanId, now: number): PartnerHistor
     ]),
   ].sort((a, b) => b.localeCompare(a));
 
-  return { days, archiveBefore, invoices, leads, years };
+  // Only the plans the archive actually holds an invoice for. Offering a
+  // filter for a plan with nothing behind it is a control that can only
+  // produce an empty table.
+  const invoicePlans = PLAN_IDS.filter((id) => invoices.some((i) => i.plan === id));
+
+  // Same rule for the route filter, and busiest first so the corridors a
+  // partner actually runs are the ones at the top of the menu.
+  const routeTally = new Map<string, ArchiveRoute>();
+  for (const lead of leads) {
+    const entry = routeTally.get(lead.routeKey);
+    if (entry) entry.count += 1;
+    else routeTally.set(lead.routeKey, { key: lead.routeKey, label: lead.routeLabel, count: 1 });
+  }
+  const leadRoutes = [...routeTally.values()].sort((a, b) => b.count - a.count);
+
+  return { days, archiveBefore, invoices, leads, years, invoicePlans, leadRoutes };
 }
