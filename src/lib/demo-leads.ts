@@ -34,7 +34,14 @@ export interface BoardLead {
   routeLabel: string;
 }
 
-const LANES: Array<[string, string]> = [
+/**
+ * The corridors this demo account works.
+ *
+ * Exported because the archive draws on it too: a partner's filed leads have
+ * to run the same lanes as the ones on their board today, and two lists would
+ * drift the first time one of them gained a route.
+ */
+export const DEMO_LANES: ReadonlyArray<readonly [string, string]> = [
   ["IST", "BER"],
   ["IST", "AMS"],
   ["BER", "IST"],
@@ -116,7 +123,7 @@ function phoneFor(iso: string, rng: ReturnType<typeof createRng>) {
 export function generateLeadBoard(now: number, count = 18): BoardLead[] {
   return Array.from({ length: count }, (_, i) => {
     const rng = createRng("board", i);
-    const [fromCode, toCode] = LANES[i % LANES.length];
+    const [fromCode, toCode] = DEMO_LANES[i % DEMO_LANES.length];
     const from = getCity(fromCode) ?? CITIES[0];
     const to = getCity(toCode) ?? CITIES[1];
     const size = rng.pick(SIZES);
@@ -208,22 +215,21 @@ export function generateLeadBoard(now: number, count = 18): BoardLead[] {
  * displayed them: the platform never sees whether a partner won the job, so
  * every one of those figures was invented. What is left is what the lead board
  * genuinely knows.
+ *
+ * `avgResponseMins` went the same way. It drove an "Avg. reply time" card on
+ * the overview, and the platform does not observe when a partner replies —
+ * only when they open a lead. A number inferred from the second and labelled
+ * as the first is the one kind of figure this type exists to keep out.
  */
 export interface PartnerMetrics {
   leadsThisMonth: number;
   unlocked: number;
   spendEur: number;
-  avgResponseMins: number;
 }
 
 export function generatePartnerMetrics(plan: PlanId): PartnerMetrics {
   if (plan === "pro_unlimited") {
-    return {
-      leadsThisMonth: 312,
-      unlocked: 312,
-      spendEur: PRO_MONTHLY_EUR,
-      avgResponseMins: 12,
-    };
+    return { leadsThisMonth: 312, unlocked: 312, spendEur: PRO_MONTHLY_EUR };
   }
   // Pay-per-seen partners browse a masked board, so they open fewer leads
   // than pay-per-lead partners who see the full details up front.
@@ -232,6 +238,5 @@ export function generatePartnerMetrics(plan: PlanId): PartnerMetrics {
     leadsThisMonth: plan === "pay_per_seen" ? 54 : 47,
     unlocked,
     spendEur: Math.round(unlocked * AVG_LEAD_FEE_EUR * 100) / 100,
-    avgResponseMins: plan === "pay_per_seen" ? 55 : 41,
   };
 }

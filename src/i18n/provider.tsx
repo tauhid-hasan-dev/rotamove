@@ -41,8 +41,10 @@ interface I18nValue {
     decimal: (value: number, digits?: number) => string;
     year: (year: number) => string;
     eur: (value: number) => string;
+    eurCompact: (value: number) => string;
     dateLong: (iso: string) => string;
     dateShort: (iso: string) => string;
+    monthShort: (iso: string) => string;
     dateRange: (range: [string, string]) => string;
     dateTime: (iso: string) => string;
     relative: (timestamp: number, now: number) => string;
@@ -113,8 +115,10 @@ export function I18nProvider({
         decimal: (value, digits) => fmt.formatDecimal(locale, value, digits),
         year: (year) => fmt.formatYear(locale, year),
         eur: (value) => fmt.formatEur(locale, value),
+        eurCompact: (value) => fmt.formatEurCompact(locale, value),
         dateLong: (iso) => fmt.formatDateLong(locale, iso, tz),
         dateShort: (iso) => fmt.formatDateShort(locale, iso, tz),
+        monthShort: (iso) => fmt.formatMonthShort(locale, iso),
         dateRange: (range) => fmt.formatDateRange(locale, range, tz),
         dateTime: (iso) => fmt.formatDateTime(locale, iso, tz),
         relative: (timestamp, now) => fmt.formatRelative(locale, timestamp, now),

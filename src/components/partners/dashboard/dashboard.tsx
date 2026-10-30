@@ -3,15 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Archive,
   ArrowRight,
   CreditCard,
   ChevronDown,
+  ChevronRight,
   Filter,
   Inbox,
   Check,
   Copy,
   LayoutDashboard,
   LogOut,
+  Receipt,
   Route,
   Settings,
   Sparkles,
@@ -29,7 +32,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ArchivePanel } from "@/components/partners/dashboard/archive-panel";
 import { LeadRow } from "@/components/partners/dashboard/lead-row";
+import { LeadTrendPanel } from "@/components/partners/dashboard/lead-trend";
 import { NotificationsPanel } from "@/components/partners/dashboard/notifications-panel";
 import { PlanPanel } from "@/components/partners/dashboard/plan-panel";
 import { RoutesPanel } from "@/components/partners/dashboard/routes-panel";
@@ -44,6 +49,7 @@ import {
 import { generatePartnerMetrics, type BoardLead } from "@/lib/demo-leads";
 import type { PartnerLane } from "@/lib/lanes";
 import { DAY_MS, daysUntil } from "@/lib/plan-cycle";
+import { generatePartnerHistory, type PartnerHistory } from "@/lib/partner-history";
 import type { PartnerProfile } from "@/lib/partner-profile";
 import type { PlanSubscription } from "@/lib/plan-store";
 import type { Mover, PlanId } from "@/lib/types";
@@ -61,8 +67,19 @@ import { cn } from "@/lib/utils";
  * account menu, which is where someone looks for the things that are about
  * them rather than about their leads — and a fifth rail entry would cost the
  * four daily ones width on a phone to show the one opened once a quarter.
+ *
+ * The two `archive/` sections are not in `SECTION_IDS` either: they hang off
+ * the Archive disclosure below it, because they are one destination a
+ * partner visits occasionally and not two more daily tabs.
  */
-type SectionId = "overview" | "inbox" | "lanes" | "billing" | "settings";
+type SectionId =
+  | "overview"
+  | "inbox"
+  | "lanes"
+  | "billing"
+  | "settings"
+  | "archive/invoices"
+  | "archive/leads";
 
 const SECTION_ICONS: Record<SectionId, typeof Inbox> = {
   overview: LayoutDashboard,
@@ -70,10 +87,27 @@ const SECTION_ICONS: Record<SectionId, typeof Inbox> = {
   lanes: Route,
   billing: CreditCard,
   settings: Settings,
+  "archive/invoices": Receipt,
+  "archive/leads": Inbox,
 };
 
-/** What the rail offers. Settings is reached from the account menu. */
-const SECTION_IDS: SectionId[] = ["overview", "inbox", "lanes", "billing"];
+/**
+ * What the rail offers at the top level.
+ *
+ * Narrower than `SectionId` on purpose: these are exactly the ids that
+ * `dict.partnerDashboard.sections` has a label for, so the rail can index it
+ * without a cast. The archive's two children take their labels from the
+ * archive dictionary instead, because that is where the rest of their words
+ * already live.
+ */
+type RailSectionId = Extract<SectionId, "overview" | "inbox" | "lanes" | "billing">;
+
+const SECTION_IDS: RailSectionId[] = ["overview", "inbox", "lanes", "billing"];
+
+/** The Archive disclosure's children, in the order they are offered. */
+const ARCHIVE_IDS = ["archive/invoices", "archive/leads"] as const;
+
+const isArchive = (section: SectionId): boolean => section.startsWith("archive/");
 
 /**
  * Partner dashboard.
@@ -154,12 +188,23 @@ export function PartnerDashboard({
 
   const plan = subscription.plan;
   const [section, setSection] = useState<SectionId>("overview");
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [unlocked, setUnlocked] = useState<Set<string>>(() => new Set(initialUnlocked));
   const [region, setRegion] = useState<string>("all");
   const [onlyNew, setOnlyNew] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
   const metrics = useMemo(() => generatePartnerMetrics(plan), [plan]);
+
+  /*
+   * The account's own past: the daily series the trend chart draws, and the
+   * invoices and leads old enough to be archived.
+   *
+   * Keyed on the plan because the volumes are a function of it, and on the
+   * server-supplied `now` rather than the clock, so the first client render
+   * reproduces the server's bars exactly.
+   */
+  const history = useMemo(() => generatePartnerHistory(plan, now), [plan, now]);
 
   const visible = useMemo(
     () =>
@@ -262,6 +307,58 @@ export function PartnerDashboard({
                 </button>
               );
             })}
+
+            {/* Archive is a disclosure, not a destination: it has nothing of
+                its own to show, so the button opens the two things it holds
+                rather than a landing page listing them. It stays open while
+                one of them is the current section, so navigating into the
+                archive does not collapse the way back out. */}
+            <button
+              type="button"
+              onClick={() => setArchiveOpen((v) => !v)}
+              aria-expanded={archiveOpen || isArchive(section)}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[14px] transition-colors lg:w-full",
+                isArchive(section)
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <Archive className="size-4 shrink-0" strokeWidth={2} />
+              {pd.sections.archive}
+              <ChevronRight
+                className={cn(
+                  "size-3.5 shrink-0 transition-transform duration-200 lg:ms-auto rtl:-scale-x-100",
+                  (archiveOpen || isArchive(section)) && "rotate-90 rtl:-rotate-90",
+                )}
+                aria-hidden
+              />
+            </button>
+
+            {(archiveOpen || isArchive(section)) &&
+              ARCHIVE_IDS.map((id) => {
+                const active = section === id;
+                const Icon = SECTION_ICONS[id];
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setSection(id)}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      // Indented on the column, flush in the phone strip —
+                      // there is no parent above it there to indent from.
+                      "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-[13.5px] transition-colors lg:w-full lg:ps-9",
+                      active
+                        ? "bg-brand-soft font-medium text-foreground dark:bg-accent"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="size-3.5 shrink-0" strokeWidth={2} />
+                    {pd.archive[id === "archive/invoices" ? "invoices" : "leads"]}
+                  </button>
+                );
+              })}
           </nav>
 
           {/* Sign-out moved into the account menu in the bar; what is left
@@ -286,11 +383,19 @@ export function PartnerDashboard({
             unlocked={unlocked}
             lanes={lanes}
             metrics={metrics}
+            history={history}
             plan={plan}
             walletSpent={walletSpent}
             subscription={subscription}
             now={now}
             onGoTo={setSection}
+          />
+        )}
+
+        {isArchive(section) && (
+          <ArchivePanel
+            view={section === "archive/invoices" ? "invoices" : "leads"}
+            history={history}
           />
         )}
 
@@ -521,6 +626,7 @@ function OverviewPanel({
   unlocked,
   lanes,
   metrics,
+  history,
   plan,
   walletSpent,
   subscription,
@@ -532,6 +638,7 @@ function OverviewPanel({
   unlocked: Set<string>;
   lanes: PartnerLane[];
   metrics: ReturnType<typeof generatePartnerMetrics>;
+  history: PartnerHistory;
   plan: PlanId;
   walletSpent: number;
   subscription: PlanSubscription;
@@ -578,12 +685,6 @@ function OverviewPanel({
       .slice(0, 6);
   }, [board, dict]);
 
-  /** The four most recent enquiries, as a preview of the board. */
-  const latest = useMemo(
-    () => [...board].sort((a, b) => a.ageMins - b.ageMins).slice(0, 4),
-    [board],
-  );
-
   const activeLanes = lanes.filter((lane) => lane.status === "active").length;
 
   /*
@@ -622,9 +723,13 @@ function OverviewPanel({
         </button>
       </div>
 
-      {/* The three figures that used to sit above every section, plus the
-          one that says what is waiting on the board today. */}
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Three figures, one row.
+          "Avg. reply time" and "On the board now" used to sit here too. The
+          first was the only number on the page the platform infers rather
+          than observes, and the second restated the line directly above it —
+          the greeting already says how many leads are waiting. What is left
+          is volume, cost and reach, which is the set a partner can act on. */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Kpi
           label={pd.kpis.leadsThisMonth}
           value={t.number(metrics.leadsThisMonth)}
@@ -633,11 +738,6 @@ function OverviewPanel({
               ? pd.kpis.unlimitedOnPlan
               : t.fill(pd.kpis.nUnlocked, { n: t.number(metrics.unlocked) })
           }
-        />
-        <Kpi
-          label={pd.kpis.avgReply}
-          value={t.fill(dict.units.minutesShort, { n: t.number(metrics.avgResponseMins) })}
-          sub={isPro ? pd.kpis.autoConfirmed : pd.kpis.manualPickup}
         />
         <Kpi
           label={pd.kpis.platformSpend}
@@ -650,12 +750,26 @@ function OverviewPanel({
                 })
           }
         />
+        {/* Routes was a panel of its own in the grid below. As a third card
+            it reads as what it is — a count, with the same weight as the
+            other two — and the link it carried comes with it. */}
         <Kpi
-          label={ov.onBoardNow}
-          value={t.number(board.length)}
-          sub={t.fill(ov.nAwaiting, { n: t.number(awaiting) })}
+          label={pd.sections.lanes}
+          value={t.number(activeLanes)}
+          sub={
+            lanes.length === 0
+              ? pd.lanes.emptyTitle
+              : lanes.length === activeLanes
+                ? ov.lanesAllActive
+                : t.fill(ov.lanesPaused, { n: t.number(lanes.length - activeLanes) })
+          }
+          action={{ label: ov.manageLanes, onClick: () => onGoTo("lanes") }}
         />
       </div>
+
+      {/* Directly under the cards, because it is the same three months of
+          the same account seen as a shape rather than as one number. */}
+      <LeadTrendPanel days={history.days} />
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {/* corridors ------------------------------------------- */}
@@ -675,35 +789,8 @@ function OverviewPanel({
           )}
         </section>
 
-        {/* routes + billing ------------------------------------ */}
+        {/* billing -------------------------------------------- */}
         <div className="grid gap-4">
-          <section className={cn(PANEL, "p-6")}>
-            <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              {pd.sections.lanes}
-            </h3>
-            <p className="mt-3 text-[26px] font-medium leading-none tracking-[-0.035em] tnum">
-              {t.number(activeLanes)}
-            </p>
-            {/* "0 — all of your routes are active" is a sentence about
-                nothing. An account that has not added a lane yet gets the
-                same empty-state line the Routes section uses, so the two
-                agree about what zero means. */}
-            <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
-              {lanes.length === 0
-                ? pd.lanes.emptyTitle
-                : lanes.length === activeLanes
-                  ? ov.lanesAllActive
-                  : t.fill(ov.lanesPaused, { n: t.number(lanes.length - activeLanes) })}
-            </p>
-            <button
-              type="button"
-              onClick={() => onGoTo("lanes")}
-              className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium underline decoration-brand decoration-2 underline-offset-4"
-            >
-              {ov.manageLanes}
-            </button>
-          </section>
-
           <section className={cn(PANEL, "p-6")}>
             <div className="flex items-center gap-2.5">
               <Sparkles className="size-4 text-brand" aria-hidden />
@@ -756,48 +843,6 @@ function OverviewPanel({
         </div>
       </div>
 
-      {/* latest ------------------------------------------------- */}
-      {/* A preview, not a second lead board: route, age and status only.
-          Anything that costs money to reveal stays on the board itself,
-          where the price is next to the button that charges it. */}
-      <section className={cn(PANEL, "mt-4 p-6")}>
-        <div className="flex flex-wrap items-center gap-3">
-          <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            {ov.latestTitle}
-          </h3>
-          <button
-            type="button"
-            onClick={() => onGoTo("inbox")}
-            className="ms-auto inline-flex items-center gap-1.5 text-[13px] font-medium underline decoration-brand decoration-2 underline-offset-4"
-          >
-            {ov.openBoard}
-          </button>
-        </div>
-
-        <ul className="mt-4 divide-y">
-          {latest.map((item) => {
-            const isNew = item.status === "new" && !unlocked.has(item.lead.id);
-            return (
-              <li key={item.lead.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3">
-                <span className="min-w-0 flex-1 truncate text-[13.5px]">{item.routeLabel}</span>
-                <span className="shrink-0 text-[12.5px] text-muted-foreground tnum">
-                  {t.relative(now - item.ageMins * 60_000, now)}
-                </span>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em]",
-                    isNew
-                      ? "bg-brand-soft text-foreground dark:bg-accent"
-                      : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {isNew ? pd.row.statusNew : pd.row.statusUnlocked}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
     </div>
   );
 }
@@ -839,14 +884,40 @@ function Bars({
   );
 }
 
-function Kpi({ label, value, sub }: { label: string; value: string; sub: string }) {
+/**
+ * One figure, its caption, and optionally a way into the section behind it.
+ *
+ * The action is laid out at the bottom of the card rather than after the
+ * caption, so a card that has one stays the same height as the two beside it
+ * that do not.
+ */
+function Kpi({
+  label,
+  value,
+  sub,
+  action,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  action?: { label: string; onClick: () => void };
+}) {
   return (
-    <div className={cn(PANEL, "p-5")}>
+    <div className={cn(PANEL, "flex flex-col p-5")}>
       <p className="eyebrow">{label}</p>
       <p className="mt-2.5 text-[26px] font-medium leading-none tracking-[-0.035em] tnum">
         {value}
       </p>
       <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">{sub}</p>
+      {action && (
+        <button
+          type="button"
+          onClick={action.onClick}
+          className="mt-auto pt-3 text-start text-[13px] font-medium underline decoration-brand decoration-2 underline-offset-4"
+        >
+          {action.label}
+        </button>
+      )}
     </div>
   );
 }

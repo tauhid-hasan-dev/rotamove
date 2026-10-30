@@ -107,12 +107,14 @@ export function RevenueTrendChart({ data, className }: { data: RevenuePoint[]; c
       <BarChart data={data} margin={{ left: 4, right: 4, top: 8 }}>
         <CartesianGrid {...GRID} />
         <XAxis dataKey="label" {...X_AXIS} interval={tickInterval(data.length)} />
+        {/* Wider than the old "$12k" needed: a compact euro carries the
+            locale's own abbreviation, and "12 тыс. €" does not fit in 42. */}
         <YAxis
           tickLine={false}
           axisLine={false}
-          width={42}
+          width={64}
           fontSize={11}
-          tickFormatter={(v: number) => `$${t.compact(v)}`}
+          tickFormatter={(v: number) => t.eurCompact(v)}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />

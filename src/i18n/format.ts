@@ -95,6 +95,21 @@ export const formatEur = (locale: Locale, value: number) =>
     maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
   }).format(value);
 
+/**
+ * Money abbreviated for a chart axis: "€12k", "12 k €", "12 тыс. €".
+ *
+ * Compact *and* currency in one formatter, rather than compacting the number
+ * and gluing a € to it — the symbol goes on the side the locale puts it on,
+ * with the spacing the locale uses, and neither of those is knowable here.
+ */
+export const formatEurCompact = (locale: Locale, value: number) =>
+  numberFormat(locale, {
+    style: "currency",
+    currency: "EUR",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+
 /* ------------------------------------------------------------------ dates -- */
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
@@ -139,6 +154,19 @@ export function formatDateLong(locale: Locale, iso: string, timeZone?: TimeZone)
     year: "numeric",
     timeZone: zone,
   }).format(date);
+}
+
+/**
+ * "Dec 25" — a month bucket on a chart axis.
+ *
+ * Two-digit year rather than none, because twelve months of history crosses a
+ * January: "Dec" then "Jan" leaves the reader to guess which December, and on
+ * a four-year axis the guess is wrong three times out of four.
+ */
+export function formatMonthShort(locale: Locale, iso: string): string {
+  const date = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return iso;
+  return dateFormat(locale, { month: "short", year: "2-digit", timeZone: "UTC" }).format(date);
 }
 
 export function formatDateShort(locale: Locale, iso: string, timeZone?: TimeZone): string {
