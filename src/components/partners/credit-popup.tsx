@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Gift, X } from "lucide-react";
 import { useI18n } from "@/i18n/provider";
-import { SIGNUP_CREDIT_USD } from "@/lib/plans";
+import { SIGNUP_CREDIT_EUR } from "@/lib/plans";
 
 /** Long enough that it reads as a deliberate offer, not a render glitch. */
 const APPEAR_AFTER_MS = 700;
@@ -94,7 +94,7 @@ export function CreditPopup() {
                 id="credit-popup-title"
                 className="mt-5 text-[clamp(1.5rem,4vw,2rem)] font-semibold leading-[1.1] tracking-[-0.03em]"
               >
-                {t.fill(page.creditTitle, { credit: t.usd(SIGNUP_CREDIT_USD) })}
+                {t.fill(page.creditTitle, { credit: t.eur(SIGNUP_CREDIT_EUR) })}
               </h2>
               <p className="mx-auto mt-3 max-w-sm text-[15.5px] leading-relaxed opacity-80">
                 {page.creditBody}

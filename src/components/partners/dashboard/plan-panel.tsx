@@ -26,7 +26,7 @@ import { PANEL } from "@/components/partners/dashboard/surface";
 import { useI18n } from "@/i18n/provider";
 import { daysUntil, isUpgrade, nextCycleStartMs } from "@/lib/plan-cycle";
 import type { PlanSubscription } from "@/lib/plan-store";
-import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, PLAN_IDS, PRO_MONTHLY_USD } from "@/lib/plans";
+import { LEAD_FEE_CAP_EUR, LEAD_FEE_FLOOR_EUR, PLAN_IDS, PRO_MONTHLY_EUR } from "@/lib/plans";
 import type { PlanId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -86,10 +86,10 @@ export function PlanPanel({
 
   const price =
     plan === "pro_unlimited"
-      ? t.fill(px.pricePro, { amount: t.usd(PRO_MONTHLY_USD) })
+      ? t.fill(px.pricePro, { amount: t.eur(PRO_MONTHLY_EUR) })
       : t.fill(plan === "pay_per_seen" ? px.pricePps : px.pricePpl, {
-          floor: t.usd(LEAD_FEE_FLOOR_USD),
-          cap: t.usd(LEAD_FEE_CAP_USD),
+          floor: t.eur(LEAD_FEE_FLOOR_EUR),
+          cap: t.eur(LEAD_FEE_CAP_EUR),
         });
 
   /*
@@ -206,10 +206,10 @@ function ChangePlanDialog({
 
   const priceFor = (plan: PlanId) =>
     plan === "pro_unlimited"
-      ? t.fill(px.pricePro, { amount: t.usd(PRO_MONTHLY_USD) })
+      ? t.fill(px.pricePro, { amount: t.eur(PRO_MONTHLY_EUR) })
       : t.fill(plan === "pay_per_seen" ? px.pricePps : px.pricePpl, {
-          floor: t.usd(LEAD_FEE_FLOOR_USD),
-          cap: t.usd(LEAD_FEE_CAP_USD),
+          floor: t.eur(LEAD_FEE_FLOOR_EUR),
+          cap: t.eur(LEAD_FEE_CAP_EUR),
         });
 
   const unchanged = choice === subscription.plan && !subscription.pendingPlan;

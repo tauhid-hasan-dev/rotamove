@@ -108,7 +108,7 @@ export function CompaniesView() {
         case "leads":
           return dir * ((pa?.leadsReceived ?? 0) - (pb?.leadsReceived ?? 0));
         case "fees":
-          return dir * ((pa?.feesUsd ?? 0) - (pb?.feesUsd ?? 0));
+          return dir * ((pa?.feesEur ?? 0) - (pb?.feesEur ?? 0));
         case "joined":
           return dir * a.joinedAt.localeCompare(b.joinedAt);
       }
@@ -127,10 +127,10 @@ export function CompaniesView() {
       dict.admin.companies.colJoined,
       dict.admin.companies.colRating,
       dict.admin.companies.colLeads12mo,
-      dict.admin.companies.exportFeesUsd12mo,
+      dict.admin.companies.exportFeesEur12mo,
       dict.admin.companies.exportContact,
       dict.admin.companies.exportEmail,
-      dict.admin.companies.exportCreditUsd,
+      dict.admin.companies.exportCreditEur,
     ],
     rows: filtered.map((c) => {
       const perf = performance.get(c.mover.id);
@@ -143,10 +143,10 @@ export function CompaniesView() {
         c.joinedAt,
         c.mover.rating,
         perf?.leadsReceived ?? 0,
-        perf?.feesUsd ?? 0,
+        perf?.feesEur ?? 0,
         c.contactName,
         c.contactEmail,
-        c.creditBalanceUsd,
+        c.creditBalanceEur,
       ];
     }),
   });
@@ -275,7 +275,7 @@ export function CompaniesView() {
                       {t.number(perf?.leadsReceived ?? 0)}
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px]">
-                      {perf && perf.feesUsd > 0 ? t.usd(perf.feesUsd) : "—"}
+                      {perf && perf.feesEur > 0 ? t.eur(perf.feesEur) : "—"}
                     </TableCell>
                     <TableCell className="tnum whitespace-nowrap text-[13px] text-muted-foreground">
                       {c.joinedAt}

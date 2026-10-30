@@ -7,8 +7,9 @@ import { plural } from "@/i18n/plural";
  *
  * Everything user-facing routes through here so a German sees "1.234" where an
  * English speaker sees "1,234" and a French speaker sees "1 234", without any
- * component having to know. Partner-side money stays USD — platform billing is
- * USD by design — but the *formatting* still follows the reader's locale.
+ * component having to know. Partner-side money stays EUR — platform billing is
+ * EUR in every country by design — but the *formatting* still follows the
+ * reader's locale, so the same €7 reads "€7" in English and "7 €" in German.
  */
 
 type Cache<T> = Map<string, T>;
@@ -74,28 +75,25 @@ export const formatDecimal = (locale: Locale, value: number, digits = 1) =>
   }).format(value);
 
 /**
- * Platform billing is USD; only the presentation is localised.
+ * Platform billing is EUR in all 53 partner countries; only the presentation
+ * is localised — "€7" in English, "7 €" in German, "€ 7" in Dutch.
  *
- * Two deliberate departures from the default output:
+ * No `currencyDisplay` override and no post-processing, unlike the USD version
+ * this replaced. The dollar needed both: CLDR disambiguates it against every
+ * other dollar, so the default rendered "US$100" / "100 $US" / "100 USD"
+ * depending on locale, and Arabic kept the "US$" prefix even under
+ * `narrowSymbol`. The euro has one symbol in every locale we ship, so the
+ * default output is already the right output.
  *
- * `currencyDisplay: "narrowSymbol"` — the default disambiguates the dollar
- * against every other dollar, so en-GB renders "US$100", fr "100 $US" and it
- * "100 USD". There is only one currency anywhere in this product, so the
- * disambiguation buys nothing and just adds noise to a price.
- *
- * The replace afterwards — Arabic has no narrow symbol in CLDR and keeps
- * "US$" regardless of the option, so the prefix is stripped explicitly rather
- * than leaving one locale inconsistent with the other seven.
+ * Whole amounts print without decimals — a cap is "€7", not "€7.00" — while
+ * a real fraction like a 5.20 blended fee keeps both digits.
  */
-export const formatUsd = (locale: Locale, value: number) =>
+export const formatEur = (locale: Locale, value: number) =>
   numberFormat(locale, {
     style: "currency",
-    currency: "USD",
-    currencyDisplay: "narrowSymbol",
+    currency: "EUR",
     maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
-  })
-    .format(value)
-    .replace("US$", "$");
+  }).format(value);
 
 /* ------------------------------------------------------------------ dates -- */
 

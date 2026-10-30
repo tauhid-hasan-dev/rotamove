@@ -64,7 +64,7 @@ export function UnlocksView() {
     };
   }, [load]);
 
-  const total = (unlocks ?? []).reduce((sum, u) => sum + u.feeUsd, 0);
+  const total = (unlocks ?? []).reduce((sum, u) => sum + u.feeEur, 0);
 
   return (
     <>
@@ -125,7 +125,7 @@ export function UnlocksView() {
                         </p>
                       </TableCell>
                       <TableCell className="tnum text-end font-medium">
-                        {t.usd(u.feeUsd)}
+                        {t.eur(u.feeEur)}
                       </TableCell>
                       <TableCell className="tnum text-[13px] text-muted-foreground">
                         {t.dateTime(u.unlockedAt)}
@@ -146,7 +146,7 @@ export function UnlocksView() {
               <p className="tnum border-t px-4 py-3 text-[13px] text-muted-foreground">
                 {t.fill(ux.totalLine, {
                   n: t.number(unlocks.length),
-                  total: t.usd(Math.round(total * 100) / 100),
+                  total: t.eur(Math.round(total * 100) / 100),
                 })}
               </p>
             )}

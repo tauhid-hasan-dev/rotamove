@@ -4,41 +4,45 @@ import type { Lead, PlanId } from "@/lib/types";
 /**
  * Partner monetisation. Three ways to buy demand:
  *
- *  1. Pro Unlimited — $100 / month. Unlimited international *and* domestic
+ *  1. Pro Unlimited — €100 / month. Unlimited international *and* domestic
  *     leads, and the only tier that appears as an instant match in the
  *     customer's results board. Instant availability is what makes the search
  *     feel like a product rather than a contact form.
  *
- *  2. Pay Per Lead — $0 / month, billed per lead assigned. Priced by corridor
- *     value and job size, hard-capped at $7 so a partner can never be
+ *  2. Pay Per Lead — €0 / month, billed per lead assigned. Priced by corridor
+ *     value and job size, hard-capped at €7 so a partner can never be
  *     surprised by an invoice.
  *
- *  3. Pay Per Seen — $0 / month, billed per lead opened. Leads arrive masked;
+ *  3. Pay Per Seen — €0 / month, billed per lead opened. Leads arrive masked;
  *     the fee lands on the unlock, not the match.
  *
  * The first two are billed on the match, so those partners get the lead in
  * full the moment it arrives. Only the third has anything to unlock — see
  * `seesMaskedLeads`.
  *
- * Platform billing is USD. Customers are never shown a price of any kind.
+ * Platform billing is EUR, in every one of the 53 partner countries — a
+ * partner in Istanbul and one in Rotterdam are invoiced the same number, so
+ * the published cap means the same thing everywhere and no exchange rate sits
+ * between the price we advertise and the price on the invoice. Customers are
+ * never shown a price of any kind.
  */
 
-export const LEAD_FEE_CAP_USD = 7;
-export const LEAD_FEE_FLOOR_USD = 2;
-export const PRO_MONTHLY_USD = 100;
+export const LEAD_FEE_CAP_EUR = 7;
+export const LEAD_FEE_FLOOR_EUR = 2;
+export const PRO_MONTHLY_EUR = 100;
 
 /**
  * Credited to a partner's account when they sign up.
  *
  * A number rather than a string in the copy, because it is a billing fact
- * and the pricing page states it in the reader's own currency formatting.
+ * and the pricing page states it in the reader's own number formatting.
  * At the current fee cap it is worth at least fourteen leads, and a month of
  * Pro — which is the comparison the sign-up banner is inviting.
  */
-export const SIGNUP_CREDIT_USD = 100;
+export const SIGNUP_CREDIT_EUR = 100;
 
 /** The blended fee a pay-per-lead partner pays, used for break-even maths. */
-export const AVG_LEAD_FEE_USD = 5.2;
+export const AVG_LEAD_FEE_EUR = 5.2;
 
 /**
  * Share of the board a pay-per-seen partner actually opens.
@@ -92,7 +96,7 @@ export const PLAN_NAMES_EN: Record<PlanId, string> = {
 export const seesMaskedLeads = (plan: PlanId): boolean => plan === "pay_per_seen";
 
 /** Leads a partner must close before Pro Unlimited is the cheaper option. */
-export const BREAK_EVEN_LEADS = Math.ceil(PRO_MONTHLY_USD / AVG_LEAD_FEE_USD);
+export const BREAK_EVEN_LEADS = Math.ceil(PRO_MONTHLY_EUR / AVG_LEAD_FEE_EUR);
 
 /**
  * Which Pay Per Lead features are actually included.
@@ -138,12 +142,12 @@ export const PPS_FEATURE_INCLUDED: readonly boolean[] = [
  *
  * The signal we price on is expected job value, not a flat rate: a 68 m³
  * full-service Istanbul → Stockholm relocation is worth far more to a mover
- * than two boxes across Ankara. Still hard-capped at $7.
+ * than two boxes across Ankara. Still hard-capped at €7.
  */
-export function leadFeeUsd(lead: Lead): number {
+export function leadFeeEur(lead: Lead): number {
   const from = getCity(lead.origin.cityCode);
   const to = getCity(lead.destination.cityCode);
-  if (!from || !to) return LEAD_FEE_FLOOR_USD;
+  if (!from || !to) return LEAD_FEE_FLOOR_EUR;
 
   const corridor = resolveCorridor(from, to);
   let fee = lead.moveType === "international" ? 3.6 : 2.1;
@@ -172,7 +176,7 @@ export function leadFeeUsd(lead: Lead): number {
   if (daysOut <= 30) fee += 0.4;
   else if (daysOut > 120) fee -= 0.5;
 
-  return Math.round(Math.min(LEAD_FEE_CAP_USD, Math.max(LEAD_FEE_FLOOR_USD, fee)) * 100) / 100;
+  return Math.round(Math.min(LEAD_FEE_CAP_EUR, Math.max(LEAD_FEE_FLOOR_EUR, fee)) * 100) / 100;
 }
 
 /**
@@ -206,9 +210,9 @@ export interface RoiInput {
 }
 
 export interface RoiResult {
-  proCostUsd: number;
-  pplCostUsd: number;
-  ppsCostUsd: number;
+  proCostEur: number;
+  pplCostEur: number;
+  ppsCostEur: number;
   jobsWon: number;
   grossProfitEur: number;
   proNetEur: number;
@@ -217,43 +221,46 @@ export interface RoiResult {
   breakEvenLeads: number;
   betterPlan: PlanId;
   /** Gap between the cheapest plan and the next cheapest. */
-  savingUsd: number;
+  savingEur: number;
 }
 
-/** Drives the partner-side plan comparison calculator. */
-export function computeRoi(
-  input: RoiInput,
-  avgLeadFeeUsd = AVG_LEAD_FEE_USD,
-  usdPerEur = 1.08,
-): RoiResult {
+/**
+ * Drives the partner-side plan comparison calculator.
+ *
+ * Job value and platform cost are both EUR, so the net lines are a plain
+ * subtraction. They used to divide the cost by a hard-coded 1.08 to cross a
+ * currency boundary that no longer exists — a rate nobody owned, baked into
+ * the one number a partner was most likely to check against their own books.
+ */
+export function computeRoi(input: RoiInput, avgLeadFeeEur = AVG_LEAD_FEE_EUR): RoiResult {
   const jobsWon = input.leadsPerMonth * input.winRate;
   const grossProfitEur = jobsWon * input.avgJobValueEur * input.grossMargin;
-  const proCostUsd = PRO_MONTHLY_USD;
-  const pplCostUsd = input.leadsPerMonth * avgLeadFeeUsd;
+  const proCostEur = PRO_MONTHLY_EUR;
+  const pplCostEur = input.leadsPerMonth * avgLeadFeeEur;
   // Pay per seen is pay per lead over the share they choose to open.
-  const ppsCostUsd = input.leadsPerMonth * PPS_OPEN_RATE * avgLeadFeeUsd;
+  const ppsCostEur = input.leadsPerMonth * PPS_OPEN_RATE * avgLeadFeeEur;
 
   const costs: Array<[PlanId, number]> = [
-    ["pro_unlimited", proCostUsd],
-    ["pay_per_lead", pplCostUsd],
-    ["pay_per_seen", ppsCostUsd],
+    ["pro_unlimited", proCostEur],
+    ["pay_per_lead", pplCostEur],
+    ["pay_per_seen", ppsCostEur],
   ];
   // Cheapest first; ties keep the declared order, so Pro wins a dead heat —
   // at equal money the unlimited plan is the better deal.
   const ranked = [...costs].sort((a, b) => a[1] - b[1]);
 
   return {
-    proCostUsd,
-    pplCostUsd,
-    ppsCostUsd,
+    proCostEur,
+    pplCostEur,
+    ppsCostEur,
     jobsWon,
     grossProfitEur,
-    proNetEur: grossProfitEur - proCostUsd / usdPerEur,
-    pplNetEur: grossProfitEur - pplCostUsd / usdPerEur,
-    ppsNetEur: grossProfitEur - ppsCostUsd / usdPerEur,
-    breakEvenLeads: Math.ceil(PRO_MONTHLY_USD / avgLeadFeeUsd),
+    proNetEur: grossProfitEur - proCostEur,
+    pplNetEur: grossProfitEur - pplCostEur,
+    ppsNetEur: grossProfitEur - ppsCostEur,
+    breakEvenLeads: Math.ceil(PRO_MONTHLY_EUR / avgLeadFeeEur),
     betterPlan: ranked[0][0],
-    savingUsd: ranked[1][1] - ranked[0][1],
+    savingEur: ranked[1][1] - ranked[0][1],
   };
 }
 

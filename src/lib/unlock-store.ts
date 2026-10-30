@@ -27,7 +27,7 @@ export interface UnlockRecord {
   routeLabel: string;
   volumeM3: number;
   /** What the partner was charged for this unlock. */
-  feeUsd: number;
+  feeEur: number;
   unlockedAt: string;
   /** Where the confirmation email went. Simulated — nothing really sends. */
   emailTo: string;

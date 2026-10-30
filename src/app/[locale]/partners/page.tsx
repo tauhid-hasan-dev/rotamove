@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/accordion";
 import { NETWORK_STATS } from "@/lib/geo";
 import {
-  AVG_LEAD_FEE_USD,
-  LEAD_FEE_CAP_USD,
-  PRO_MONTHLY_USD,
-  SIGNUP_CREDIT_USD,
+  AVG_LEAD_FEE_EUR,
+  LEAD_FEE_CAP_EUR,
+  PRO_MONTHLY_EUR,
+  SIGNUP_CREDIT_EUR,
 } from "@/lib/plans";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
-import { fill, formatNumber, formatUsd } from "@/i18n/format";
+import { fill, formatNumber, formatEur } from "@/i18n/format";
 import { alternateLanguages, localePath } from "@/i18n/paths";
 
 export async function generateMetadata({
@@ -47,10 +47,10 @@ export default async function PartnersPage({ params }: PageProps<"/[locale]/part
   const dict = getDictionary(locale);
   const page = dict.partnersPage;
 
-  const cap = formatUsd(locale, LEAD_FEE_CAP_USD);
-  const pro = formatUsd(locale, PRO_MONTHLY_USD);
-  const credit = formatUsd(locale, SIGNUP_CREDIT_USD);
-  const breakEven = formatNumber(locale, Math.ceil(PRO_MONTHLY_USD / AVG_LEAD_FEE_USD));
+  const cap = formatEur(locale, LEAD_FEE_CAP_EUR);
+  const pro = formatEur(locale, PRO_MONTHLY_EUR);
+  const credit = formatEur(locale, SIGNUP_CREDIT_EUR);
+  const breakEven = formatNumber(locale, Math.ceil(PRO_MONTHLY_EUR / AVG_LEAD_FEE_EUR));
 
   return (
     <>

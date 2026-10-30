@@ -1,6 +1,6 @@
 import { cityRegion, getCity, type TransportMode } from "@/lib/geo";
 import { MOVERS, NETWORK_PARTNER_CLAIM } from "@/lib/movers";
-import { leadFeeUsd } from "@/lib/plans";
+import { leadFeeEur } from "@/lib/plans";
 import {
   brokerAnchor,
   buildQuoteBasis,
@@ -170,7 +170,7 @@ export function matchLead(lead: Lead, lanes: LaneIndex = NO_LANES): MatchResult 
 
   const eligible = eligibleMovers(lead, lanes);
   const window = pickupWindow(lead);
-  const feeUsd = leadFeeUsd(lead);
+  const feeEur = leadFeeEur(lead);
 
   const raw: Scored[] = eligible.map(({ mover, fullCoverage, missingServices, laneMatch }) => {
     const rng = createRng(lead.id, mover.id);
@@ -225,7 +225,7 @@ export function matchLead(lead: Lead, lanes: LaneIndex = NO_LANES): MatchResult 
             fits: laneMatch.fits,
           }
         : undefined,
-      leadFeeUsd: isInstant ? undefined : feeUsd,
+      leadFeeEur: isInstant ? undefined : feeEur,
     };
 
     if (missingServices.length) {

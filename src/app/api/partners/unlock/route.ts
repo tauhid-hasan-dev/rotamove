@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     leadId: item.lead.id,
     routeLabel: item.routeLabel,
     volumeM3: item.lead.volumeM3,
-    feeUsd: item.feeUsd,
+    feeEur: item.feeEur,
     // The address the full lead goes to — this account's, not a constant.
     emailTo: account.email,
   });

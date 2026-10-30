@@ -31,7 +31,7 @@ export interface LeadAssignment {
   companyId: string;
   assignedAt: string;
   /** What Rotamove charged for this unlock. 0 for Pro Unlimited partners. */
-  feeUsd: number;
+  feeEur: number;
   delivery: DeliveryStatus;
 }
 
@@ -79,7 +79,7 @@ export interface AdminLead {
   status: LeadStatus;
   source: LeadSource;
   qualityScore: number;
-  feeUsd: number;
+  feeEur: number;
   assignments: LeadAssignment[];
   /** Set when this enquiry repeats an earlier one (same contact, same route). */
   duplicateOf?: string;
@@ -107,8 +107,8 @@ export interface AdminCompany {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
-  /** Prepaid lead credit, USD. Spent before the card is charged. */
-  creditBalanceUsd: number;
+  /** Prepaid lead credit, EUR. Spent before the card is charged. */
+  creditBalanceEur: number;
   notes?: string;
 }
 
@@ -130,11 +130,11 @@ export interface InvoiceLine {
   description: string;
   kind: "subscription" | "lead_fee" | "credit";
   quantity: number;
-  amountUsd: number;
+  amountEur: number;
 }
 
 export interface InvoiceRefund {
-  amountUsd: number;
+  amountEur: number;
   at: string;
   reason: string;
   by: string;
@@ -152,7 +152,7 @@ export interface Invoice {
   dueAt: string;
   status: InvoiceStatus;
   lines: InvoiceLine[];
-  totalUsd: number;
+  totalEur: number;
   paidAt?: string;
   refund?: InvoiceRefund;
 }
@@ -164,7 +164,7 @@ export interface Payment {
   invoiceId: string;
   companyId: string;
   at: string;
-  amountUsd: number;
+  amountEur: number;
   method: PaymentMethod;
 }
 
@@ -173,7 +173,7 @@ export interface CreditEntry {
   companyId: string;
   at: string;
   /** Positive = granted, negative = spent on an invoice. */
-  deltaUsd: number;
+  deltaEur: number;
   reason: string;
   by: string;
   /**
@@ -302,9 +302,9 @@ export interface AuditEntry {
 }
 
 export interface PlatformSettings {
-  leadFeeFloorUsd: number;
-  leadFeeCapUsd: number;
-  proMonthlyUsd: number;
+  leadFeeFloorEur: number;
+  leadFeeCapEur: number;
+  proMonthlyEur: number;
   /** Default number of companies a lead is offered to. */
   defaultMatchCount: number;
   /** Two enquiries from the same contact within this window count as one. */

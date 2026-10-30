@@ -33,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatUsdPrecise } from "@/lib/format";
+import { formatEurPrecise } from "@/lib/format";
 import type { PlanId } from "@/lib/types";
 import type { RangePreset } from "@/lib/admin/date-range";
 import {
@@ -117,7 +117,7 @@ export function ReportsView() {
 
   const rows = useMemo(() => {
     const kept = periodActive
-      ? allRows.filter((r) => r.leads > 0 || r.revenueUsd > 0)
+      ? allRows.filter((r) => r.leads > 0 || r.revenueEur > 0)
       : allRows;
     const sorted = [...kept];
     switch (periodSort) {
@@ -125,7 +125,7 @@ export function ReportsView() {
         sorted.sort((a, b) => a.key.localeCompare(b.key));
         break;
       case "revenue_desc":
-        sorted.sort((a, b) => b.revenueUsd - a.revenueUsd);
+        sorted.sort((a, b) => b.revenueEur - a.revenueEur);
         break;
       case "leads_desc":
         sorted.sort((a, b) => b.leads - a.leads);
@@ -152,7 +152,7 @@ export function ReportsView() {
         sorted.sort((a, b) => a.company.mover.name.localeCompare(b.company.mover.name));
         break;
       default:
-        sorted.sort((a, b) => b.totalUsd - a.totalUsd);
+        sorted.sort((a, b) => b.totalEur - a.totalEur);
     }
     return sorted;
   }, [allCompanyRows, companyQuery, companyPlan, companySort]);
@@ -170,7 +170,7 @@ export function ReportsView() {
           leads: acc.leads + r.leads,
           assigned: acc.assigned + r.assigned,
           converted: acc.converted + r.converted,
-          revenue: Math.round((acc.revenue + r.revenueUsd) * 100) / 100,
+          revenue: Math.round((acc.revenue + r.revenueEur) * 100) / 100,
         }),
         { leads: 0, assigned: 0, converted: 0, revenue: 0 },
       ),
@@ -184,8 +184,8 @@ export function ReportsView() {
   };
 
   const buildPeriodSheet = () => ({
-    headers: [rx.colPeriod, rx.colLeads, rx.colRevenueUsd],
-    rows: rows.map((r) => [r.label, r.leads, r.revenueUsd]),
+    headers: [rx.colPeriod, rx.colLeads, rx.colRevenueEur],
+    rows: rows.map((r) => [r.label, r.leads, r.revenueEur]),
   });
 
   const buildCompanySheet = () => ({
@@ -193,17 +193,17 @@ export function ReportsView() {
       rx.colCompany,
       rx.colPlan,
       rx.colLeadsReceived,
-      rx.colLeadFeesUsd,
-      rx.colSubscriptionsUsd,
-      rx.colTotalUsd,
+      rx.colLeadFeesEur,
+      rx.colSubscriptionsEur,
+      rx.colTotalEur,
     ],
     rows: byCompany.map((r) => [
       r.company.mover.name,
       dict.admin.labels.plan[r.company.mover.plan],
       r.leadsReceived,
-      r.leadFeesUsd,
-      r.subscriptionUsd,
-      r.totalUsd,
+      r.leadFeesEur,
+      r.subscriptionEur,
+      r.totalEur,
     ]),
   });
 
@@ -242,7 +242,7 @@ export function ReportsView() {
 
       <div className="grid grid-cols-2 gap-3">
         <KpiCard label={rx.kpiLeads} value={t.number(totals.leads)} />
-        <KpiCard label={rx.kpiRevenue} value={t.usd(totals.revenue)} hint={rx.kpiRevenueHint} />
+        <KpiCard label={rx.kpiRevenue} value={t.eur(totals.revenue)} hint={rx.kpiRevenueHint} />
       </div>
 
       <Card className="mt-4 shadow-soft">
@@ -334,7 +334,7 @@ export function ReportsView() {
                     <TableCell className="whitespace-nowrap text-[13px]">{r.label}</TableCell>
                     <TableCell className="tnum text-end text-[13px]">{r.leads}</TableCell>
                     <TableCell className="tnum text-end text-[13px]">
-                      {formatUsdPrecise(r.revenueUsd)}
+                      {formatEurPrecise(r.revenueEur)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -466,13 +466,13 @@ export function ReportsView() {
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px]">{r.leadsReceived}</TableCell>
                     <TableCell className="tnum text-end text-[13px]">
-                      {r.leadFeesUsd > 0 ? formatUsdPrecise(r.leadFeesUsd) : "—"}
+                      {r.leadFeesEur > 0 ? formatEurPrecise(r.leadFeesEur) : "—"}
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px]">
-                      {r.subscriptionUsd > 0 ? formatUsdPrecise(r.subscriptionUsd) : "—"}
+                      {r.subscriptionEur > 0 ? formatEurPrecise(r.subscriptionEur) : "—"}
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px] font-semibold">
-                      {formatUsdPrecise(r.totalUsd)}
+                      {formatEurPrecise(r.totalEur)}
                     </TableCell>
                   </TableRow>
                 ))}

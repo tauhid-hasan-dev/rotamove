@@ -110,7 +110,7 @@ export function LeadRow({
       onUnlock(lead.id);
       toast.success(pd.row.toastUnlocked, {
         description: t.fill(pd.row.toastPerSeen, {
-          fee: t.usd(record.feeUsd),
+          fee: t.eur(record.feeEur),
           email: record.emailTo,
         }),
       });
@@ -288,7 +288,7 @@ export function LeadRow({
               ) : (
                 <>
                   <Unlock className="size-3.5" />
-                  {t.fill(pd.row.unlockFor, { fee: t.usd(item.feeUsd) })}
+                  {t.fill(pd.row.unlockFor, { fee: t.eur(item.feeEur) })}
                 </>
               )}
             </button>
@@ -306,7 +306,7 @@ export function LeadRow({
             <span className="ms-auto text-[11.5px] text-verify">{pd.row.includedInPro}</span>
           ) : (
             <span className="ms-auto text-[11.5px] text-muted-foreground tnum">
-              {t.fill(pd.row.billedPerLead, { fee: t.usd(item.feeUsd) })}
+              {t.fill(pd.row.billedPerLead, { fee: t.eur(item.feeEur) })}
             </span>
           )}
         </div>

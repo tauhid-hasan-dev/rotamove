@@ -40,7 +40,7 @@ interface I18nValue {
     percent: (ratio: number, digits?: number) => string;
     decimal: (value: number, digits?: number) => string;
     year: (year: number) => string;
-    usd: (value: number) => string;
+    eur: (value: number) => string;
     dateLong: (iso: string) => string;
     dateShort: (iso: string) => string;
     dateRange: (range: [string, string]) => string;
@@ -112,7 +112,7 @@ export function I18nProvider({
         percent: (ratio, digits) => fmt.formatPercent(locale, ratio, digits),
         decimal: (value, digits) => fmt.formatDecimal(locale, value, digits),
         year: (year) => fmt.formatYear(locale, year),
-        usd: (value) => fmt.formatUsd(locale, value),
+        eur: (value) => fmt.formatEur(locale, value),
         dateLong: (iso) => fmt.formatDateLong(locale, iso, tz),
         dateShort: (iso) => fmt.formatDateShort(locale, iso, tz),
         dateRange: (range) => fmt.formatDateRange(locale, range, tz),

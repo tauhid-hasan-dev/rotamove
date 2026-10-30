@@ -11,7 +11,7 @@ import { Stars } from "@/components/common/stars";
 import { Button } from "@/components/ui/button";
 import { CORRIDORS, getCity } from "@/lib/geo";
 import { MOVERS, getMoverBySlug } from "@/lib/movers";
-import { LEAD_FEE_CAP_USD, PRO_MONTHLY_USD } from "@/lib/plans";
+import { LEAD_FEE_CAP_EUR, PRO_MONTHLY_EUR } from "@/lib/plans";
 import { createRng } from "@/lib/rand";
 import { LOCALES, quote as quoteMarks } from "@/i18n/config";
 import { getDictionary, resolveLocale } from "@/i18n/dictionaries";
@@ -24,7 +24,7 @@ import {
   formatPercent,
   formatYear,
   formatResponseTime,
-  formatUsd,
+  formatEur,
   formatVolume,
 } from "@/i18n/format";
 import { plural } from "@/i18n/plural";
@@ -392,16 +392,16 @@ export default async function MoverPage({ params }: PageProps<"/[locale]/movers/
                 {mover.plan === "pro_unlimited"
                   ? fill(profile.billingPro, {
                       name: mover.name,
-                      pro: formatUsd(locale, PRO_MONTHLY_USD),
+                      pro: formatEur(locale, PRO_MONTHLY_EUR),
                     })
                   : mover.plan === "pay_per_seen"
                     ? fill(profile.billingPps, {
                         name: mover.name,
-                        cap: formatUsd(locale, LEAD_FEE_CAP_USD),
+                        cap: formatEur(locale, LEAD_FEE_CAP_EUR),
                       })
                     : fill(profile.billingPpl, {
                         name: mover.name,
-                        cap: formatUsd(locale, LEAD_FEE_CAP_USD),
+                        cap: formatEur(locale, LEAD_FEE_CAP_EUR),
                       })}
               </p>
             </section>

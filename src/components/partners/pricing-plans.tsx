@@ -1,20 +1,20 @@
 import Link from "next/link";
 import { Check, Minus } from "lucide-react";
 import {
-  LEAD_FEE_CAP_USD,
-  LEAD_FEE_FLOOR_USD,
+  LEAD_FEE_CAP_EUR,
+  LEAD_FEE_FLOOR_EUR,
   PPL_FEATURE_INCLUDED,
   PPS_FEATURE_INCLUDED,
-  PRO_MONTHLY_USD,
+  PRO_MONTHLY_EUR,
 } from "@/lib/plans";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { fill, formatUsd } from "@/i18n/format";
+import { fill, formatEur } from "@/i18n/format";
 import { localePath } from "@/i18n/paths";
 import { cn } from "@/lib/utils";
 
 export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Locale }) {
-  const cap = formatUsd(locale, LEAD_FEE_CAP_USD);
+  const cap = formatEur(locale, LEAD_FEE_CAP_EUR);
 
   /*
    * One destination, and it is the sign-up form.
@@ -32,7 +32,7 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
     {
       id: "pro_unlimited",
       name: dict.plans.proName,
-      priceLabel: formatUsd(locale, PRO_MONTHLY_USD),
+      priceLabel: formatEur(locale, PRO_MONTHLY_EUR),
       priceSuffix: dict.plans.proSuffix,
       priceNote: dict.plans.proNote,
       featured: true,
@@ -42,7 +42,7 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
     {
       id: "pay_per_lead",
       name: dict.plans.pplName,
-      priceLabel: `${formatUsd(locale, LEAD_FEE_FLOOR_USD)}–${cap}`,
+      priceLabel: `${formatEur(locale, LEAD_FEE_FLOOR_EUR)}–${cap}`,
       priceSuffix: dict.plans.pplSuffix,
       priceNote: fill(dict.plans.pplNote, { cap }),
       featured: false,
@@ -55,7 +55,7 @@ export function PricingPlans({ dict, locale }: { dict: Dictionary; locale: Local
     {
       id: "pay_per_seen",
       name: dict.plans.ppsName,
-      priceLabel: `${formatUsd(locale, LEAD_FEE_FLOOR_USD)}–${cap}`,
+      priceLabel: `${formatEur(locale, LEAD_FEE_FLOOR_EUR)}–${cap}`,
       priceSuffix: dict.plans.ppsSuffix,
       priceNote: fill(dict.plans.ppsNote, { cap }),
       featured: false,

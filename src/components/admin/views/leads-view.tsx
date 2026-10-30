@@ -73,7 +73,7 @@ export function LeadsView() {
         case "quality":
           return dir * (a.qualityScore - b.qualityScore);
         case "fee":
-          return dir * (a.feeUsd - b.feeUsd);
+          return dir * (a.feeEur - b.feeEur);
       }
     });
   }, [data.leads, dateRange.range, query, dupOnly, sort]);
@@ -94,7 +94,7 @@ export function LeadsView() {
       dict.admin.leads.exportHeaders.status,
       dict.admin.leads.exportHeaders.channel,
       dict.admin.leads.exportHeaders.quality,
-      dict.admin.leads.exportHeaders.feeUsd,
+      dict.admin.leads.exportHeaders.feeEur,
       dict.admin.leads.exportHeaders.assignedCompanies,
       dict.admin.leads.exportHeaders.duplicateOf,
     ],
@@ -111,7 +111,7 @@ export function LeadsView() {
       l.status,
       dict.admin.labels.channel[l.source.channel],
       l.qualityScore,
-      l.feeUsd,
+      l.feeEur,
       l.assignments.length,
       l.duplicateOf ?? "",
     ]),
@@ -258,7 +258,7 @@ export function LeadsView() {
                     </span>
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
-                    {t.usd(l.feeUsd)}
+                    {t.eur(l.feeEur)}
                   </TableCell>
                   <TableCell className="tnum text-end text-[13px]">
                     {l.assignments.length}

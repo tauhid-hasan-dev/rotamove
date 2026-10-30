@@ -104,7 +104,7 @@ export function BillingView() {
         case "due":
           return dir * a.dueAt.localeCompare(b.dueAt);
         case "total":
-          return dir * (a.totalUsd - b.totalUsd);
+          return dir * (a.totalEur - b.totalEur);
       }
     });
   }, [data.invoices, dateRange.range, query, status, sort, companiesById]);
@@ -125,7 +125,7 @@ export function BillingView() {
       dict.admin.billing.colIssued,
       dict.admin.billing.colDue,
       dict.admin.billing.colStatus,
-      dict.admin.billing.exportTotalUsd,
+      dict.admin.billing.exportTotalEur,
       dict.admin.billing.exportPaidAt,
     ],
     rows: filtered.map((invoice) => [
@@ -136,7 +136,7 @@ export function BillingView() {
       invoice.issuedAt,
       invoice.dueAt,
       invoice.status,
-      invoice.totalUsd,
+      invoice.totalEur,
       invoice.paidAt?.slice(0, 10) ?? "",
     ]),
   });
@@ -145,7 +145,7 @@ export function BillingView() {
     const company = companiesById.get(invoice.companyId);
     if (
       payMethod === "credit_balance" &&
-      (company?.creditBalanceUsd ?? 0) < invoice.totalUsd
+      (company?.creditBalanceEur ?? 0) < invoice.totalEur
     ) {
       toast.error(dict.admin.billing.creditShortError);
       return;
@@ -189,24 +189,24 @@ export function BillingView() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
           label={dict.admin.billing.kpiCollected}
-          value={t.usd(totals.collectedUsd)}
+          value={t.eur(totals.collectedEur)}
           hint={dict.admin.billing.kpiCollectedHint}
         />
         <KpiCard
           label={dict.admin.billing.kpiOutstanding}
-          value={t.usd(totals.outstandingUsd)}
+          value={t.eur(totals.outstandingEur)}
           hint={t.fill(dict.admin.billing.kpiOutstandingHint, {
             n: totals.openCount + totals.overdueCount,
           })}
         />
         <KpiCard
           label={dict.admin.billing.kpiOverdue}
-          value={t.usd(totals.overdueUsd)}
+          value={t.eur(totals.overdueEur)}
           hint={t.fill(dict.admin.billing.kpiOverdueHint, { n: totals.overdueCount })}
         />
         <KpiCard
           label={dict.admin.billing.kpiRefunded}
-          value={t.usd(totals.refundedUsd)}
+          value={t.eur(totals.refundedEur)}
           hint={dict.admin.billing.kpiRefundedHint}
         />
       </div>
@@ -283,7 +283,7 @@ export function BillingView() {
                       {t.dateShort(invoice.dueAt)}
                     </TableCell>
                     <TableCell className="tnum text-end text-[13px] font-semibold">
-                      {t.usd(invoice.totalUsd)}
+                      {t.eur(invoice.totalEur)}
                     </TableCell>
                     <TableCell>
                       <StatusBadge
@@ -358,10 +358,10 @@ export function BillingView() {
                     <TableCell className="max-w-72 truncate text-[13px]">{entry.reason}</TableCell>
                     <TableCell className="text-[13px] text-muted-foreground">{entry.by}</TableCell>
                     <TableCell
-                      className={`tnum text-end text-[13px] font-semibold ${entry.deltaUsd >= 0 ? "text-verify" : "text-destructive"}`}
+                      className={`tnum text-end text-[13px] font-semibold ${entry.deltaEur >= 0 ? "text-verify" : "text-destructive"}`}
                     >
-                      {entry.deltaUsd >= 0 ? "+" : ""}
-                      {t.usd(entry.deltaUsd)}
+                      {entry.deltaEur >= 0 ? "+" : ""}
+                      {t.eur(entry.deltaEur)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -397,13 +397,13 @@ export function BillingView() {
                 {selected.lines.map((line) => (
                   <div key={line.id} className="flex items-center justify-between gap-3 text-[13px]">
                     <span>{line.description}</span>
-                    <span className="tnum">{t.usd(line.amountUsd)}</span>
+                    <span className="tnum">{t.eur(line.amountEur)}</span>
                   </div>
                 ))}
                 <Separator className="my-2" />
                 <div className="flex items-center justify-between text-[14px] font-semibold">
                   <span>{dict.admin.billing.total}</span>
-                  <span className="tnum">{t.usd(selected.totalUsd)}</span>
+                  <span className="tnum">{t.eur(selected.totalEur)}</span>
                 </div>
               </div>
 
@@ -442,7 +442,7 @@ export function BillingView() {
                         </SelectItem>
                         <SelectItem value="credit_balance">
                           {dict.admin.labels.paymentMethod.credit_balance} (
-                          {t.usd(selectedCompany?.creditBalanceUsd ?? 0)})
+                          {t.eur(selectedCompany?.creditBalanceEur ?? 0)})
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -466,7 +466,7 @@ export function BillingView() {
                   </div>
                   <Button variant="destructive" className="gap-1.5" onClick={() => refund(selected)}>
                     <Undo2 aria-hidden />
-                    {t.fill(dict.admin.billing.refundAmount, { amount: t.usd(selected.totalUsd) })}
+                    {t.fill(dict.admin.billing.refundAmount, { amount: t.eur(selected.totalEur) })}
                   </Button>
                 </div>
               ) : null}

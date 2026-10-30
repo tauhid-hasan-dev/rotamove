@@ -157,10 +157,10 @@ export function duplicateGroups(leads: AdminLead[]): AdminLead[][] {
 export function revenueInRange(data: Pick<AdminDataset, "payments" | "invoices">, range: DayRange): number {
   const paid = data.payments
     .filter((p) => inRange(p.at, range))
-    .reduce((s, p) => s + p.amountUsd, 0);
+    .reduce((s, p) => s + p.amountEur, 0);
   const refunded = data.invoices
     .filter((i) => i.refund && inRange(i.refund.at, range))
-    .reduce((s, i) => s + (i.refund?.amountUsd ?? 0), 0);
+    .reduce((s, i) => s + (i.refund?.amountEur ?? 0), 0);
   return Math.round((paid - refunded) * 100) / 100;
 }
 
@@ -194,16 +194,16 @@ export function revenueTrend(data: Pick<AdminDataset, "payments" | "invoices">, 
     if (!inRange(payment.at, range)) continue;
     const point = points.get(bucketKey(payment.at.slice(0, 10), bucket));
     if (!point) continue;
-    point.revenue += payment.amountUsd;
+    point.revenue += payment.amountEur;
     const plan = invoiceById.get(payment.invoiceId)?.plan;
-    if (plan === "pay_per_seen") point.unlockFees += payment.amountUsd;
-    else if (plan === "pay_per_lead") point.leadFees += payment.amountUsd;
-    else point.subscriptions += payment.amountUsd;
+    if (plan === "pay_per_seen") point.unlockFees += payment.amountEur;
+    else if (plan === "pay_per_lead") point.leadFees += payment.amountEur;
+    else point.subscriptions += payment.amountEur;
   }
   for (const invoice of data.invoices) {
     if (!invoice.refund || !inRange(invoice.refund.at, range)) continue;
     const point = points.get(bucketKey(invoice.refund.at.slice(0, 10), bucket));
-    if (point) point.revenue -= invoice.refund.amountUsd;
+    if (point) point.revenue -= invoice.refund.amountEur;
   }
   for (const point of points.values()) {
     point.revenue = Math.round(point.revenue * 100) / 100;
@@ -225,8 +225,8 @@ export interface Kpis {
   convertedLeads: number;
   conversionRate: number;
   activeCompanies: number;
-  revenueUsd: number;
-  outstandingUsd: number;
+  revenueEur: number;
+  outstandingEur: number;
 }
 
 export function computeKpis(data: AdminDataset, range: DayRange): Kpis {
@@ -234,7 +234,7 @@ export function computeKpis(data: AdminDataset, range: DayRange): Kpis {
   const counts = statusCounts(leads);
   const outstanding = data.invoices
     .filter((i) => (i.status === "open" || i.status === "overdue") && inRange(i.issuedAt, { start: "0000-01-01", end: range.end }))
-    .reduce((s, i) => s + i.totalUsd, 0);
+    .reduce((s, i) => s + i.totalEur, 0);
 
   return {
     totalLeads: leads.length,
@@ -243,8 +243,8 @@ export function computeKpis(data: AdminDataset, range: DayRange): Kpis {
     convertedLeads: counts.converted,
     conversionRate: leads.length === 0 ? 0 : counts.converted / leads.length,
     activeCompanies: data.companies.filter((c) => c.status === "active").length,
-    revenueUsd: revenueInRange(data, range),
-    outstandingUsd: Math.round(outstanding * 100) / 100,
+    revenueEur: revenueInRange(data, range),
+    outstandingEur: Math.round(outstanding * 100) / 100,
   };
 }
 
@@ -257,7 +257,7 @@ export interface CompanyPerformance {
   leadsReceived: number;
   delivered: number;
   bounced: number;
-  feesUsd: number;
+  feesEur: number;
   lastAssignedAt?: string;
 }
 
@@ -268,7 +268,7 @@ export function companyPerformance(
   const rows = new Map<string, CompanyPerformance>(
     data.companies.map((c) => [
       c.mover.id,
-      { company: c, leadsReceived: 0, delivered: 0, bounced: 0, feesUsd: 0 },
+      { company: c, leadsReceived: 0, delivered: 0, bounced: 0, feesEur: 0 },
     ]),
   );
   for (const lead of data.leads) {
@@ -279,13 +279,13 @@ export function companyPerformance(
       row.leadsReceived += 1;
       if (a.delivery === "opened" || a.delivery === "sent") row.delivered += 1;
       if (a.delivery === "bounced") row.bounced += 1;
-      row.feesUsd += a.feeUsd;
+      row.feesEur += a.feeEur;
       if (!row.lastAssignedAt || a.assignedAt > row.lastAssignedAt) {
         row.lastAssignedAt = a.assignedAt;
       }
     }
   }
-  for (const row of rows.values()) row.feesUsd = Math.round(row.feesUsd * 100) / 100;
+  for (const row of rows.values()) row.feesEur = Math.round(row.feesEur * 100) / 100;
   return [...rows.values()];
 }
 
@@ -326,7 +326,7 @@ export interface ReportRow extends SeriesPoint {
   leads: number;
   assigned: number;
   converted: number;
-  revenueUsd: number;
+  revenueEur: number;
 }
 
 export function reportRows(data: AdminDataset, range: DayRange): ReportRow[] {
@@ -348,16 +348,16 @@ export function reportRows(data: AdminDataset, range: DayRange): ReportRow[] {
     leads: point.leads,
     assigned: assignedByKey.get(point.key) ?? 0,
     converted: point.converted,
-    revenueUsd: revenueByKey.get(point.key) ?? 0,
+    revenueEur: revenueByKey.get(point.key) ?? 0,
   }));
 }
 
 export interface CompanyReportRow {
   company: AdminCompany;
   leadsReceived: number;
-  leadFeesUsd: number;
-  subscriptionUsd: number;
-  totalUsd: number;
+  leadFeesEur: number;
+  subscriptionEur: number;
+  totalEur: number;
 }
 
 export function companyReport(data: AdminDataset, range: DayRange): CompanyReportRow[] {
@@ -372,9 +372,9 @@ export function companyReport(data: AdminDataset, range: DayRange): CompanyRepor
     rows.set(company.mover.id, {
       company,
       leadsReceived: perf?.leadsReceived ?? 0,
-      leadFeesUsd: 0,
-      subscriptionUsd: 0,
-      totalUsd: 0,
+      leadFeesEur: 0,
+      subscriptionEur: 0,
+      totalEur: 0,
     });
   }
 
@@ -383,19 +383,19 @@ export function companyReport(data: AdminDataset, range: DayRange): CompanyRepor
     const row = rows.get(payment.companyId);
     const invoice = invoiceById.get(payment.invoiceId);
     if (!row || !invoice) continue;
-    if (invoice.plan === "pro_unlimited") row.subscriptionUsd += payment.amountUsd;
-    else row.leadFeesUsd += payment.amountUsd;
+    if (invoice.plan === "pro_unlimited") row.subscriptionEur += payment.amountEur;
+    else row.leadFeesEur += payment.amountEur;
   }
 
   for (const row of rows.values()) {
-    row.leadFeesUsd = Math.round(row.leadFeesUsd * 100) / 100;
-    row.subscriptionUsd = Math.round(row.subscriptionUsd * 100) / 100;
-    row.totalUsd = Math.round((row.leadFeesUsd + row.subscriptionUsd) * 100) / 100;
+    row.leadFeesEur = Math.round(row.leadFeesEur * 100) / 100;
+    row.subscriptionEur = Math.round(row.subscriptionEur * 100) / 100;
+    row.totalEur = Math.round((row.leadFeesEur + row.subscriptionEur) * 100) / 100;
   }
 
   return [...rows.values()]
-    .filter((r) => r.leadsReceived > 0 || r.totalUsd > 0)
-    .sort((a, b) => b.totalUsd - a.totalUsd);
+    .filter((r) => r.leadsReceived > 0 || r.totalEur > 0)
+    .sort((a, b) => b.totalEur - a.totalEur);
 }
 
 /* ------------------------------------------------------------------ *
@@ -539,10 +539,10 @@ export function campaignRows(
  * ------------------------------------------------------------------ */
 
 export interface BillingTotals {
-  collectedUsd: number;
-  outstandingUsd: number;
-  overdueUsd: number;
-  refundedUsd: number;
+  collectedEur: number;
+  outstandingEur: number;
+  overdueEur: number;
+  refundedEur: number;
   openCount: number;
   overdueCount: number;
 }
@@ -555,22 +555,22 @@ export function billingTotals(data: AdminDataset, range: DayRange): BillingTotal
   let overdueCount = 0;
   for (const invoice of data.invoices) {
     if (invoice.status === "open") {
-      outstanding += invoice.totalUsd;
+      outstanding += invoice.totalEur;
       openCount += 1;
     } else if (invoice.status === "overdue") {
-      outstanding += invoice.totalUsd;
-      overdue += invoice.totalUsd;
+      outstanding += invoice.totalEur;
+      overdue += invoice.totalEur;
       overdueCount += 1;
     }
     if (invoice.refund && inRange(invoice.refund.at, range)) {
-      refunded += invoice.refund.amountUsd;
+      refunded += invoice.refund.amountEur;
     }
   }
   return {
-    collectedUsd: revenueInRange(data, range),
-    outstandingUsd: Math.round(outstanding * 100) / 100,
-    overdueUsd: Math.round(overdue * 100) / 100,
-    refundedUsd: Math.round(refunded * 100) / 100,
+    collectedEur: revenueInRange(data, range),
+    outstandingEur: Math.round(outstanding * 100) / 100,
+    overdueEur: Math.round(overdue * 100) / 100,
+    refundedEur: Math.round(refunded * 100) / 100,
     openCount,
     overdueCount,
   };

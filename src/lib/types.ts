@@ -244,8 +244,8 @@ export interface Quote {
   depositPct: number;
   /** Set when the partner has declared a vehicle already running this lane. */
   lane?: QuoteLane;
-  /** Only populated for pay-per-lead partners — what Rotamove charges them (USD). */
-  leadFeeUsd?: number;
+  /** Only populated for pay-per-lead partners — what Rotamove charges them (EUR). */
+  leadFeeEur?: number;
 }
 
 /**

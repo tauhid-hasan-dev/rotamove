@@ -1,9 +1,9 @@
 import { CITIES, cityCountry, cityRegion, getCity, isCoreCorridor, resolveCorridor } from "@/lib/geo";
 import { MOVERS } from "@/lib/movers";
 import {
-  LEAD_FEE_CAP_USD,
-  LEAD_FEE_FLOOR_USD,
-  PRO_MONTHLY_USD,
+  LEAD_FEE_CAP_EUR,
+  LEAD_FEE_FLOOR_EUR,
+  PRO_MONTHLY_EUR,
   paysPerUnlock,
 } from "@/lib/plans";
 import { estimateVolume } from "@/lib/pricing";
@@ -148,13 +148,13 @@ function phoneFor(iso: string, rng: Rng): string {
 }
 
 /**
- * Anchored twin of `plans.leadFeeUsd`: same rules, but "now" is the dataset
+ * Anchored twin of `plans.leadFeeEur`: same rules, but "now" is the dataset
  * anchor rather than the wall clock, so the seed never shifts mid-session.
  */
 function feeFor(lead: Lead, anchorMs: number): number {
   const from = getCity(lead.origin.cityCode);
   const to = getCity(lead.destination.cityCode);
-  if (!from || !to) return LEAD_FEE_FLOOR_USD;
+  if (!from || !to) return LEAD_FEE_FLOOR_EUR;
 
   const corridor = resolveCorridor(from, to);
   let fee = lead.moveType === "international" ? 3.6 : 2.1;
@@ -174,7 +174,7 @@ function feeFor(lead: Lead, anchorMs: number): number {
   if (daysOut <= 30) fee += 0.4;
   else if (daysOut > 120) fee -= 0.5;
 
-  return Math.round(Math.min(LEAD_FEE_CAP_USD, Math.max(LEAD_FEE_FLOOR_USD, fee)) * 100) / 100;
+  return Math.round(Math.min(LEAD_FEE_CAP_EUR, Math.max(LEAD_FEE_FLOOR_EUR, fee)) * 100) / 100;
 }
 
 /** Anchored twin of `plans.leadQualityScore`. */
@@ -318,7 +318,7 @@ function generateLeads(anchorMs: number, companies: AdminCompany[]): GeneratedLe
             country: cityCountry(from).iso,
           },
           qualityScore: scoreFor(lead, anchorMs),
-          feeUsd: feeFor(lead, anchorMs),
+          feeEur: feeFor(lead, anchorMs),
           assignments,
           statusHistory,
         },
@@ -422,7 +422,7 @@ function assignmentsFor(
     return {
       companyId: company.mover.id,
       assignedAt: isoAt(assignedMs),
-      feeUsd: paysPerUnlock(company.mover.plan) ? fee : 0,
+      feeEur: paysPerUnlock(company.mover.plan) ? fee : 0,
       delivery,
     };
   });
@@ -485,7 +485,7 @@ function generateCompanies(anchorMs: number): AdminCompany[] {
       contactName: `${first} ${last}`,
       contactEmail: `${first}.${last}`.toLowerCase().replace(/[^a-z.]/g, "") + `@${mover.slug}.example`,
       contactPhone: phoneFor("TR", rng),
-      creditBalanceUsd:
+      creditBalanceEur:
         paysPerUnlock(mover.plan) && rng.bool(0.4) ? rng.int(2, 12) * 5 : 0,
       notes:
         status === "suspended"
@@ -514,16 +514,16 @@ function generateBilling(
   const payments: Payment[] = [];
   const credits: CreditEntry[] = [];
 
-  // Pre-bucket pay-per-lead fees: companyId → "yyyy-mm" → { count, totalUsd }
-  const feeBuckets = new Map<string, Map<string, { count: number; totalUsd: number }>>();
+  // Pre-bucket pay-per-lead fees: companyId → "yyyy-mm" → { count, totalEur }
+  const feeBuckets = new Map<string, Map<string, { count: number; totalEur: number }>>();
   for (const al of leads) {
     for (const a of al.assignments) {
-      if (a.feeUsd <= 0) continue;
+      if (a.feeEur <= 0) continue;
       const month = a.assignedAt.slice(0, 7);
       const byMonth = feeBuckets.get(a.companyId) ?? new Map();
-      const cell = byMonth.get(month) ?? { count: 0, totalUsd: 0 };
+      const cell = byMonth.get(month) ?? { count: 0, totalEur: 0 };
       cell.count += 1;
-      cell.totalUsd += a.feeUsd;
+      cell.totalEur += a.feeEur;
       byMonth.set(month, cell);
       feeBuckets.set(a.companyId, byMonth);
     }
@@ -563,7 +563,7 @@ function generateBilling(
           description: "Pro Unlimited subscription",
           kind: "subscription",
           quantity: 1,
-          amountUsd: PRO_MONTHLY_USD,
+          amountEur: PRO_MONTHLY_EUR,
         });
       } else {
         const cell = feeBuckets.get(company.mover.id)?.get(month);
@@ -573,12 +573,12 @@ function generateBilling(
           description: `Lead unlocks (${cell.count})`,
           kind: "lead_fee",
           quantity: cell.count,
-          amountUsd: Math.round(cell.totalUsd * 100) / 100,
+          amountEur: Math.round(cell.totalEur * 100) / 100,
         });
       }
 
       const rng = createRng("invoice", company.mover.id, month);
-      const totalUsd = Math.round(lines.reduce((s, l) => s + l.amountUsd, 0) * 100) / 100;
+      const totalEur = Math.round(lines.reduce((s, l) => s + l.amountEur, 0) * 100) / 100;
       const issuedMs = nextMonthMs; // billed at period close
       if (issuedMs > anchorMs && !isCurrentMonth) continue;
 
@@ -600,7 +600,7 @@ function generateBilling(
         const paidMs = issuedMs + rng.int(1, 10) * DAY;
         paidAt = isoAt(paidMs);
         refund = {
-          amountUsd: totalUsd,
+          amountEur: totalEur,
           at: isoAt(paidMs + rng.int(2, 20) * DAY),
           reason: rng.pick([
             "Duplicate charge",
@@ -625,7 +625,7 @@ function generateBilling(
         dueAt: isoDay(dueMs),
         status,
         lines,
-        totalUsd,
+        totalEur,
         paidAt,
         refund,
       };
@@ -638,21 +638,21 @@ function generateBilling(
           invoiceId: invoice.id,
           companyId: company.mover.id,
           at: paidAt,
-          amountUsd: totalUsd,
+          amountEur: totalEur,
           method: rng.bool(0.7) ? "card" : "bank_transfer",
         });
       }
     }
 
     // Credit ledger for companies holding a balance.
-    if (company.creditBalanceUsd > 0) {
+    if (company.creditBalanceEur > 0) {
       const rng = createRng("credit", company.mover.id);
       creditSerial += 1;
       credits.push({
         id: `cr_${String(creditSerial).padStart(3, "0")}`,
         companyId: company.mover.id,
         at: isoAt(anchorMs - rng.int(5, 60) * DAY),
-        deltaUsd: company.creditBalanceUsd,
+        deltaEur: company.creditBalanceEur,
         reason: rng.pick([
           "Goodwill credit - bounced lead",
           "Promo: referral bonus",
@@ -938,9 +938,9 @@ export function generateAdminDataset(anchorDate: string): AdminDataset {
     roles: defaultRoles(),
     audit,
     settings: {
-      leadFeeFloorUsd: LEAD_FEE_FLOOR_USD,
-      leadFeeCapUsd: LEAD_FEE_CAP_USD,
-      proMonthlyUsd: PRO_MONTHLY_USD,
+      leadFeeFloorEur: LEAD_FEE_FLOOR_EUR,
+      leadFeeCapEur: LEAD_FEE_CAP_EUR,
+      proMonthlyEur: PRO_MONTHLY_EUR,
       defaultMatchCount: 5,
       duplicateWindowDays: 14,
       autoAssignLeads: false,

@@ -6,10 +6,10 @@ import { Slider } from "@/components/ui/slider";
 import { SwitchRow } from "@/components/quote/fields";
 import { type RegionId } from "@/lib/geo";
 import {
-  LEAD_FEE_CAP_USD,
-  LEAD_FEE_FLOOR_USD,
-  PRO_MONTHLY_USD,
-  leadFeeUsd,
+  LEAD_FEE_CAP_EUR,
+  LEAD_FEE_FLOOR_EUR,
+  PRO_MONTHLY_EUR,
+  leadFeeEur,
   leadQualityScore,
 } from "@/lib/plans";
 import { addDays, todayIso } from "@/lib/format";
@@ -90,9 +90,9 @@ export function LeadPriceExplainer() {
     [dest, volume, daysOut, fullService, storage],
   );
 
-  const fee = leadFeeUsd(lead);
+  const fee = leadFeeEur(lead);
   const quality = leadQualityScore(lead);
-  const atCap = fee >= LEAD_FEE_CAP_USD;
+  const atCap = fee >= LEAD_FEE_CAP_EUR;
 
   return (
     <div className="grid gap-8 rounded-3xl border bg-card p-6 sm:p-8 lg:grid-cols-[1fr_380px] lg:gap-12">
@@ -104,7 +104,7 @@ export function LeadPriceExplainer() {
           </h3>
         </div>
         <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-          {t.fill(dict.leadFee.body, { cap: t.usd(LEAD_FEE_CAP_USD) })}
+          {t.fill(dict.leadFee.body, { cap: t.eur(LEAD_FEE_CAP_EUR) })}
         </p>
 
         <div className="mt-7 space-y-6">
@@ -191,7 +191,7 @@ export function LeadPriceExplainer() {
           <p className="eyebrow">{dict.leadFee.youPay}</p>
           <p className="mt-2 flex items-baseline gap-2">
             <span className="text-[52px] font-extrabold leading-none tracking-[-0.05em] tnum">
-              {t.usd(fee)}
+              {t.eur(fee)}
             </span>
             <span className="text-[12px] text-muted-foreground">{dict.leadFee.once}</span>
           </p>
@@ -203,19 +203,19 @@ export function LeadPriceExplainer() {
                   "h-full rounded-full transition-[width] duration-300",
                   atCap ? "bg-brand" : "bg-brand",
                 )}
-                style={{ width: `${(fee / LEAD_FEE_CAP_USD) * 100}%` }}
+                style={{ width: `${(fee / LEAD_FEE_CAP_EUR) * 100}%` }}
               />
             </div>
             <div className="mt-1.5 flex justify-between text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground tnum">
-              <span>{t.fill(dict.leadFee.floor, { amount: t.usd(LEAD_FEE_FLOOR_USD) })}</span>
-              <span>{t.fill(dict.leadFee.cap, { amount: t.usd(LEAD_FEE_CAP_USD) })}</span>
+              <span>{t.fill(dict.leadFee.floor, { amount: t.eur(LEAD_FEE_FLOOR_EUR) })}</span>
+              <span>{t.fill(dict.leadFee.cap, { amount: t.eur(LEAD_FEE_CAP_EUR) })}</span>
             </div>
           </div>
 
           {atCap && (
             <p className="mt-4 flex items-start gap-2 text-[12.5px] leading-relaxed text-muted-foreground">
               <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-foreground" />
-              {t.fill(dict.leadFee.atCap, { cap: t.usd(LEAD_FEE_CAP_USD) })}
+              {t.fill(dict.leadFee.atCap, { cap: t.eur(LEAD_FEE_CAP_EUR) })}
             </p>
           )}
         </div>
@@ -232,13 +232,13 @@ export function LeadPriceExplainer() {
           <Row label={dict.leadFee.refundWindow} value={dict.leadFee.refundValue} />
           <Row
             label={dict.leadFee.costOnPro}
-            value={t.fill(dict.leadFee.costOnProValue, { amount: t.usd(0) })}
+            value={t.fill(dict.leadFee.costOnProValue, { amount: t.eur(0) })}
             accent
           />
         </dl>
 
         <p className="mt-6 text-[12.5px] leading-relaxed text-muted-foreground">
-          {t.fill(dict.leadFee.footnote, { pro: t.usd(PRO_MONTHLY_USD) })}
+          {t.fill(dict.leadFee.footnote, { pro: t.eur(PRO_MONTHLY_EUR) })}
         </p>
       </div>
     </div>

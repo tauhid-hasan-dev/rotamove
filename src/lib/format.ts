@@ -12,26 +12,15 @@ const eurPrecise = new Intl.NumberFormat("en-GB", {
   maximumFractionDigits: 2,
 });
 
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
-const usdPrecise = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 2,
-});
-
 const compact = new Intl.NumberFormat("en-GB", { notation: "compact", maximumFractionDigits: 1 });
 const plain = new Intl.NumberFormat("en-GB");
 
 export const formatEur = (value: number) => eur.format(value);
-export const formatEurPrecise = (value: number) => eurPrecise.format(value);
-export const formatUsd = (value: number) => usd.format(value);
-export const formatUsdPrecise = (value: number) =>
-  Number.isInteger(value) ? usd.format(value) : usdPrecise.format(value);
+
+/** Cents only when there are cents: "€1,234" for a round total, "€1,234.56" otherwise. */
+export const formatEurPrecise = (value: number) =>
+  Number.isInteger(value) ? eur.format(value) : eurPrecise.format(value);
+
 export const formatCompact = (value: number) => compact.format(value);
 export const formatNumber = (value: number) => plain.format(value);
 

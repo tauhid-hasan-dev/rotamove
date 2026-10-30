@@ -143,10 +143,10 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
     dispatch({
       type: "credit/add",
       companyId,
-      amountUsd: Math.round(amount * 100) / 100,
+      amountEur: Math.round(amount * 100) / 100,
       reason: creditReason.trim() || dict.admin.companyDetail.creditReasonFallback,
     });
-    toast.success(t.fill(dict.admin.companyDetail.creditGrantedToast, { amount: t.usd(amount) }));
+    toast.success(t.fill(dict.admin.companyDetail.creditGrantedToast, { amount: t.eur(amount) }));
     setCreditOpen(false);
     setCreditReason("");
   };
@@ -161,11 +161,11 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
     dispatch({
       type: "credit/amend",
       creditId: amending.id,
-      amountUsd: amount,
+      amountEur: amount,
       reason: amending.reason.trim() || dict.admin.companyDetail.creditReasonFallback,
     });
     toast.success(
-      t.fill(dict.admin.companyDetail.creditCorrectedToast, { amount: t.usd(amount) }),
+      t.fill(dict.admin.companyDetail.creditCorrectedToast, { amount: t.eur(amount) }),
     );
     setAmending(null);
   };
@@ -263,20 +263,20 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
           label={dict.admin.companyDetail.kpiFeesPaid12mo}
           value={
             mover.plan !== "pro_unlimited"
-              ? t.usd(perf?.feesUsd ?? 0)
+              ? t.eur(perf?.feesEur ?? 0)
               : dict.admin.companyDetail.kpiProPlan
           }
           hint={
             mover.plan !== "pro_unlimited"
               ? dict.admin.companyDetail.kpiLeadUnlocks
               : t.fill(dict.admin.companyDetail.kpiSubscription, {
-                  amount: t.usd(data.settings.proMonthlyUsd),
+                  amount: t.eur(data.settings.proMonthlyEur),
                 })
           }
         />
         <KpiCard
           label={dict.admin.companyDetail.kpiCreditBalance}
-          value={t.usd(company.creditBalanceUsd)}
+          value={t.eur(company.creditBalanceEur)}
           hint={dict.admin.companyDetail.kpiPrepaidCredit}
         />
       </div>
@@ -353,7 +353,7 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                   // Spends are written by invoice settlement; correcting one
                   // here would only put the ledger out of step with the
                   // invoice that caused it.
-                  const correctable = entry.deltaUsd >= 0;
+                  const correctable = entry.deltaEur >= 0;
                   return (
                     <div
                       key={entry.id}
@@ -365,17 +365,17 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                           {t.dateShort(entry.at)} · {entry.by}
                           {entry.correctedFrom !== undefined
                             ? ` · ${t.fill(dict.admin.companyDetail.creditWas, {
-                                amount: t.usd(entry.correctedFrom),
+                                amount: t.eur(entry.correctedFrom),
                               })}`
                             : ""}
                         </span>
                       </span>
                       <span className="flex shrink-0 items-center gap-1">
                         <span
-                          className={`tnum font-semibold ${entry.deltaUsd >= 0 ? "text-verify" : "text-destructive"}`}
+                          className={`tnum font-semibold ${entry.deltaEur >= 0 ? "text-verify" : "text-destructive"}`}
                         >
-                          {entry.deltaUsd >= 0 ? "+" : ""}
-                          {t.usd(entry.deltaUsd)}
+                          {entry.deltaEur >= 0 ? "+" : ""}
+                          {t.eur(entry.deltaEur)}
                         </span>
                         {correctable ? (
                           <Button
@@ -383,12 +383,12 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                             size="icon"
                             className="size-7 text-muted-foreground opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                             aria-label={t.fill(dict.admin.companyDetail.editCreditAria, {
-                              amount: t.usd(entry.deltaUsd),
+                              amount: t.eur(entry.deltaEur),
                             })}
                             onClick={() =>
                               setAmending({
                                 id: entry.id,
-                                amount: String(entry.deltaUsd),
+                                amount: String(entry.deltaEur),
                                 reason: entry.reason,
                               })
                             }
@@ -419,7 +419,7 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                   </DialogHeader>
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="credit-amount">{dict.admin.companyDetail.amountUsd}</Label>
+                      <Label htmlFor="credit-amount">{dict.admin.companyDetail.amountEur}</Label>
                       <Input
                         id="credit-amount"
                         type="number"
@@ -467,7 +467,7 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <Label htmlFor="credit-edit-amount">
-                        {dict.admin.companyDetail.amountUsd}
+                        {dict.admin.companyDetail.amountEur}
                       </Label>
                       <Input
                         id="credit-edit-amount"
@@ -567,7 +567,7 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                               {t.dateShort(assignment.assignedAt)}
                             </TableCell>
                             <TableCell className="tnum text-end text-[13px]">
-                              {assignment.feeUsd > 0 ? t.usd(assignment.feeUsd) : "—"}
+                              {assignment.feeEur > 0 ? t.eur(assignment.feeEur) : "—"}
                             </TableCell>
                             <TableCell>
                               <StatusBadge
@@ -623,7 +623,7 @@ export function CompanyDetailView({ companyId }: { companyId: string }) {
                     </span>
                     <span className="flex items-center gap-3">
                       <span className="tnum text-[13px] font-semibold">
-                        {t.usd(invoice.totalUsd)}
+                        {t.eur(invoice.totalEur)}
                       </span>
                       <StatusBadge
                         meta={INVOICE_STATUS_META[invoice.status]}

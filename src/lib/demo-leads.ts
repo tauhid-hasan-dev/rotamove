@@ -1,5 +1,5 @@
 import { CITIES, cityCountry, getCity } from "@/lib/geo";
-import { AVG_LEAD_FEE_USD, PRO_MONTHLY_USD, leadFeeUsd, leadQualityScore } from "@/lib/plans";
+import { AVG_LEAD_FEE_EUR, PRO_MONTHLY_EUR, leadFeeEur, leadQualityScore } from "@/lib/plans";
 import { estimateVolume } from "@/lib/pricing";
 import { createRng } from "@/lib/rand";
 import type { Lead, PlanId, PropertySize } from "@/lib/types";
@@ -24,7 +24,7 @@ export type BoardStatus = "new" | "unlocked";
 
 export interface BoardLead {
   lead: Lead;
-  feeUsd: number;
+  feeEur: number;
   score: number;
   status: BoardStatus;
   /** Minutes since the enquiry landed. */
@@ -191,7 +191,7 @@ export function generateLeadBoard(now: number, count = 18): BoardLead[] {
 
     return {
       lead,
-      feeUsd: leadFeeUsd(lead),
+      feeEur: leadFeeEur(lead),
       score: leadQualityScore(lead),
       status,
       ageMins,
@@ -212,7 +212,7 @@ export function generateLeadBoard(now: number, count = 18): BoardLead[] {
 export interface PartnerMetrics {
   leadsThisMonth: number;
   unlocked: number;
-  spendUsd: number;
+  spendEur: number;
   avgResponseMins: number;
 }
 
@@ -221,7 +221,7 @@ export function generatePartnerMetrics(plan: PlanId): PartnerMetrics {
     return {
       leadsThisMonth: 312,
       unlocked: 312,
-      spendUsd: PRO_MONTHLY_USD,
+      spendEur: PRO_MONTHLY_EUR,
       avgResponseMins: 12,
     };
   }
@@ -231,7 +231,7 @@ export function generatePartnerMetrics(plan: PlanId): PartnerMetrics {
   return {
     leadsThisMonth: plan === "pay_per_seen" ? 54 : 47,
     unlocked,
-    spendUsd: Math.round(unlocked * AVG_LEAD_FEE_USD * 100) / 100,
+    spendEur: Math.round(unlocked * AVG_LEAD_FEE_EUR * 100) / 100,
     avgResponseMins: plan === "pay_per_seen" ? 55 : 41,
   };
 }

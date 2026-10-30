@@ -48,7 +48,7 @@ import type { PartnerProfile } from "@/lib/partner-profile";
 import type { PlanSubscription } from "@/lib/plan-store";
 import type { Mover, PlanId } from "@/lib/types";
 import { REGION_ORDER, cityRegion, getCity } from "@/lib/geo";
-import { LEAD_FEE_CAP_USD, LEAD_FEE_FLOOR_USD, AVG_LEAD_FEE_USD, PRO_MONTHLY_USD } from "@/lib/plans";
+import { LEAD_FEE_CAP_EUR, LEAD_FEE_FLOOR_EUR, AVG_LEAD_FEE_EUR, PRO_MONTHLY_EUR } from "@/lib/plans";
 import { MOVERS } from "@/lib/movers";
 import { PARTNER_COOKIE } from "@/lib/partner-session";
 import { useI18n } from "@/i18n/provider";
@@ -185,7 +185,7 @@ export function PartnerDashboard({
       plan === "pro_unlimited"
         ? 0
         : [...unlocked].reduce(
-            (sum, id) => sum + (board.find((b) => b.lead.id === id)?.feeUsd ?? 0),
+            (sum, id) => sum + (board.find((b) => b.lead.id === id)?.feeEur ?? 0),
             0,
           ),
     [unlocked, board, plan],
@@ -641,12 +641,12 @@ function OverviewPanel({
         />
         <Kpi
           label={pd.kpis.platformSpend}
-          value={t.usd(Math.round((metrics.spendUsd + walletSpent) * 100) / 100)}
+          value={t.eur(Math.round((metrics.spendEur + walletSpent) * 100) / 100)}
           sub={
             isPro
-              ? t.fill(pd.kpis.flatPerMonth, { amount: t.usd(PRO_MONTHLY_USD) })
+              ? t.fill(pd.kpis.flatPerMonth, { amount: t.eur(PRO_MONTHLY_EUR) })
               : t.fill(plan === "pay_per_seen" ? pd.kpis.perUnlockApprox : pd.kpis.perLeadApprox, {
-                  amount: t.usd(AVG_LEAD_FEE_USD),
+                  amount: t.eur(AVG_LEAD_FEE_EUR),
                 })
           }
         />
@@ -715,8 +715,8 @@ function OverviewPanel({
               <div>
                 <dt className="eyebrow">{pd.billing.billedThisCycle}</dt>
                 <dd className="mt-1.5 text-[20px] font-medium tnum">
-                  {t.usd(
-                    Math.round((isPro ? PRO_MONTHLY_USD : metrics.spendUsd + walletSpent) * 100) /
+                  {t.eur(
+                    Math.round((isPro ? PRO_MONTHLY_EUR : metrics.spendEur + walletSpent) * 100) /
                       100,
                   )}
                 </dd>
@@ -871,9 +871,9 @@ function BillingPanel({
   const isPro = plan === "pro_unlimited";
 
   const invoices = [
-    { ref: "INV-2026-0418", period: pd.billing.periodThisMonth, amount: isPro ? PRO_MONTHLY_USD : metrics.spendUsd, paid: false },
-    { ref: "INV-2026-0392", period: pd.billing.periodLastMonth, amount: isPro ? PRO_MONTHLY_USD : 198.4, paid: true },
-    { ref: "INV-2026-0361", period: pd.billing.periodTwoMonthsAgo, amount: isPro ? PRO_MONTHLY_USD : 164.8, paid: true },
+    { ref: "INV-2026-0418", period: pd.billing.periodThisMonth, amount: isPro ? PRO_MONTHLY_EUR : metrics.spendEur, paid: false },
+    { ref: "INV-2026-0392", period: pd.billing.periodLastMonth, amount: isPro ? PRO_MONTHLY_EUR : 198.4, paid: true },
+    { ref: "INV-2026-0361", period: pd.billing.periodTwoMonthsAgo, amount: isPro ? PRO_MONTHLY_EUR : 164.8, paid: true },
   ];
 
   // Same thirty-day boundary the overview shows, from the subscription rather
@@ -881,10 +881,10 @@ function BillingPanel({
   const nextCycle = new Date(Date.parse(subscription.cycleEnds) + DAY_MS);
 
   const planDescription = isPro
-    ? t.fill(pd.billing.proDesc, { amount: t.usd(PRO_MONTHLY_USD) })
+    ? t.fill(pd.billing.proDesc, { amount: t.eur(PRO_MONTHLY_EUR) })
     : t.fill(plan === "pay_per_seen" ? pd.billing.ppsDesc : pd.billing.pplDesc, {
-        floor: t.usd(LEAD_FEE_FLOOR_USD),
-        cap: t.usd(LEAD_FEE_CAP_USD),
+        floor: t.eur(LEAD_FEE_FLOOR_EUR),
+        cap: t.eur(LEAD_FEE_CAP_EUR),
       });
 
   return (
@@ -907,8 +907,8 @@ function BillingPanel({
           <div>
             <dt className="eyebrow">{pd.billing.billedThisCycle}</dt>
             <dd className="mt-1.5 text-[24px] font-medium tnum">
-              {t.usd(
-                Math.round((isPro ? PRO_MONTHLY_USD : metrics.spendUsd + walletSpent) * 100) /
+              {t.eur(
+                Math.round((isPro ? PRO_MONTHLY_EUR : metrics.spendEur + walletSpent) * 100) /
                   100,
               )}
             </dd>
@@ -928,9 +928,9 @@ function BillingPanel({
           <div>
             <dt className="eyebrow">{pd.billing.effectiveCost}</dt>
             <dd className="mt-1.5 text-[24px] font-medium text-verify tnum">
-              {t.usd(
+              {t.eur(
                 Math.round(
-                  ((isPro ? PRO_MONTHLY_USD : metrics.spendUsd) /
+                  ((isPro ? PRO_MONTHLY_EUR : metrics.spendEur) /
                     Math.max(1, isPro ? metrics.leadsThisMonth : metrics.unlocked)) *
                     100,
                 ) / 100,
@@ -957,7 +957,7 @@ function BillingPanel({
                 <p className="truncate text-[12.5px] tnum">{inv.ref}</p>
                 <p className="text-[12px] text-muted-foreground">{inv.period}</p>
               </div>
-              <span className="shrink-0 text-[13px] tnum">{t.usd(inv.amount)}</span>
+              <span className="shrink-0 text-[13px] tnum">{t.eur(inv.amount)}</span>
               <span
                 className={cn(
                   "shrink-0 rounded-full px-2 py-0.5 text-[9.5px] uppercase tracking-[0.12em]",

@@ -114,17 +114,17 @@ export function DashboardView() {
         />
         <KpiCard
           label={dx.kpiRevenue}
-          value={t.usd(kpis.revenueUsd)}
-          delta={delta(kpis.revenueUsd, prev.revenueUsd)}
+          value={t.eur(kpis.revenueEur)}
+          delta={delta(kpis.revenueEur, prev.revenueEur)}
         />
         <KpiCard
           label={dx.kpiOutstanding}
-          value={t.usd(kpis.outstandingUsd)}
+          value={t.eur(kpis.outstandingEur)}
           hint={dx.kpiOutstandingHint}
         />
         <KpiCard
           label={dict.admin.billing.kpiOverdue}
-          value={t.usd(billing.overdueUsd)}
+          value={t.eur(billing.overdueEur)}
           hint={t.fill(dict.admin.billing.kpiOverdueHint, { n: t.number(billing.overdueCount) })}
         />
       </div>
@@ -216,8 +216,8 @@ export function DashboardView() {
                     </span>
                     <span className="block text-xs text-muted-foreground">
                       {t.fill(dx.leadsCount, { count: t.number(row.leadsReceived) })}
-                      {row.feesUsd > 0
-                        ? ` · ${t.fill(dx.inFees, { amount: t.usd(row.feesUsd) })}`
+                      {row.feesEur > 0
+                        ? ` · ${t.fill(dx.inFees, { amount: t.eur(row.feesEur) })}`
                         : ` · ${dx.proPlan}`}
                     </span>
                   </span>

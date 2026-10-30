@@ -40,8 +40,8 @@ export type AdminAction =
   | { type: "company/status"; id: string; status: CompanyStatus; reason?: string }
   | { type: "invoice/pay"; id: string; method: PaymentMethod }
   | { type: "invoice/refund"; id: string; reason: string }
-  | { type: "credit/add"; companyId: string; amountUsd: number; reason: string }
-  | { type: "credit/amend"; creditId: string; amountUsd: number; reason: string }
+  | { type: "credit/add"; companyId: string; amountEur: number; reason: string }
+  | { type: "credit/amend"; creditId: string; amountEur: number; reason: string }
   | { type: "settings/update"; patch: Partial<PlatformSettings> }
   | { type: "roles/toggle"; roleId: string; permission: PermissionKey }
   | { type: "roles/create"; name: string; permissions?: PermissionKey[] }
@@ -110,9 +110,9 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
             .map((companyId) => ({
               companyId,
               assignedAt: now,
-              feeUsd: (() => {
+              feeEur: (() => {
                 const plan = companiesById.get(companyId)?.mover.plan;
-                return plan && paysPerUnlock(plan) ? l.feeUsd : 0;
+                return plan && paysPerUnlock(plan) ? l.feeEur : 0;
               })(),
               delivery: "sent" as DeliveryStatus,
             }));
@@ -212,8 +212,8 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
           c.mover.id === invoice.companyId
             ? {
                 ...c,
-                creditBalanceUsd:
-                  Math.round(Math.max(0, c.creditBalanceUsd - invoice.totalUsd) * 100) / 100,
+                creditBalanceEur:
+                  Math.round(Math.max(0, c.creditBalanceEur - invoice.totalEur) * 100) / 100,
               }
             : c,
         );
@@ -222,7 +222,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
             id: `cr_live_${nanoid(6)}`,
             companyId: invoice.companyId,
             at: now,
-            deltaUsd: -invoice.totalUsd,
+            deltaEur: -invoice.totalEur,
             reason: `Applied to ${invoice.number}`,
             by: ACTOR,
           },
@@ -244,7 +244,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
             invoiceId: invoice.id,
             companyId: invoice.companyId,
             at: now,
-            amountUsd: invoice.totalUsd,
+            amountEur: invoice.totalEur,
             method: action.method,
           },
         ],
@@ -268,7 +268,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
             ? {
                 ...i,
                 status: "refunded" as const,
-                refund: { amountUsd: i.totalUsd, at: now, reason: action.reason, by: ACTOR },
+                refund: { amountEur: i.totalEur, at: now, reason: action.reason, by: ACTOR },
               }
             : i,
         ),
@@ -289,8 +289,8 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
           c.mover.id === action.companyId
             ? {
                 ...c,
-                creditBalanceUsd:
-                  Math.round((c.creditBalanceUsd + action.amountUsd) * 100) / 100,
+                creditBalanceEur:
+                  Math.round((c.creditBalanceEur + action.amountEur) * 100) / 100,
               }
             : c,
         ),
@@ -299,7 +299,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
             id: `cr_live_${nanoid(6)}`,
             companyId: action.companyId,
             at: now,
-            deltaUsd: action.amountUsd,
+            deltaEur: action.amountEur,
             reason: action.reason,
             by: ACTOR,
           },
@@ -311,7 +311,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
         action: "credit.granted",
         entity: "company",
         entityId: action.companyId,
-        detail: `$${action.amountUsd} credit for ${company?.mover.name ?? action.companyId}: ${action.reason}`,
+        detail: `€${action.amountEur} credit for ${company?.mover.name ?? action.companyId}: ${action.reason}`,
       });
     }
 
@@ -319,7 +319,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
      * Correct a grant that was keyed in wrong.
      *
      * The entry is amended rather than reversed-and-reissued: a typo is not
-     * a second decision, and a ledger that shows "+$250, -$250, +$25" for
+     * a second decision, and a ledger that shows "+€250, -€250, +€25" for
      * one goodwill credit reads as three events to anyone auditing it
      * later. The balance moves by the difference only, the original figure
      * is kept on the entry so the correction stays visible, and the audit
@@ -331,10 +331,10 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
      */
     case "credit/amend": {
       const entry = state.credits.find((c) => c.id === action.creditId);
-      if (!entry || entry.deltaUsd < 0) return state;
+      if (!entry || entry.deltaEur < 0) return state;
 
-      const amount = Math.round(action.amountUsd * 100) / 100;
-      const diff = amount - entry.deltaUsd;
+      const amount = Math.round(action.amountEur * 100) / 100;
+      const diff = amount - entry.deltaEur;
 
       const next: AdminDataset = {
         ...state,
@@ -342,8 +342,8 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
           c.mover.id === entry.companyId
             ? {
                 ...c,
-                creditBalanceUsd:
-                  Math.round(Math.max(0, c.creditBalanceUsd + diff) * 100) / 100,
+                creditBalanceEur:
+                  Math.round(Math.max(0, c.creditBalanceEur + diff) * 100) / 100,
               }
             : c,
         ),
@@ -351,11 +351,11 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
           c.id === action.creditId
             ? {
                 ...c,
-                deltaUsd: amount,
+                deltaEur: amount,
                 reason: action.reason,
                 // A second correction still points at the figure first
                 // granted, not at the one it was corrected to.
-                correctedFrom: c.correctedFrom ?? c.deltaUsd,
+                correctedFrom: c.correctedFrom ?? c.deltaEur,
               }
             : c,
         ),
@@ -366,7 +366,7 @@ function reducer(state: AdminDataset, action: AdminAction): AdminDataset {
         action: "credit.amended",
         entity: "company",
         entityId: entry.companyId,
-        detail: `Credit ${entry.id} for ${company?.mover.name ?? entry.companyId} corrected from $${entry.deltaUsd} to $${amount}: ${action.reason}`,
+        detail: `Credit ${entry.id} for ${company?.mover.name ?? entry.companyId} corrected from €${entry.deltaEur} to €${amount}: ${action.reason}`,
       });
     }
 

@@ -6,9 +6,9 @@ import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
-  AVG_LEAD_FEE_USD,
+  AVG_LEAD_FEE_EUR,
   BREAK_EVEN_LEADS,
-  LEAD_FEE_CAP_USD,
+  LEAD_FEE_CAP_EUR,
   PPS_OPEN_RATE,
   computeRoi,
 } from "@/lib/plans";
@@ -32,8 +32,8 @@ export function PlanChooser() {
     [leads],
   );
 
-  const { proCostUsd, pplCostUsd, ppsCostUsd, betterPlan, savingUsd } = roi;
-  const max = Math.max(proCostUsd, pplCostUsd, ppsCostUsd);
+  const { proCostEur, pplCostEur, ppsCostEur, betterPlan, savingEur } = roi;
+  const max = Math.max(proCostEur, pplCostEur, ppsCostEur);
 
   const winnerName = {
     pro_unlimited: dict.plans.proName,
@@ -64,29 +64,29 @@ export function PlanChooser() {
       <div className="mt-10 space-y-5">
         <Bar
           label={dict.plans.proName}
-          amount={proCostUsd}
+          amount={proCostEur}
           max={max}
           win={betterPlan === "pro_unlimited"}
           note={dict.planChooser.proNote}
         />
         <Bar
           label={dict.plans.pplName}
-          amount={pplCostUsd}
+          amount={pplCostEur}
           max={max}
           win={betterPlan === "pay_per_lead"}
           note={t.fill(dict.planChooser.pplNote, {
-            fee: t.usd(AVG_LEAD_FEE_USD),
-            cap: t.usd(LEAD_FEE_CAP_USD),
+            fee: t.eur(AVG_LEAD_FEE_EUR),
+            cap: t.eur(LEAD_FEE_CAP_EUR),
           })}
         />
         <Bar
           label={dict.plans.ppsName}
-          amount={ppsCostUsd}
+          amount={ppsCostEur}
           max={max}
           win={betterPlan === "pay_per_seen"}
           note={t.fill(dict.planChooser.ppsNote, {
             percent: t.percent(PPS_OPEN_RATE),
-            fee: t.usd(AVG_LEAD_FEE_USD),
+            fee: t.eur(AVG_LEAD_FEE_EUR),
           })}
         />
       </div>
@@ -98,11 +98,11 @@ export function PlanChooser() {
           </span>{" "}
           <span className="text-muted-foreground">
             {betterPlan === "pro_unlimited"
-              ? t.fill(dict.planChooser.proWins, { saving: t.usd(savingUsd) })
+              ? t.fill(dict.planChooser.proWins, { saving: t.eur(savingEur) })
               : betterPlan === "pay_per_seen"
-                ? t.fill(dict.planChooser.ppsWins, { saving: t.usd(savingUsd) })
+                ? t.fill(dict.planChooser.ppsWins, { saving: t.eur(savingEur) })
                 : t.fill(dict.planChooser.pplWins, {
-                    saving: t.usd(savingUsd),
+                    saving: t.eur(savingEur),
                     breakEven: t.number(BREAK_EVEN_LEADS),
                   })}
           </span>
@@ -139,7 +139,7 @@ function Bar({
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <span className={cn("text-[15px]", win && "font-medium")}>{label}</span>
-        <span className="text-[16px] font-medium tnum">{t.usd(amount)}</span>
+        <span className="text-[16px] font-medium tnum">{t.eur(amount)}</span>
       </div>
       <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted">
         <motion.div

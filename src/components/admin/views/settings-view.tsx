@@ -596,9 +596,9 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                       type="number"
                       min="0"
                       step="0.5"
-                      value={draft.leadFeeFloorUsd}
+                      value={draft.leadFeeFloorEur}
                       onChange={(e) =>
-                        setDraft((d) => ({ ...d, leadFeeFloorUsd: num(e.target.value, d.leadFeeFloorUsd) }))
+                        setDraft((d) => ({ ...d, leadFeeFloorEur: num(e.target.value, d.leadFeeFloorEur) }))
                       }
                     />
                   </div>
@@ -609,9 +609,9 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                       type="number"
                       min="0"
                       step="0.5"
-                      value={draft.leadFeeCapUsd}
+                      value={draft.leadFeeCapEur}
                       onChange={(e) =>
-                        setDraft((d) => ({ ...d, leadFeeCapUsd: num(e.target.value, d.leadFeeCapUsd) }))
+                        setDraft((d) => ({ ...d, leadFeeCapEur: num(e.target.value, d.leadFeeCapEur) }))
                       }
                     />
                   </div>
@@ -622,9 +622,9 @@ export function SettingsView({ initialTab }: { initialTab?: string }) {
                       type="number"
                       min="0"
                       step="5"
-                      value={draft.proMonthlyUsd}
+                      value={draft.proMonthlyEur}
                       onChange={(e) =>
-                        setDraft((d) => ({ ...d, proMonthlyUsd: num(e.target.value, d.proMonthlyUsd) }))
+                        setDraft((d) => ({ ...d, proMonthlyEur: num(e.target.value, d.proMonthlyEur) }))
                       }
                     />
                   </div>

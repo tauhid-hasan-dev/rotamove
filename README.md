@@ -64,11 +64,13 @@ ranking depends on it, but `toPublicQuote()` strips every money field at the API
 boundary. Open the network tab on `/api/search` and there is no currency, no
 amount, no breakdown.
 
-The only money in the product is partner-side: what movers pay us.
+The only money in the product is partner-side: what movers pay us — billed in
+euro in every one of the 53 partner countries, so the published cap means the
+same thing everywhere.
 
 | | Pro Unlimited | Pay Per Lead |
 |---|---|---|
-| | **$100 / month** | **$2–$7 per lead** (hard cap) |
+| | **€100 / month** | **€2–€7 per lead** (hard cap) |
 | International + domestic leads | Unlimited | Pay per unlock |
 | Instant-match placement in search | ✅ | ❌ |
 | One-tap contact from the board | ✅ | ❌ |

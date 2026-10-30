@@ -39,11 +39,11 @@ import {
   type Membership,
 } from "@/lib/partner-application";
 import {
-  LEAD_FEE_CAP_USD,
-  LEAD_FEE_FLOOR_USD,
+  LEAD_FEE_CAP_EUR,
+  LEAD_FEE_FLOOR_EUR,
   PLAN_IDS,
-  PRO_MONTHLY_USD,
-  SIGNUP_CREDIT_USD,
+  PRO_MONTHLY_EUR,
+  SIGNUP_CREDIT_EUR,
 } from "@/lib/plans";
 import { LOCALES, LOCALE_META } from "@/i18n/config";
 import { useI18n } from "@/i18n/provider";
@@ -745,12 +745,12 @@ const PLAN_ICONS: Record<string, typeof InfinityIcon> = {
 export function StepPlan({ draft, update, touched, invalid }: StepProps) {
   const { dict, t } = useI18n();
   const R = dict.register;
-  const cap = t.usd(LEAD_FEE_CAP_USD);
-  const floor = t.usd(LEAD_FEE_FLOOR_USD);
+  const cap = t.eur(LEAD_FEE_CAP_EUR);
+  const floor = t.eur(LEAD_FEE_FLOOR_EUR);
 
   const priceFor = (plan: string) =>
     plan === "pro_unlimited"
-      ? t.fill(dict.partnerDashboard.planChange.pricePro, { amount: t.usd(PRO_MONTHLY_USD) })
+      ? t.fill(dict.partnerDashboard.planChange.pricePro, { amount: t.eur(PRO_MONTHLY_EUR) })
       : t.fill(
           plan === "pay_per_seen"
             ? dict.partnerDashboard.planChange.pricePps
@@ -765,7 +765,7 @@ export function StepPlan({ draft, update, touched, invalid }: StepProps) {
           someone who was sent the form directly has not. */}
       <p className="flex items-start gap-3 rounded-2xl bg-lastcall px-4 py-3.5 text-[14px] font-medium leading-snug text-lastcall-foreground">
         <Gift className="mt-0.5 size-4 shrink-0" aria-hidden />
-        <span>{t.fill(R.planCredit, { credit: t.usd(SIGNUP_CREDIT_USD) })}</span>
+        <span>{t.fill(R.planCredit, { credit: t.eur(SIGNUP_CREDIT_EUR) })}</span>
       </p>
 
       <FieldSet legend={R.planLegend} hint={R.planHint}>

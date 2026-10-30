@@ -108,7 +108,7 @@ export function applicationApprovedMail(
       `Hello ${ctx.name},`,
       `Good news: ${ctx.companyName} passed vetting and your Rotamove partner account is live.`,
       `Your account number is ${ctx.partnerId}. Sign in at ${ctx.loginUrl} to set your lanes and start receiving leads on the plan you chose.`,
-      `Your $100 signing credit is already on the account and is spent before anything is charged.`,
+      `Your €100 signing credit is already on the account and is spent before anything is charged.`,
       SIGN_OFF,
     ].join("\n\n"),
   };

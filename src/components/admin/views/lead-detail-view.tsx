@@ -250,7 +250,7 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
                     <span className="rounded bg-muted px-1.5 py-0.5 text-xs">{source.landingPage}</span>
                   </DetailRow>
                   <DetailRow label={dict.admin.leadDetail.visitorCountry}>{source.country}</DetailRow>
-                  <DetailRow label={dict.admin.leadDetail.leadFee}>{t.usd(adminLead.feeUsd)}</DetailRow>
+                  <DetailRow label={dict.admin.leadDetail.leadFee}>{t.eur(adminLead.feeEur)}</DetailRow>
                 </dl>
               </CardContent>
             </Card>
@@ -369,7 +369,7 @@ export function LeadDetailView({ leadId }: { leadId: string }) {
                         </Link>
                         <span className="tnum block text-xs text-muted-foreground">
                           {t.dateTime(a.assignedAt)} ·{" "}
-                          {a.feeUsd > 0 ? t.usd(a.feeUsd) : dict.admin.leadDetail.includedInPro}
+                          {a.feeEur > 0 ? t.eur(a.feeEur) : dict.admin.leadDetail.includedInPro}
                         </span>
                       </span>
                       {/* Delivery reports itself as the mail is sent and
