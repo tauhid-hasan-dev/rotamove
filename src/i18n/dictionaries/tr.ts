@@ -2099,9 +2099,7 @@ export const tr = {
       "Güzergâh, tarihler, hacim — ya da neyin ters gittiğini yazın, kaydı biz buluruz.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "Doğrulama",
-    verifyBody:
-      "İnsan olduğunuzun kısa bir kontrolü. Çözülecek bulmaca yok — genelde kendiliğinden geçer.",
+    protectedBy: "Cloudflare Turnstile ile korunmaktadır. {privacy} ve {terms} sayfalarımıza bakın.",
     verifyLoading: "Doğrulama yükleniyor…",
     verifyError:
       "Doğrulama bileşeni yüklenemedi. Genelde bir içerik engelleyici ya da kurumsal vekil sunucu sebep olur — challenges.cloudflare.com adresine izin verin veya doğrudan e-posta gönderin.",

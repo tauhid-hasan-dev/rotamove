@@ -2107,9 +2107,7 @@ export const it = {
       "Tratta, date, volume — oppure scrivi solo cosa non ha funzionato e troveremo noi la pratica.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "Verifica",
-    verifyBody:
-      "Un controllo rapido per confermare che sei una persona. Nessun enigma — di solito passa da sola.",
+    protectedBy: "Protetto da Cloudflare Turnstile. Consulta la nostra {privacy} e i {terms}.",
     verifyLoading: "Caricamento della verifica…",
     verifyError:
       "Il widget di verifica non si è caricato. Di solito la causa è un blocco contenuti o un proxy aziendale — consenti challenges.cloudflare.com, oppure scrivici direttamente.",

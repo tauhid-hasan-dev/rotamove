@@ -2113,9 +2113,7 @@ export const de = {
       "Strecke, Termine, Volumen — oder schreiben Sie einfach, was schiefgelaufen ist, wir finden den Vorgang.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "Verifizierung",
-    verifyBody:
-      "Eine kurze Prüfung, dass Sie ein Mensch sind. Kein Rätsel zu lösen — meist läuft sie von allein durch.",
+    protectedBy: "Geschützt durch Cloudflare Turnstile. Siehe {privacy} und {terms}.",
     verifyLoading: "Verifizierung wird geladen…",
     verifyError:
       "Das Verifizierungs-Widget konnte nicht geladen werden. Meist liegt es an einem Contentblocker oder Firmen-Proxy — geben Sie challenges.cloudflare.com frei oder schreiben Sie uns direkt.",

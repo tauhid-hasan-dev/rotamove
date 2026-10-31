@@ -2175,8 +2175,7 @@ export const ar = {
     messagePlaceholder: "المسار والتواريخ والحجم — أو اكتب ما حدث فقط وسنجد الملف بأنفسنا.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "التحقق",
-    verifyBody: "فحص سريع للتأكد أنك شخص حقيقي. لا ألغاز — وغالبًا يمر من تلقاء نفسه.",
+    protectedBy: "محمي بواسطة Cloudflare Turnstile. راجع {privacy} و{terms}.",
     verifyLoading: "جارٍ تحميل التحقق…",
     verifyError:
       "تعذّر تحميل أداة التحقق. السبب عادةً مانع محتوى أو وكيل مؤسسي — اسمح بـ challenges.cloudflare.com أو راسلنا مباشرة.",

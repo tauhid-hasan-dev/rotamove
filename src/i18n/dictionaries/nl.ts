@@ -2106,9 +2106,7 @@ export const nl = {
       "Route, data, volume — of schrijf gewoon wat er misging, dan zoeken wij het dossier erbij.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "Verificatie",
-    verifyBody:
-      "Een snelle controle dat u een mens bent. Geen puzzel — meestal slaagt hij vanzelf.",
+    protectedBy: "Beveiligd door Cloudflare Turnstile. Zie onze {privacy} en {terms}.",
     verifyLoading: "Verificatie laden…",
     verifyError:
       "De verificatiewidget kon niet laden. Meestal komt dat door een contentblokkering of een bedrijfsproxy — sta challenges.cloudflare.com toe, of mail ons rechtstreeks.",

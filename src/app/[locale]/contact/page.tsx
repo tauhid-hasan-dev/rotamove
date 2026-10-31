@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Clock3, Mail, MessageSquare } from "lucide-react";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
-import { Shell } from "@/components/common/section";
+import { Eyebrow, Shell } from "@/components/common/section";
 import { ContactForm } from "@/components/contact/contact-form";
 import { SUPPORT_EMAIL } from "@/lib/mail";
 import { turnstileSiteKey, usingTestKeys } from "@/lib/turnstile";
@@ -27,78 +26,93 @@ export async function generateMetadata({
 /**
  * Contact.
  *
- * Deliberately a page of its own rather than the `#contact` band on the
- * partners page it replaces in the footer: that one is a call to action
- * aimed at carriers, and a customer whose move is already booked needs
- * somewhere to write that is not a pitch to join the network.
+ * One tinted band holding two columns: who we are and when we answer on the
+ * left, the form on the right. The split is the point — the left column is
+ * what someone reads to decide whether to write at all, and it stays in
+ * view beside the fields rather than being a footnote under them.
  *
- * The site key is read here, on the server, and handed down. It is public
- * by design — the secret never leaves `lib/turnstile.ts` — but reading it
- * in one place keeps the env var out of three client components.
+ * It is a page of its own rather than the `#contact` band on the partners
+ * page it replaced in the footer: that one is a call to action aimed at
+ * carriers, and a customer whose move is already booked needs somewhere to
+ * write that is not a pitch to join the network.
  */
 export default async function ContactPage({ params }: PageProps<"/[locale]/contact">) {
   const locale = resolveLocale((await params).locale);
   const dict = getDictionary(locale);
   const cx = dict.contactPage;
 
-  const channels = [
-    { icon: Mail, title: cx.channelEmailTitle, body: SUPPORT_EMAIL },
-    { icon: Clock3, title: cx.channelHoursTitle, body: cx.channelHoursBody },
-    { icon: MessageSquare, title: cx.channelReplyTitle, body: cx.channelReplyBody },
+  /** Label over value, the way the left column reads. */
+  const facts = [
+    { label: cx.channelEmailTitle, value: SUPPORT_EMAIL, strong: true },
+    { label: cx.channelHoursTitle, value: cx.channelHoursBody, strong: false },
+    { label: cx.channelReplyTitle, value: cx.channelReplyBody, strong: false },
   ];
 
   return (
     <>
       <SiteHeader />
-      <main id="main">
-        <section className="relative pb-14 pt-14 sm:pt-20">
-          <div
-            className="pointer-events-none absolute inset-x-0 -top-28 -z-10 h-[460px] opacity-75 glow-brand"
-            aria-hidden
-          />
-          <Shell>
-            <p className="eyebrow">{cx.eyebrow}</p>
-            <h1 className="mt-5 max-w-3xl text-balance text-[clamp(2rem,4.2vw,3rem)] leading-[1.04] tracking-[-0.04em]">
-              {cx.title}
-            </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-muted-foreground">
-              {cx.lede}
-            </p>
-          </Shell>
-        </section>
+      <main id="main" className="pb-20 pt-8 sm:pb-28 sm:pt-10">
+        <Shell>
+          {/* The band. Everything on this page lives inside it, which is
+              what makes the two columns read as one object rather than as
+              a heading that happens to sit above a form. */}
+          <section className="relative overflow-hidden rounded-[1.75rem] border bg-brand-tint px-5 py-10 sm:px-10 sm:py-14 lg:px-14 dark:bg-card/40">
+            <div
+              className="pointer-events-none absolute inset-x-0 -top-40 -z-10 h-[420px] opacity-60 glow-brand"
+              aria-hidden
+            />
 
-        <section className="pb-24 sm:pb-32">
-          <Shell>
-            {/* The form is the page; the three facts beside it are the
-                things someone checks before deciding to write at all —
-                where it goes, when it is read, how long a reply takes. */}
-            {/* `grid-cols-1` declared, not implicit. An implicit track is
-                sized to its content's minimum, and the Turnstile widget is a
-                fixed 300px iframe — the column grew to fit it and took the
-                whole page off the side of a 320px phone. */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12 3xl:grid-cols-[minmax(0,1fr)_380px]">
-              <ContactForm siteKey={turnstileSiteKey()} testKeys={usingTestKeys()} />
+            {/* The form gets the wider half: it is five fields and a
+                textarea, and the column beside it is four short lines. */}
+            <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-14 3xl:gap-20">
+              {/* ---------------------------------------------- left -- */}
+              <div className="lg:sticky lg:top-24">
+                <Eyebrow>{cx.eyebrow}</Eyebrow>
 
-              <aside className="space-y-4 lg:pt-2">
-                {channels.map(({ icon: Icon, title, body }) => (
-                  <div key={title} className="rounded-2xl border bg-card p-5">
-                    <div className="flex items-center gap-2.5">
-                      <Icon className="size-4 text-brand" aria-hidden />
-                      <h2 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                        {title}
-                      </h2>
+                <h1 className="mt-5 text-balance text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.05] tracking-[-0.04em]">
+                  {cx.title}
+                </h1>
+
+                <p className="mt-5 max-w-md text-[15.5px] leading-relaxed text-muted-foreground">
+                  {cx.lede}
+                </p>
+
+                <dl className="mt-9 space-y-6 border-t pt-8">
+                  {facts.map((fact) => (
+                    <div key={fact.label}>
+                      <dt className="eyebrow">{fact.label}</dt>
+                      <dd
+                        className={
+                          fact.strong
+                            ? "mt-1.5 break-all text-[16.5px] font-semibold tracking-[-0.02em]"
+                            : "mt-1.5 max-w-xs text-[14px] leading-relaxed text-muted-foreground"
+                        }
+                      >
+                        {fact.strong ? (
+                          <a
+                            href={`mailto:${fact.value}`}
+                            className="underline decoration-brand decoration-2 underline-offset-4 transition-opacity hover:opacity-70"
+                          >
+                            {fact.value}
+                          </a>
+                        ) : (
+                          fact.value
+                        )}
+                      </dd>
                     </div>
-                    <p className="mt-2.5 text-[14.5px] leading-relaxed">{body}</p>
-                  </div>
-                ))}
+                  ))}
+                </dl>
 
-                <p className="px-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                <p className="mt-8 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">
                   {cx.asideNote}
                 </p>
-              </aside>
+              </div>
+
+              {/* --------------------------------------------- right -- */}
+              <ContactForm siteKey={turnstileSiteKey()} testKeys={usingTestKeys()} />
             </div>
-          </Shell>
-        </section>
+          </section>
+        </Shell>
       </main>
       <SiteFooter />
     </>

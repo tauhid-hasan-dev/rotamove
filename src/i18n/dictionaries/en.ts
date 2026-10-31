@@ -2115,9 +2115,7 @@ export const en = {
       "Route, dates, volume — or just tell us what went wrong and we will find the file.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "Verification",
-    verifyBody:
-      "A quick check that you are a person. No puzzle to solve — it usually passes on its own.",
+    protectedBy: "Protected by Cloudflare Turnstile. See our {privacy} and {terms}.",
     verifyLoading: "Loading verification…",
     verifyError:
       "The verification widget could not load. A content blocker or a corporate proxy is the usual cause — allow challenges.cloudflare.com, or email us directly.",

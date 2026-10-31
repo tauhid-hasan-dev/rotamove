@@ -183,15 +183,17 @@ export function TurnstileWidget({
 
   return (
     <div className={className}>
-      {/* Cloudflare renders a fixed 300px-wide iframe and offers no way to
-          make it narrower at the normal size. On a 320px phone that is wider
-          than the card it sits in, so the box scrolls rather than letting the
-          widget push the whole page sideways. */}
-      <div
-        ref={hostRef}
-        id={domId}
-        className="scrollbar-slim -mx-1 min-h-[65px] overflow-x-auto px-1"
-      />
+      {/* No reserved height. A managed key often resolves without painting
+          anything at all — it hands over a token and stays invisible — and a
+          `min-h` meant the page carried a 70px hole where a widget had
+          decided it did not need to appear. Sized by its content instead:
+          nothing when there is nothing, 65px when there is a box.
+
+          The horizontal scroll is for the opposite case. Cloudflare renders
+          a fixed 300px iframe at the normal size with no way to narrow it,
+          which is wider than the card on a 320px phone, so the box scrolls
+          rather than letting the widget push the page sideways. */}
+      <div ref={hostRef} id={domId} className="scrollbar-slim -mx-1 overflow-x-auto px-1" />
 
       {state === "loading" && (
         <p className="mt-1 inline-flex items-center gap-1.5 text-[12.5px] text-muted-foreground">

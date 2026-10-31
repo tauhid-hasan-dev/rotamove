@@ -2110,9 +2110,7 @@ export const fr = {
       "Trajet, dates, volume — ou dites-nous simplement ce qui ne va pas, nous retrouverons le dossier.",
     messageCount: "{n} / {max}",
 
-    verifyTitle: "Vérification",
-    verifyBody:
-      "Une vérification rapide que vous êtes bien une personne. Aucune énigme — elle passe généralement toute seule.",
+    protectedBy: "Protégé par Cloudflare Turnstile. Consultez notre {privacy} et nos {terms}.",
     verifyLoading: "Chargement de la vérification…",
     verifyError:
       "Le module de vérification n’a pas pu se charger. En général, un bloqueur de contenu ou un proxy d’entreprise est en cause — autorisez challenges.cloudflare.com, ou écrivez-nous directement.",
