@@ -14,8 +14,18 @@
  * 4/6/10% because they are a column of prose that wants a measure; a
  * dashboard is a work surface, and giving a lead board a tenth of a wide
  * screen on each side costs rows for nothing.
+ *
+ * It is capped wider than the marketing pages for the same reason — a lead
+ * row is a table, not a sentence, and a table is happy at 1700px — but it is
+ * capped, because past that the account menu in the bar and the sign-out
+ * under it end up a foot apart from the thing they belong to.
+ *
+ * The cap replaces the percentage above 1920 rather than compounding with
+ * it; see `PAGE_GUTTER` for why that matters. 1728px is what 5% of 1920
+ * leaves, so the switch is invisible.
  */
-export const DASHBOARD_GUTTER = "mx-auto w-full px-[5%]";
+export const DASHBOARD_GUTTER =
+  "mx-auto w-full px-[5%] 3xl:max-w-[1728px] 3xl:px-0 4xl:max-w-[2100px]";
 
 /**
  * A panel.

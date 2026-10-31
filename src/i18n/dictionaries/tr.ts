@@ -1917,6 +1917,14 @@ export const tr = {
       four_bed: { label: "4+ yatak odası", hint: "~170 m² ev" },
       villa: { label: "Villa / müstakil", hint: "220 m² ve üzeri" },
       office: { label: "Ofis / ticari yük", hint: "Masalar, BT, arşiv, palet" },
+      ltl: {
+        label: "LTL — Parsiyel yük",
+        hint: "Kısmi yük; yalnızca kullandığınız alanı ödersiniz",
+      },
+      ftl: {
+        label: "FTL — Komple yük",
+        hint: "Tamamı size ait bir dorse, direkt sefer",
+      },
       project: {
         label: "Özel Proje Taşımacılığı",
         hint: "Türbin, yat, tekne, araçlar — alışılmadık yükler",

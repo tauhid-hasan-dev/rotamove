@@ -83,15 +83,23 @@ function isActive(pathname: string, href: string, exact: boolean): boolean {
   return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function Wordmark() {
+/**
+ * The console's mark.
+ *
+ * `compact` drops the "Admin" tag. The topbar uses it on phones: with the
+ * tag, the mark ran to 171px of a 350px bar and pushed the account menu off
+ * the right-hand edge entirely — there was no way to sign out on a phone.
+ * The sidebar and the sheet, which have a column to themselves, keep it.
+ */
+function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/admin" className="flex items-center gap-2.5 rounded-lg outline-ring/40">
-      <span className="flex size-8 items-center justify-center rounded-lg bg-brand text-ink">
+    <Link href="/admin" className="flex min-w-0 items-center gap-2.5 rounded-lg outline-ring/40">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-ink">
         <Truck className="size-4.5" aria-hidden />
       </span>
-      <span className="flex items-baseline gap-1.5">
-        <span className="text-[17px] font-semibold tracking-[-0.03em]">Rotamove</span>
-        <span className="eyebrow !tracking-[0.12em]">Admin</span>
+      <span className="flex min-w-0 items-baseline gap-1.5">
+        <span className="truncate text-[17px] font-semibold tracking-[-0.03em]">Rotamove</span>
+        {!compact && <span className="eyebrow !tracking-[0.12em]">Admin</span>}
       </span>
     </Link>
   );
@@ -288,8 +296,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
 
-          <div className="lg:hidden">
-            <Wordmark />
+          <div className="min-w-0 lg:hidden">
+            <Wordmark compact />
           </div>
 
           {/* Claimed by the view, not derived from the route — see
@@ -297,7 +305,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               owns the row. */}
           <PageTitle />
 
-          <div className="ms-auto flex items-center gap-2">
+          <div className="ms-auto flex shrink-0 items-center gap-2">
             <div className="hidden sm:block">
               <DemoBadge />
             </div>
@@ -307,7 +315,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main id="admin-main" className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        {/* The cap rises on the two screen sizes a console is actually
+            operated on all day. 1480px is a comfortable 15" measure and a
+            waste of a 27" panel, where the same cap left a quarter of the
+            glass empty while the lead table still scrolled sideways. */}
+        <main
+          id="admin-main"
+          className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-6 sm:px-6 lg:px-8 3xl:max-w-[1760px] 4xl:max-w-[2120px]"
+        >
           {children}
         </main>
       </div>

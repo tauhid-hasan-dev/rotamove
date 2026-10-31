@@ -230,7 +230,10 @@ export function RegisterForm() {
             type="button"
             disabled={i > index}
             onClick={() => i <= index && go(i)}
-            className="group flex flex-1 flex-col gap-2"
+            // `min-w-0`, so the truncating label below can actually
+            // truncate: a flex item defaults to its content's minimum, and
+            // five step names at their full width ran off a small phone.
+            className="group flex min-w-0 flex-1 flex-col gap-2"
             aria-label={title}
             aria-current={i === index ? "step" : undefined}
           >
@@ -301,7 +304,9 @@ export function RegisterForm() {
       )}
 
       {/* footer --------------------------------------------------- */}
-      <div className="sticky bottom-0 z-20 -mx-4 mt-10 flex items-center gap-3 border-t bg-background/92 px-4 py-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none">
+      {/* `vw`, to match the viewport-percentage page gutter this cancels —
+          see the same bar on the quote wizard. */}
+      <div className="sticky bottom-0 z-20 -mx-[4vw] mt-10 flex items-center gap-3 border-t bg-background/92 px-[4vw] py-4 backdrop-blur-xl sm:-mx-[6vw] sm:px-[6vw] lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none">
         {index > 0 && (
           <button
             type="button"

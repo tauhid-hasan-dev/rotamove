@@ -211,7 +211,11 @@ export function QuoteWizard({
       </div>
 
       {/* footer --------------------------------------------------- */}
-      <div className="sticky bottom-0 z-20 -mx-4 mt-12 flex items-center gap-3 border-t bg-background/92 px-4 py-4 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none">
+      {/* The bleed is measured in `vw` because the gutter it is cancelling
+          is a percentage of the viewport, not a fixed 16px. At 320px the
+          old `-mx-4` over-bled by 3px a side and the bar hung off the page.
+          From `lg` the bar is static and none of this applies. */}
+      <div className="sticky bottom-0 z-20 -mx-[4vw] mt-12 flex items-center gap-3 border-t bg-background/92 px-[4vw] py-4 backdrop-blur-xl sm:-mx-[6vw] sm:px-[6vw] lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none">
         {index > 0 && (
           <button
             type="button"

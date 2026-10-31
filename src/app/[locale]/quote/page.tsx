@@ -53,6 +53,8 @@ const SIZES: PropertySize[] = [
   "four_bed",
   "villa",
   "office",
+  "ltl",
+  "ftl",
   "project",
   "reefer",
 ];

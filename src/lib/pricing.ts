@@ -29,6 +29,8 @@ export const VOLUME_BY_SIZE: Record<PropertySize, number> = {
   four_bed: 72,
   villa: 95,
   office: 60,
+  ltl: 30,
+  ftl: 90,
   project: 50,
   reefer: 40,
 };
@@ -47,6 +49,13 @@ export const PROPERTY_SIZES: Array<{
   { id: "four_bed", label: "4+ bedrooms", hint: "~170 m² home", volume: 72 },
   { id: "villa", label: "Villa / detached", hint: "220 m² and up", volume: 95 },
   { id: "office", label: "Office / commercial", hint: "Desks, IT, archive", volume: 60 },
+  {
+    id: "ltl",
+    label: "LTL — Less than truckload",
+    hint: "Part load, pays for the space it uses",
+    volume: 30,
+  },
+  { id: "ftl", label: "FTL — Full truckload", hint: "A dedicated trailer, direct run", volume: 90 },
   {
     id: "project",
     label: "Specialized Project Transport",

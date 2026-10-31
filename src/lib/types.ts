@@ -16,6 +16,10 @@ export type PropertySize =
   | "four_bed"
   | "villa"
   | "office"
+  /** Less than truckload: a part load sharing a trailer with other consignments. */
+  | "ltl"
+  /** Full truckload: a dedicated trailer running direct. */
+  | "ftl"
   /** Out-of-gauge one-offs: a turbine, a yacht, a boat, cars. */
   | "project"
   /** Temperature-controlled freight — a reefer trailer, not a removals lorry. */

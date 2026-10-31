@@ -86,7 +86,7 @@ const LAST_NAMES = [
 
 const SIZES: PropertySize[] = [
   "few_items", "studio", "one_bed", "two_bed",
-  "three_bed", "four_bed", "villa", "office", "project",
+  "three_bed", "four_bed", "villa", "office", "ltl", "ftl", "project",
 ];
 
 const NOTE_POOL = [

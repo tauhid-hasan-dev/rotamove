@@ -11,6 +11,26 @@
    ========================================================================== */
 
 @theme inline {
+  /* ------------------------------------------------------------------ *
+   * Breakpoints
+   *
+   * Tailwind stops at 2xl (1536px), which is roughly a 16" laptop. Two
+   * tiers past it, because the screens either side of that line are not
+   * the same room: a 24" desktop panel is 1920 logical pixels and a 27"
+   * is 2560, and handing both the layout drawn for a 15" laptop leaves
+   * either acres of empty gutter or a line of prose a foot wide.
+   *
+   * In `rem`, and that is not a style preference. Tailwind orders the
+   * generated media blocks by breakpoint so later ones win the cascade,
+   * but it sorts px-valued and rem-valued breakpoints as two separate
+   * groups and emits the px ones first — declared as `1920px`, every
+   * `3xl:` rule landed *above* `lg:` in the sheet and lost to it. 120rem
+   * and 160rem are the same two widths at the default root size, and they
+   * sort where they belong: after `2xl`.
+   * ------------------------------------------------------------------ */
+  --breakpoint-3xl: 120rem; /* 1920px — 24" desktop */
+  --breakpoint-4xl: 160rem; /* 2560px — 27" QHD and up */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 

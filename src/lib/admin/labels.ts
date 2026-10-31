@@ -167,6 +167,8 @@ export const PROPERTY_SIZE_LABELS: Record<PropertySize, string> = {
   four_bed: "4-bed home",
   villa: "Villa",
   office: "Office",
+  ltl: "LTL (part load)",
+  ftl: "FTL (full load)",
   project: "Specialized project transport",
   reefer: "Refrigerated (frigo)",
 };

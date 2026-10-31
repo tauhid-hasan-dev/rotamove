@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Boxes,
   Building2,
   Check,
   Container,
@@ -46,13 +47,17 @@ type StepProps = {
  * Icons for the sizes that are not a home.
  *
  * Everything from a few boxes to a villa is the same job at a different
- * scale, so it takes the same crate mark. The three that are a different job
- * entirely — an office clearance, out-of-gauge project freight, a reefer run
- * — get their own, because that is the distinction worth drawing in a grid
- * someone scans rather than reads.
+ * scale, so it takes the same crate mark. The five that are a different job
+ * entirely — an office clearance, a part load, a whole trailer, out-of-gauge
+ * project freight, a reefer run — get their own, because that is the
+ * distinction worth drawing in a grid someone scans rather than reads.
  */
 const SIZE_ICONS: Partial<Record<PropertySize, React.ReactNode>> = {
   office: <Building2 className="size-4" />,
+  // Pallets sharing a trailer vs. the trailer itself: the mark carries the
+  // difference, which is the whole of what LTL and FTL mean.
+  ltl: <Boxes className="size-4" />,
+  ftl: <Truck className="size-4" />,
   project: <Container className="size-4" />,
   reefer: <Snowflake className="size-4" />,
 };

@@ -1922,6 +1922,14 @@ export const fr = {
       four_bed: { label: "4 chambres ou plus", hint: "Logement d’environ 170 m²" },
       villa: { label: "Villa / maison individuelle", hint: "À partir de 220 m²" },
       office: { label: "Bureau / fret commercial", hint: "Bureaux, informatique, archives, palettes" },
+      ltl: {
+        label: "LTL — Lot partiel (groupage)",
+        hint: "Chargement partiel ; vous payez la place que vous occupez",
+      },
+      ftl: {
+        label: "FTL — Camion complet",
+        hint: "Une remorque entière pour vous, trajet direct",
+      },
       project: {
         label: "Transport de projet spécialisé",
         hint: "Turbine, yacht, bateau, voitures — les charges hors norme",

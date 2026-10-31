@@ -34,6 +34,8 @@ const SIZES: PropertySize[] = [
   // part of every token already out in the wild.
   "project",
   "reefer",
+  "ltl",
+  "ftl",
 ];
 const LEVELS: ServiceLevel[] = ["full_service", "door_to_door", "transport_only"];
 const SPECIAL_KEYS: Array<keyof SpecialItems> = [

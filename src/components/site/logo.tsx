@@ -31,11 +31,18 @@ export function Logo({
   className,
   to = "/",
   compact = false,
+  wordmarkClassName,
 }: {
   className?: string;
   /** Locale-free path; the active locale is prefixed here. */
   to?: string;
   compact?: boolean;
+  /**
+   * Classes for the wordmark alone — for bars that need to drop it at one
+   * width and keep it at another. `compact` is the all-or-nothing version;
+   * this is the responsive one, because a breakpoint cannot be a prop.
+   */
+  wordmarkClassName?: string;
 }) {
   const { dict, href } = useI18n();
 
@@ -47,7 +54,12 @@ export function Logo({
     >
       <LogoMark className="transition-transform duration-300 group-hover:rotate-[14deg]" />
       {!compact && (
-        <span className="text-[18px] font-semibold leading-none tracking-[-0.04em]">
+        <span
+          className={cn(
+            "text-[18px] font-semibold leading-none tracking-[-0.04em]",
+            wordmarkClassName,
+          )}
+        >
           rotamove
         </span>
       )}

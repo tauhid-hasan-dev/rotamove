@@ -80,7 +80,7 @@ export function LeadTrendPanel({ days }: { days: PartnerDay[] }) {
   };
 
   return (
-    <section className={cn(PANEL, "mt-4 p-6")}>
+    <section className={cn(PANEL, "mt-4 p-4 sm:p-6")}>
       <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
           <h3 className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -97,11 +97,16 @@ export function LeadTrendPanel({ days }: { days: PartnerDay[] }) {
         </div>
 
         {/* The filter row sits above the plot, not beside it: on a phone it
-            wraps onto its own line and the chart keeps its full width. */}
+            wraps onto its own line and the chart keeps its full width.
+
+            No `shrink-0`. It had one, and `flex-wrap` beneath it could never
+            fire: the group held itself at the four chips' full width, so on a
+            320px phone "Yearly" sat outside the card. Allowed to shrink, the
+            same four chips fall onto two rows. */}
         <div
           role="group"
           aria-label={tx.grainAria}
-          className="flex shrink-0 flex-wrap gap-1 rounded-xl bg-muted p-1"
+          className="flex flex-wrap gap-1 rounded-xl bg-muted p-1"
         >
           {TREND_GRAINS.map((id) => {
             const active = grain === id;

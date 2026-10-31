@@ -1925,6 +1925,14 @@ export const de = {
       four_bed: { label: "4+ Schlafzimmer", hint: "Wohnung ca. 170 m²" },
       villa: { label: "Villa / Einfamilienhaus", hint: "Ab 220 m²" },
       office: { label: "Büro / gewerbliche Fracht", hint: "Schreibtische, IT, Archiv, Paletten" },
+      ltl: {
+        label: "LTL — Teilladung",
+        hint: "Teilpartie; Sie zahlen nur den genutzten Laderaum",
+      },
+      ftl: {
+        label: "FTL — Komplettladung",
+        hint: "Ein ganzer Auflieger für Sie, Direktfahrt",
+      },
       project: {
         label: "Spezialisierter Projekttransport",
         hint: "Turbine, Yacht, Boot, Autos — ungewöhnliche Ladungen",

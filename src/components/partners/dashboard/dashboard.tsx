@@ -295,11 +295,16 @@ export function PartnerDashboard({
           {/* On a phone this is a strip, not a column. With a fourth entry
               it no longer divides the width into readable thirds, so the
               labels size to their own text and the strip scrolls — better
-              a row you can push than "Lead board" broken over two lines. */}
-          <nav
-            className="scrollbar-slim -mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
-            aria-label={pd.navAria}
-          >
+              a row you can push than "Lead board" broken over two lines.
+
+              The strip is its own element inside the nav rather than the nav
+              itself, because the archive's children have to sit *below* it
+              on a phone and nothing can wrap out of a horizontal scroller.
+              They used to be siblings in here, which parked them off the
+              right-hand edge: opening Archive appeared to do nothing at all
+              unless you thought to push the strip sideways. */}
+          <nav aria-label={pd.navAria}>
+          <div className="scrollbar-slim -mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
             {SECTION_IDS.map((id) => {
               const active = section === id;
               const Icon = SECTION_ICONS[id];
@@ -353,9 +358,15 @@ export function PartnerDashboard({
                 aria-hidden
               />
             </button>
+          </div>
 
-            {(archiveOpen || isArchive(section)) &&
-              ARCHIVE_IDS.map((id) => {
+          {/* The two archived views. Their own row under the strip on a
+              phone — wrapping, so both are on screen at once however narrow
+              it gets — and a pair of indented entries in the column on a
+              desktop. */}
+          {(archiveOpen || isArchive(section)) && (
+            <div className="mt-1 flex flex-wrap gap-1 ps-3 lg:flex-col lg:flex-nowrap lg:ps-0">
+              {ARCHIVE_IDS.map((id) => {
                 const active = section === id;
                 const Icon = SECTION_ICONS[id];
                 return (
@@ -365,19 +376,23 @@ export function PartnerDashboard({
                     onClick={() => setSection(id)}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      // Indented on the column, flush in the phone strip —
-                      // there is no parent above it there to indent from.
-                      "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-[13.5px] transition-colors lg:w-full lg:ps-9",
+                      // Indented from its own row on a phone, from the rail
+                      // entry above it on a desktop.
+                      "inline-flex min-w-0 items-center gap-2 rounded-xl px-3.5 py-2 text-[13.5px] transition-colors lg:w-full lg:ps-9",
                       active
                         ? "bg-brand-soft font-medium text-foreground dark:bg-accent"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <Icon className="size-3.5 shrink-0" strokeWidth={2} />
-                    {pd.archive[id === "archive/invoices" ? "invoices" : "leads"]}
+                    <span className="truncate">
+                      {pd.archive[id === "archive/invoices" ? "invoices" : "leads"]}
+                    </span>
                   </button>
                 );
               })}
+            </div>
+          )}
           </nav>
 
           {/* Sign-out moved into the account menu in the bar; what is left
@@ -544,8 +559,14 @@ function DashboardBar({
       <div className={cn(DASHBOARD_GUTTER, "flex h-16 items-center gap-3 sm:gap-4")}>
         {/* `Logo` is already a link home with its own label. Wrapping it in
             another one nested an <a> inside an <a>, which the HTML parser
-            unpicks on the server and React then refuses to hydrate. */}
-        <Logo className="shrink-0" />
+            unpicks on the server and React then refuses to hydrate.
+
+            The wordmark goes on a phone. Four things were competing for
+            315px — wordmark, section title, language, account — and the
+            title lost, truncating "Archived invoices" to "D…". The mark on
+            its own still says whose workspace this is, and the ninety
+            pixels it gives back are enough for every section name. */}
+        <Logo className="shrink-0" wordmarkClassName="hidden sm:inline" />
 
         {/* The page heading, which used to sit at the top of each section.
             In the bar it survives scrolling — the bar is sticky and the

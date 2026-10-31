@@ -56,7 +56,15 @@ export function LastCallBoard({ offers, now }: { offers: LastCallOffer[]; now: n
         </span>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {/* `grid-cols-1` explicitly, not left implicit. An implicit column is
+          sized to its items' min-content, and the card holds a `truncate`
+          corridor line — which is `white-space: nowrap`, so its min-content
+          is the whole untruncated string. The track grew to fit it and the
+          card hung 20px off a 320px phone instead of ellipsing. A declared
+          `minmax(0, 1fr)` track ignores that and lets the truncation work.
+          A fourth column from 1920px up: three cards across a 27" panel
+          leaves each one wider than it has anything to say. */}
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4">
         {visible.map((offer, i) => (
           <OfferCard key={offer.id} offer={offer} now={now} index={i} />
         ))}

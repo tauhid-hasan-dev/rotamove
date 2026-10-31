@@ -77,7 +77,13 @@ function ArchiveHead({ lede, children }: { lede: string; children: ReactNode }) 
       <p className="min-w-0 max-w-xl text-[13.5px] leading-relaxed text-muted-foreground">
         {lede}
       </p>
-      <div className="flex flex-wrap items-center gap-2">{children}</div>
+      {/* Two up on a phone, inline from `sm`. As a wrapping row the four
+          controls each took a line of their own at a different width, which
+          read as four unrelated things rather than as one filter set; the
+          grid gives them a common edge and halves the height. */}
+      <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+        {children}
+      </div>
     </div>
   );
 }
@@ -164,7 +170,7 @@ function InvoiceArchive({
             account that has never been on a plan still gets it offered, so
             the menu is the same three everywhere in the product. */}
         <Select value={plan} onValueChange={setPlan}>
-          <SelectTrigger className="w-[170px]">
+          <SelectTrigger className="w-full sm:w-[170px]">
             <SelectValue placeholder={ax.planAll} />
           </SelectTrigger>
           <SelectContent>
@@ -177,7 +183,7 @@ function InvoiceArchive({
           </SelectContent>
         </Select>
         <Select value={year} onValueChange={setYear}>
-          <SelectTrigger className="w-[130px]">
+          <SelectTrigger className="w-full sm:w-[130px]">
             <SelectValue placeholder={ax.yearAll} />
           </SelectTrigger>
           <SelectContent>
@@ -190,7 +196,7 @@ function InvoiceArchive({
           </SelectContent>
         </Select>
         <Select value={month} onValueChange={setMonth}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue placeholder={ax.monthAll} />
           </SelectTrigger>
           <SelectContent>
@@ -204,7 +210,7 @@ function InvoiceArchive({
         </Select>
       </ArchiveHead>
 
-      <section className={cn(PANEL, "mt-5 p-6")}>
+      <section className={cn(PANEL, "mt-5 p-4 sm:p-6")}>
         <p className="text-[13px] text-muted-foreground">
           {t.fill(ax.invoiceSummary, {
             invoices: t.count(ax.nInvoices, invoices.length),
@@ -330,7 +336,7 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
   return (
     <div className="mt-4 lg:mt-0">
       <ArchiveHead lede={t.fill(ax.leadsBody, { date: t.dateLong(history.archiveBefore) })}>
-        <div className="relative">
+        <div className="relative col-span-2 sm:col-span-1">
           <Search
             className="pointer-events-none absolute start-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
             aria-hidden
@@ -340,12 +346,12 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
             onChange={(e) => reset(setQuery)(e.target.value)}
             placeholder={ax.searchLeads}
             aria-label={ax.searchLeads}
-            className="w-[190px] ps-9"
+            className="w-full ps-9 sm:w-[190px]"
           />
         </div>
 
         <Select value={route} onValueChange={reset(setRoute)}>
-          <SelectTrigger className="w-[230px]">
+          <SelectTrigger className="w-full sm:w-[230px]">
             <SelectValue placeholder={ax.routeAll} />
           </SelectTrigger>
           <SelectContent>
@@ -359,7 +365,7 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
         </Select>
 
         <Select value={year} onValueChange={reset(setYear)}>
-          <SelectTrigger className="w-[130px]">
+          <SelectTrigger className="w-full sm:w-[130px]">
             <SelectValue placeholder={ax.yearAll} />
           </SelectTrigger>
           <SelectContent>
@@ -373,7 +379,7 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
         </Select>
 
         <Select value={month} onValueChange={reset(setMonth)}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue placeholder={ax.monthAll} />
           </SelectTrigger>
           <SelectContent>
@@ -387,7 +393,7 @@ function LeadArchive({ history }: { history: PartnerHistory }) {
         </Select>
       </ArchiveHead>
 
-      <section className={cn(PANEL, "mt-5 p-6")}>
+      <section className={cn(PANEL, "mt-5 p-4 sm:p-6")}>
         <p className="text-[13px] text-muted-foreground">
           {t.fill(ax.leadSummary, {
             leads: t.count(ax.nLeads, leads.length),

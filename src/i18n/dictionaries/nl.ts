@@ -1921,6 +1921,14 @@ export const nl = {
       four_bed: { label: "4 of meer slaapkamers", hint: "Woning van circa 170 m²" },
       villa: { label: "Villa / vrijstaand", hint: "Vanaf 220 m²" },
       office: { label: "Kantoor / commerciële vracht", hint: "Bureaus, ICT, archief, pallets" },
+      ltl: {
+        label: "LTL — Deellading",
+        hint: "Deelpartij; u betaalt voor de ruimte die u gebruikt",
+      },
+      ftl: {
+        label: "FTL — Volle lading",
+        hint: "Een hele trailer voor u alleen, directe rit",
+      },
       project: {
         label: "Gespecialiseerd projecttransport",
         hint: "Turbine, jacht, boot, auto's — de ongewone ladingen",

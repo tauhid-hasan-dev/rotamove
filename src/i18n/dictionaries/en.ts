@@ -1940,6 +1940,14 @@ export const en = {
       four_bed: { label: "4+ bedrooms", hint: "~170 m² home" },
       villa: { label: "Villa / detached", hint: "220 m² and up" },
       office: { label: "Office / commercial freight", hint: "Desks, IT, archive, pallets" },
+      ltl: {
+        label: "LTL — Less than truckload",
+        hint: "A part load; you pay for the space you use",
+      },
+      ftl: {
+        label: "FTL — Full truckload",
+        hint: "A whole trailer to yourself, running direct",
+      },
       project: {
         label: "Specialized Project Transport",
         hint: "Turbine, yacht, boat, cars — the unusual loads",

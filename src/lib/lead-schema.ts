@@ -81,6 +81,8 @@ export const leadDraftSchema = z
       "four_bed",
       "villa",
       "office",
+      "ltl",
+      "ftl",
       "project",
       "reefer",
     ]),
