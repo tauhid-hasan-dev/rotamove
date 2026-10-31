@@ -90,19 +90,19 @@ const BY_LENGTH = [...DIAL_COUNTRIES].sort((a, b) => b.dial.length - a.dial.leng
 export const DEFAULT_DIAL_ISO = "TR";
 
 /**
- * The flag, derived rather than stored.
+ * Where this country's flag lives.
  *
- * Two ASCII letters map onto the two regional-indicator code points that
- * every platform renders as a flag, so ninety countries need ninety entries
- * of data and none of emoji. `geo.ts` keeps its literal flags because that
- * list is hand-curated prose; this one is generated.
+ * A file, not an emoji. The regional-indicator trick — mapping the two
+ * ASCII letters onto the code points every platform pairs into a flag — is
+ * far cheaper and works on macOS, iOS and Android. Windows ships no flag
+ * glyphs at all, so Chrome there draws the two letters instead, and every
+ * row of the picker read "TR +90" rather than showing a flag. An image is
+ * the only thing that looks the same everywhere.
+ *
+ * Assets come from `npm run generate:flags`; see `scripts/sync-flags.mjs`.
  */
-export function flagFor(iso: string): string {
-  const upper = iso.toUpperCase();
-  if (!/^[A-Z]{2}$/.test(upper)) return "";
-  return String.fromCodePoint(
-    ...[...upper].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65),
-  );
+export function flagSrc(iso: string): string {
+  return `/flags/${iso.toLowerCase()}.svg`;
 }
 
 export function dialFor(iso: string): string {

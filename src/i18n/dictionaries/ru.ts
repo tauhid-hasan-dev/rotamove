@@ -500,8 +500,7 @@ export const ru = {
     departs: "Отправление",
     expires: "Сгорает",
     capacity: "{n} м³ свободно",
-    vehicleLorry: "Грузовик",
-    vehicleVan: "Фургон",
+    vehicles: { lorry: "Грузовик", van: "Фургон", frigo: "Рефрижератор" },
     sendRequest: "Отправить заявку",
     emptyTitle: "Сейчас срочных загрузок нет",
     emptyBody:
@@ -546,7 +545,6 @@ export const ru = {
     email: "Эл. почта",
     emailPlaceholder: "vy@primer.ru",
     phone: "Телефон",
-    phonePlaceholder: "+7 900 000 00 00",
     notes: "Что-нибудь ещё?",
     notesPlaceholder: "Узкая улица, в точке доставки нет лифта…",
     consent:
@@ -864,7 +862,6 @@ export const ru = {
     fixErrors: "Проверьте выделенные поля.",
 
     emailPlaceholder: "name@company.ru",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Подтвердите адрес электронной почты и номер телефона, чтобы продолжить.",
     doneEmailed: "Копию мы отправили на {email}.",
 
@@ -1090,8 +1087,7 @@ export const ru = {
       paused: "Приостановлен",
       finished: "Завершён",
       bothWays: "в обе стороны",
-      lorry: "Грузовик",
-      minivan: "Микроавтобус",
+      vehicles: { lorry: "Грузовик", van: "Микроавтобус", frigo: "Рефрижератор" },
       capacityFree: "{n} м³ свободно",
       edit: "Изменить рейс",
       resume: "Возобновить рейс",
@@ -2104,7 +2100,6 @@ export const ru = {
   phoneField: {
     countryLabel: "Код страны",
     numberLabel: "Номер телефона",
-    numberPlaceholder: "912 345 67 89",
     searchPlaceholder: "Поиск страны или кода",
     noMatch: "Нет страны, соответствующей «{query}».",
     networkHint: "В сети Rotamove",

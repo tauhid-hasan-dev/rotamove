@@ -22,6 +22,7 @@ import {
   lastCallEndAt,
   lastCallWindow,
   LANE_MODES,
+  LANE_VEHICLES,
   LAST_CALL_HOURS,
   type LaneInput,
   type LastCallHours,
@@ -383,16 +384,18 @@ export function LaneDialog({
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <span className="mb-2 block text-[13.5px]">{dx.vehicle}</span>
-              <div className="flex gap-2">
-                {(["lorry", "van"] as const).map((vehicle) => (
+              {/* Driven off `LANE_VEHICLES` rather than a literal pair, so
+                  adding a vehicle is one entry in `lanes.ts` and a label,
+                  not a third branch of a ternary. Wraps, because three
+                  chips no longer fit one line on a phone. */}
+              <div className="flex flex-wrap gap-2">
+                {LANE_VEHICLES.map((vehicle) => (
                   <Chip
                     key={vehicle}
                     active={draft.vehicle === vehicle}
                     onClick={() => update({ vehicle })}
                   >
-                    {vehicle === "lorry"
-                      ? dict.partnerDashboard.lanes.lorry
-                      : dict.partnerDashboard.lanes.minivan}
+                    {dict.partnerDashboard.lanes.vehicles[vehicle]}
                   </Chip>
                 ))}
               </div>

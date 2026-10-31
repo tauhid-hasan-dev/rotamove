@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AlarmClock, ArrowRight, Box, Truck } from "lucide-react";
+import { AlarmClock, ArrowRight, Box, Snowflake, Truck } from "lucide-react";
 import { motion } from "motion/react";
 import { RouteLine } from "@/components/common/route-line";
 import { getCity, cityCountry, resolveCorridor } from "@/lib/geo";
@@ -162,8 +162,14 @@ function OfferCard({
           {t.fill(lx.capacity, { n: t.number(offer.capacityM3) })}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <Truck className="size-3.5" />
-          {offer.vehicle === "lorry" ? lx.vehicleLorry : lx.vehicleVan}
+          {/* A reefer run gets the snowflake. On a board of spare capacity
+              that is the one distinction a shipper scans for. */}
+          {offer.vehicle === "frigo" ? (
+            <Snowflake className="size-3.5" />
+          ) : (
+            <Truck className="size-3.5" />
+          )}
+          {lx.vehicles[offer.vehicle]}
         </span>
       </dl>
 

@@ -481,8 +481,7 @@ export const tr = {
     departs: "Kalkış",
     expires: "Bitiş",
     capacity: "{n} m³ boş",
-    vehicleLorry: "Kamyon",
-    vehicleVan: "Minivan",
+    vehicles: { lorry: "Kamyon", van: "Minivan", frigo: "Frigorifik" },
     sendRequest: "Talep gönder",
     emptyTitle: "Şu anda son çağrı yeri yok",
     emptyBody:
@@ -527,7 +526,6 @@ export const tr = {
     email: "E-posta",
     emailPlaceholder: "siz@ornek.com",
     phone: "Telefon",
-    phonePlaceholder: "+90 532 000 00 00",
     notes: "Eklemek istediğiniz bir şey var mı?",
     notesPlaceholder: "Sokak dar, varış noktasında asansör yok…",
     consent:
@@ -844,7 +842,6 @@ export const tr = {
     fixErrors: "İşaretli alanları kontrol edin.",
 
     emailPlaceholder: "ad@sirketiniz.com",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Devam etmek için e-posta adresinizi ve telefon numaranızı doğrulayın.",
     doneEmailed: "Bir kopyasını {email} adresine gönderdik.",
 
@@ -1062,8 +1059,7 @@ export const tr = {
       paused: "Duraklatıldı",
       finished: "Tamamlandı",
       bothWays: "çift yön",
-      lorry: "Kamyon",
-      minivan: "Minivan",
+      vehicles: { lorry: "Kamyon", van: "Minivan", frigo: "Frigorifik" },
       capacityFree: "{n} m³ boş",
       edit: "Hattı düzenle",
       resume: "Hattı devam ettir",
@@ -2069,7 +2065,6 @@ export const tr = {
   phoneField: {
     countryLabel: "Ülke kodu",
     numberLabel: "Telefon numarası",
-    numberPlaceholder: "532 111 22 33",
     searchPlaceholder: "Ülke veya kod ara",
     noMatch: "“{query}” ile eşleşen ülke yok.",
     networkHint: "Rotamove ağında",

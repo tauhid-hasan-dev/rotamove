@@ -481,8 +481,7 @@ export const fr = {
     departs: "Départ",
     expires: "Expire",
     capacity: "{n} m³ libres",
-    vehicleLorry: "Camion",
-    vehicleVan: "Fourgon",
+    vehicles: { lorry: "Camion", van: "Fourgon", frigo: "Frigorifique" },
     sendRequest: "Envoyer la demande",
     emptyTitle: "Aucune place de dernière minute pour le moment",
     emptyBody:
@@ -527,7 +526,6 @@ export const fr = {
     email: "E-mail",
     emailPlaceholder: "vous@exemple.fr",
     phone: "Téléphone",
-    phonePlaceholder: "+33 6 00 00 00 00",
     notes: "Autre chose ?",
     notesPlaceholder: "Rue étroite, pas d’ascenseur à l’arrivée…",
     consent:
@@ -846,7 +844,6 @@ export const fr = {
     fixErrors: "Vérifiez les champs signalés.",
 
     emailPlaceholder: "nom@votreentreprise.fr",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Confirmez votre adresse e-mail et votre numéro de téléphone pour continuer.",
     doneEmailed: "Nous avons envoyé une copie à {email}.",
 
@@ -1064,8 +1061,7 @@ export const fr = {
       paused: "En pause",
       finished: "Terminée",
       bothWays: "dans les deux sens",
-      lorry: "Camion",
-      minivan: "Fourgon",
+      vehicles: { lorry: "Camion", van: "Fourgon", frigo: "Frigorifique" },
       capacityFree: "{n} m³ libres",
       edit: "Modifier la ligne",
       resume: "Réactiver la ligne",
@@ -2080,7 +2076,6 @@ export const fr = {
   phoneField: {
     countryLabel: "Indicatif pays",
     numberLabel: "Numéro de téléphone",
-    numberPlaceholder: "6 12 34 56 78",
     searchPlaceholder: "Rechercher un pays ou un indicatif",
     noMatch: "Aucun pays ne correspond à « {query} ».",
     networkHint: "Sur le réseau Rotamove",

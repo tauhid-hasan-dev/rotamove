@@ -30,7 +30,19 @@ import type { DateRange, Lead } from "@/lib/types";
  * All three feed matching. See `laneBonus` in lib/matching.ts.
  */
 
-export const LANE_VEHICLES = ["lorry", "van"] as const;
+/**
+ * What is making the run.
+ *
+ * `frigo` is a lorry with a reefer unit, and it is a separate choice rather
+ * than a flag on `lorry` because it is a different vehicle to sell: it can
+ * take the temperature-controlled work the other two cannot, and a shipper
+ * looking for chilled capacity is not helped by a curtainsider that happens
+ * to be going the same way.
+ *
+ * Appended, never reordered — stored lanes hold the string, not the index,
+ * but the chips render in this order and the first is the default.
+ */
+export const LANE_VEHICLES = ["lorry", "van", "frigo"] as const;
 export type LaneVehicle = (typeof LANE_VEHICLES)[number];
 
 /** The only durations a last-call offer may run for. */

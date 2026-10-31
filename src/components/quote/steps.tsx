@@ -332,7 +332,7 @@ export function StepContact({
             onChange={(e) => setContact("fullName", e.target.value)}
             placeholder={dict.quote.namePlaceholder}
             autoComplete="name"
-            className={cn("h-12 rounded-2xl", touched && !nameOk && "border-destructive")}
+            className={cn("h-12 rounded-xl", touched && !nameOk && "border-destructive")}
           />
         </div>
 
@@ -359,7 +359,6 @@ export function StepContact({
           inputMode="tel"
           autoComplete="tel"
           label={dict.quote.phone}
-          placeholder={dict.quote.phonePlaceholder}
           value={draft.contact.phone}
           onChange={(v) => setContact("phone", v)}
           verified={draft.contact.phoneVerified}
@@ -392,7 +391,7 @@ export function StepContact({
           onChange={(e) => update({ notes: e.target.value })}
           rows={3}
           placeholder={dict.quote.notesPlaceholder}
-          className="resize-none rounded-2xl"
+          className="resize-none rounded-xl"
         />
       </div>
 
@@ -405,7 +404,7 @@ export function StepContact({
 
       <label
         className={cn(
-          "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors",
+          "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors",
           draft.consent && "border-brand bg-brand-soft dark:bg-accent",
           touched && !draft.consent && "border-destructive",
         )}
@@ -467,7 +466,7 @@ function MatchCountPicker({
               aria-checked={selected}
               onClick={() => onChange(option.id)}
               className={cn(
-                "group relative flex flex-col items-start gap-1 rounded-2xl border bg-background p-4 text-start transition-all duration-200 outline-none",
+                "group relative flex flex-col items-start gap-1 rounded-xl border bg-background p-4 text-start transition-all duration-200 outline-none",
                 "hover:border-foreground/25 hover:shadow-sm",
                 "focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/20",
                 selected &&

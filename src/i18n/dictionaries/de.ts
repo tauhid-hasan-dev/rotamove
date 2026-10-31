@@ -480,8 +480,7 @@ export const de = {
     departs: "Abfahrt",
     expires: "Läuft ab",
     capacity: "{n} m³ frei",
-    vehicleLorry: "Lkw",
-    vehicleVan: "Transporter",
+    vehicles: { lorry: "Lkw", van: "Transporter", frigo: "Kühlfahrzeug" },
     sendRequest: "Anfrage senden",
     emptyTitle: "Derzeit kein kurzfristig freier Laderaum",
     emptyBody:
@@ -526,7 +525,6 @@ export const de = {
     email: "E-Mail",
     emailPlaceholder: "sie@beispiel.de",
     phone: "Telefon",
-    phonePlaceholder: "+49 151 000 000 00",
     notes: "Noch etwas?",
     notesPlaceholder: "Enge Straße, am Ziel kein Aufzug …",
     consent:
@@ -846,7 +844,6 @@ export const de = {
     fixErrors: "Bitte prüfen Sie die markierten Felder.",
 
     emailPlaceholder: "name@ihrefirma.de",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Bestätigen Sie Ihre E-Mail-Adresse und Ihre Telefonnummer, um fortzufahren.",
     doneEmailed: "Eine Kopie haben wir an {email} geschickt.",
 
@@ -1063,8 +1060,7 @@ export const de = {
       paused: "Pausiert",
       finished: "Beendet",
       bothWays: "beide Richtungen",
-      lorry: "Lkw",
-      minivan: "Transporter",
+      vehicles: { lorry: "Lkw", van: "Transporter", frigo: "Kühlfahrzeug" },
       capacityFree: "{n} m³ frei",
       edit: "Relation bearbeiten",
       resume: "Relation fortsetzen",
@@ -2083,7 +2079,6 @@ export const de = {
   phoneField: {
     countryLabel: "Ländervorwahl",
     numberLabel: "Telefonnummer",
-    numberPlaceholder: "151 1234567",
     searchPlaceholder: "Land oder Vorwahl suchen",
     noMatch: "Kein Land passt zu „{query}“.",
     networkHint: "Im Rotamove-Netzwerk",

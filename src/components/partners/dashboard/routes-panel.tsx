@@ -14,6 +14,7 @@ import {
   Repeat,
   Route,
   Ship,
+  Snowflake,
   Train,
   Trash2,
   Truck,
@@ -327,8 +328,12 @@ function LaneCard({
 
           <dl className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground tnum">
             <span className="inline-flex items-center gap-1.5">
-              <Truck className="size-3.5" />
-              {lane.vehicle === "lorry" ? lx.lorry : lx.minivan}
+              {lane.vehicle === "frigo" ? (
+                <Snowflake className="size-3.5" />
+              ) : (
+                <Truck className="size-3.5" />
+              )}
+              {lx.vehicles[lane.vehicle]}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Box className="size-3.5" />

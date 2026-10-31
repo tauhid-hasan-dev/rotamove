@@ -478,8 +478,7 @@ export const it = {
     departs: "Parte",
     expires: "Scade",
     capacity: "{n} m³ liberi",
-    vehicleLorry: "Camion",
-    vehicleVan: "Furgone",
+    vehicles: { lorry: "Camion", van: "Furgone", frigo: "Frigorifero" },
     sendRequest: "Invia la richiesta",
     emptyTitle: "Nessuno spazio dell’ultimo minuto al momento",
     emptyBody:
@@ -524,7 +523,6 @@ export const it = {
     email: "E-mail",
     emailPlaceholder: "tu@esempio.it",
     phone: "Telefono",
-    phonePlaceholder: "+39 320 000 0000",
     notes: "Altro da segnalare?",
     notesPlaceholder: "Strada stretta, a destinazione non c’è ascensore…",
     consent:
@@ -842,7 +840,6 @@ export const it = {
     fixErrors: "Controlla i campi evidenziati.",
 
     emailPlaceholder: "nome@tuaazienda.it",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Conferma il tuo indirizzo email e il numero di telefono per continuare.",
     doneEmailed: "Abbiamo inviato una copia a {email}.",
 
@@ -1060,8 +1057,7 @@ export const it = {
       paused: "In pausa",
       finished: "Conclusa",
       bothWays: "in entrambe le direzioni",
-      lorry: "Camion",
-      minivan: "Furgone",
+      vehicles: { lorry: "Camion", van: "Furgone", frigo: "Frigorifero" },
       capacityFree: "{n} m³ liberi",
       edit: "Modifica tratta",
       resume: "Riattiva la tratta",
@@ -2077,7 +2073,6 @@ export const it = {
   phoneField: {
     countryLabel: "Prefisso internazionale",
     numberLabel: "Numero di telefono",
-    numberPlaceholder: "312 123 4567",
     searchPlaceholder: "Cerca paese o prefisso",
     noMatch: "Nessun paese corrisponde a «{query}».",
     networkHint: "Nella rete Rotamove",

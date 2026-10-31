@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate:map": "node scripts/generate-world-land.mjs"
+    "generate:map": "node scripts/generate-world-land.mjs",
+    "generate:flags": "node scripts/sync-flags.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -39,6 +40,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "flag-icons": "^7.6.0",
     "tailwindcss": "^4",
     "topojson-client": "^3.1.0",
     "typescript": "^5",

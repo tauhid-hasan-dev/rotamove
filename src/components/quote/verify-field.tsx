@@ -40,7 +40,8 @@ export function VerifyField({
   id: string;
   kind: "email" | "phone";
   label: string;
-  placeholder: string;
+  /** Email only. A phone field shows its dialling code and needs no example. */
+  placeholder?: string;
   value: string;
   onChange: (next: string) => void;
   verified: boolean;
@@ -83,7 +84,6 @@ export function VerifyField({
             id={id}
             value={value}
             onChange={onChange}
-            placeholder={placeholder}
             invalid={invalid}
             verified={verified}
             autoComplete={autoComplete}
@@ -99,7 +99,11 @@ export function VerifyField({
             placeholder={placeholder}
             autoComplete={autoComplete}
             className={cn(
-              "h-12 min-w-0 flex-1 rounded-2xl",
+              // `rounded-xl`, matching the option cards on the services
+              // step. At 2xl the radius is nearly half a 48px control and
+              // the contact step read as a different product from the one
+              // before it.
+              "h-12 min-w-0 flex-1 rounded-xl",
               invalid && "border-destructive",
               verified && "border-verify/50",
             )}
@@ -112,7 +116,7 @@ export function VerifyField({
             onClick={verification.request}
             disabled={!valid || status === "sending" || status === "checking" || verification.resendIn > 0}
             className={cn(
-              "inline-flex h-12 shrink-0 items-center gap-1.5 rounded-2xl border px-4 text-[14px] font-medium transition-colors",
+              "inline-flex h-12 shrink-0 items-center gap-1.5 rounded-xl border px-4 text-[14px] font-medium transition-colors",
               "hover:border-foreground/25 hover:bg-muted",
               "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent",
             )}
@@ -139,7 +143,7 @@ export function VerifyField({
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-3 rounded-2xl border bg-surface p-4">
+            <div className="mt-3 rounded-xl border bg-surface p-4">
               <p className="text-[13px] leading-relaxed text-muted-foreground">
                 {t.fill(
                   kind === "email" ? dict.verify.codeSentEmail : dict.verify.codeSentPhone,

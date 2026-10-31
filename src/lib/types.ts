@@ -209,7 +209,14 @@ export type DateRange = [string, string];
  * it is worth showing the customer.
  */
 export interface QuoteLane {
-  vehicle: "lorry" | "van";
+  /**
+   * Mirrors `LaneVehicle`, restated rather than imported: `lib/lanes.ts`
+   * pulls in zod and the lane repository's types, and this module is the
+   * shared vocabulary that both the server and the public quote payload
+   * depend on. Keep the two in step — tsc catches it at every call site
+   * that builds one of these.
+   */
+  vehicle: "lorry" | "van" | "frigo";
   /** ISO `[start, end]` for a single dated run; `null` for a standing service. */
   window: DateRange | null;
   /** Space the carrier says is still free on it, m³. */

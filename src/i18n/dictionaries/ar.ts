@@ -542,8 +542,7 @@ export const ar = {
     departs: "المغادرة",
     expires: "ينتهي",
     capacity: "{n} m³ متاحة",
-    vehicleLorry: "شاحنة",
-    vehicleVan: "شاحنة صغيرة",
+    vehicles: { lorry: "شاحنة", van: "شاحنة صغيرة", frigo: "شاحنة مبردة" },
     sendRequest: "أرسل الطلب",
     emptyTitle: "لا توجد مساحة فرصة أخيرة الآن",
     emptyBody:
@@ -588,7 +587,6 @@ export const ar = {
     email: "البريد الإلكتروني",
     emailPlaceholder: "you@example.com",
     phone: "الهاتف",
-    phonePlaceholder: "+971 50 000 0000",
     notes: "هل هناك شيء آخر؟",
     notesPlaceholder: "الشارع ضيق، ولا مصعد في نقطة التسليم…",
     consent:
@@ -906,7 +904,6 @@ export const ar = {
     fixErrors: "راجع الحقول المحددة.",
 
     emailPlaceholder: "name@yourcompany.com",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "أكّد بريدك الإلكتروني ورقم هاتفك للمتابعة.",
     doneEmailed: "أرسلنا نسخة إلى {email}.",
 
@@ -1135,8 +1132,7 @@ export const ar = {
       paused: "متوقف مؤقتًا",
       finished: "منتهٍ",
       bothWays: "في الاتجاهين",
-      lorry: "شاحنة",
-      minivan: "مركبة صغيرة",
+      vehicles: { lorry: "شاحنة", van: "مركبة صغيرة", frigo: "شاحنة مبردة" },
       capacityFree: "{n} m³ متاحة",
       edit: "تعديل الخط",
       resume: "استئناف الخط",
@@ -2146,7 +2142,6 @@ export const ar = {
   phoneField: {
     countryLabel: "رمز الدولة",
     numberLabel: "رقم الهاتف",
-    numberPlaceholder: "50 123 4567",
     searchPlaceholder: "ابحث عن دولة أو رمز",
     noMatch: "لا توجد دولة تطابق «{query}».",
     networkHint: "ضمن شبكة Rotamove",

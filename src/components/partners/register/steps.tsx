@@ -291,7 +291,6 @@ export function StepContact({ draft, update, touched, invalid }: StepProps) {
           id="phone"
           kind="phone"
           label={R.phone}
-          placeholder={R.phonePlaceholder}
           value={draft.phone}
           onChange={(phone) => update({ phone })}
           verified={draft.phoneVerified}

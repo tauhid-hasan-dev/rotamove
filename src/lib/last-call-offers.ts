@@ -1,4 +1,9 @@
-import { lastCallEndAt, type LastCallHours, type PartnerLane } from "@/lib/lanes";
+import {
+  lastCallEndAt,
+  type LaneVehicle,
+  type LastCallHours,
+  type PartnerLane,
+} from "@/lib/lanes";
 
 /**
  * One last-call offer, stripped of everything that identifies the carrier.
@@ -19,7 +24,7 @@ export interface LastCallOffer {
   startAt: string;
   endAt: string;
   capacityM3: number;
-  vehicle: "lorry" | "van";
+  vehicle: LaneVehicle;
   notes: string;
 }
 

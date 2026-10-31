@@ -480,8 +480,7 @@ export const nl = {
     departs: "Vertrekt",
     expires: "Verloopt",
     capacity: "{n} m³ vrij",
-    vehicleLorry: "Vrachtwagen",
-    vehicleVan: "Bestelwagen",
+    vehicles: { lorry: "Vrachtwagen", van: "Bestelwagen", frigo: "Koelwagen" },
     sendRequest: "Aanvraag versturen",
     emptyTitle: "Op dit moment geen last-minute ruimte",
     emptyBody:
@@ -526,7 +525,6 @@ export const nl = {
     email: "E-mail",
     emailPlaceholder: "u@voorbeeld.nl",
     phone: "Telefoon",
-    phonePlaceholder: "+31 6 0000 0000",
     notes: "Nog iets?",
     notesPlaceholder: "Smalle straat, geen lift op de bestemming…",
     consent:
@@ -844,7 +842,6 @@ export const nl = {
     fixErrors: "Controleer de gemarkeerde velden.",
 
     emailPlaceholder: "naam@uwbedrijf.nl",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Bevestig uw e-mailadres en telefoonnummer om door te gaan.",
     doneEmailed: "We hebben een kopie naar {email} gestuurd.",
 
@@ -1061,8 +1058,7 @@ export const nl = {
       paused: "Gepauzeerd",
       finished: "Afgerond",
       bothWays: "beide richtingen",
-      lorry: "Vrachtwagen",
-      minivan: "Bestelwagen",
+      vehicles: { lorry: "Vrachtwagen", van: "Bestelwagen", frigo: "Koelwagen" },
       capacityFree: "{n} m³ vrij",
       edit: "Route bewerken",
       resume: "Route hervatten",
@@ -2076,7 +2072,6 @@ export const nl = {
   phoneField: {
     countryLabel: "Landnummer",
     numberLabel: "Telefoonnummer",
-    numberPlaceholder: "6 12345678",
     searchPlaceholder: "Zoek land of landnummer",
     noMatch: "Geen land komt overeen met „{query}”.",
     networkHint: "In het Rotamove-netwerk",

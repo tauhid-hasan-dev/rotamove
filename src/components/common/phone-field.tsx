@@ -7,13 +7,39 @@ import {
   DIAL_COUNTRIES,
   composePhone,
   dialFor,
-  flagFor,
+  flagSrc,
   isNetworkCountry,
   parsePhone,
 } from "@/lib/phone";
 import { foldText } from "@/lib/geo";
 import { useI18n } from "@/i18n/provider";
 import { cn } from "@/lib/utils";
+
+/**
+ * One country's flag, at the size a form control wants it.
+ *
+ * A plain `<img>` rather than `next/image`: these are 20px decorations
+ * already sitting in `public/`, so there is nothing for an optimiser to do
+ * and a great deal of machinery to avoid. `loading="lazy"` matters more
+ * than it looks — the picker lists all ninety-eight countries, and without
+ * it opening the menu would fetch two thirds of a megabyte at once instead
+ * of the eight rows actually on screen.
+ */
+function Flag({ iso, className }: { iso: string; className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={flagSrc(iso)}
+      alt=""
+      aria-hidden
+      loading="lazy"
+      decoding="async"
+      width={20}
+      height={15}
+      className={cn("h-[15px] w-[20px] shrink-0 rounded-[2px] object-cover", className)}
+    />
+  );
+}
 
 /**
  * A phone number as two controls over one string.
@@ -30,7 +56,6 @@ export function PhoneField({
   id,
   value,
   onChange,
-  placeholder,
   invalid,
   verified,
   disabled,
@@ -42,7 +67,6 @@ export function PhoneField({
   /** The whole number, dialling code included. */
   value: string;
   onChange: (next: string) => void;
-  placeholder?: string;
   invalid?: boolean;
   verified?: boolean;
   disabled?: boolean;
@@ -109,13 +133,16 @@ export function PhoneField({
         disabled={disabled}
         value={national}
         onChange={(e) => onChange(composePhone(iso, e.target.value))}
-        placeholder={placeholder ?? px.numberPlaceholder}
+        /* No placeholder. An example number in a field that already shows
+           its dialling code reads as a value rather than a hint — people
+           typed around it, and on a narrow phone the grey digits and the
+           real ones are hard to tell apart at a glance. */
         aria-label={px.numberLabel}
         // `dir="ltr"` even in Arabic: a dialled number is a sequence, and
         // mirroring it puts the trunk digit on the wrong end.
         dir="ltr"
         className={cn(
-          "h-12 min-w-0 flex-1 rounded-2xl border bg-transparent px-4 text-[15px] tnum outline-none transition-colors",
+          "h-12 min-w-0 flex-1 rounded-xl border bg-transparent px-4 text-[15px] tnum outline-none transition-colors",
           "focus:border-brand focus:ring-[3px] focus:ring-brand/20",
           "disabled:cursor-not-allowed disabled:opacity-55",
           invalid && "border-destructive",
@@ -231,15 +258,13 @@ function DialPicker({
           disabled={disabled}
           aria-label={`${label}: ${t.country(iso, iso)} +${dialFor(iso)}`}
           className={cn(
-            "inline-flex h-12 shrink-0 items-center gap-1.5 rounded-2xl border px-3 text-[15px] transition-colors",
+            "inline-flex h-12 shrink-0 items-center gap-2 rounded-xl border px-3 text-[15px] transition-colors",
             "hover:border-foreground/25 hover:bg-muted",
             "focus-visible:border-brand focus-visible:ring-[3px] focus-visible:ring-brand/20 focus-visible:outline-none",
             "disabled:cursor-not-allowed disabled:opacity-55",
           )}
         >
-          <span className="text-[17px] leading-none" aria-hidden>
-            {flagFor(iso)}
-          </span>
+          <Flag iso={iso} />
           <span className="tnum" dir="ltr">
             +{dialFor(iso)}
           </span>
@@ -301,9 +326,7 @@ function DialPicker({
                     i === cursor && "bg-accent",
                   )}
                 >
-                  <span className="text-[16px] leading-none" aria-hidden>
-                    {flagFor(c.iso)}
-                  </span>
+                  <Flag iso={c.iso} />
                   <span className="min-w-0 flex-1 truncate text-[14px]">{c.name}</span>
                   {/* A corridor we actually run. Worth a mark here because
                       the same picker serves a quote form, where it is the

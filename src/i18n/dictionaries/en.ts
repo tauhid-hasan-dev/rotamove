@@ -504,8 +504,7 @@ export const en = {
     departs: "Departs",
     expires: "Expires",
     capacity: "{n} m³ free",
-    vehicleLorry: "Lorry",
-    vehicleVan: "Van",
+    vehicles: { lorry: "Lorry", van: "Van", frigo: "Frigo" },
     sendRequest: "Send request",
     emptyTitle: "No last-call space right now",
     emptyBody:
@@ -550,7 +549,6 @@ export const en = {
     email: "Email",
     emailPlaceholder: "you@example.com",
     phone: "Phone",
-    phonePlaceholder: "+90 532 000 00 00",
     notes: "Anything else?",
     notesPlaceholder: "Narrow street, no lift at the destination…",
     consent: "Share my enquiry with matching carriers. Your details never go anywhere else.",
@@ -868,7 +866,6 @@ export const en = {
     fixErrors: "Check the highlighted fields.",
 
     emailPlaceholder: "name@yourcompany.com",
-    phonePlaceholder: "+90 532 000 00 00",
     verifyRequired: "Confirm your email address and phone number to continue.",
     doneEmailed: "We have emailed a copy to {email}.",
 
@@ -1084,8 +1081,7 @@ export const en = {
       paused: "Paused",
       finished: "Finished",
       bothWays: "both ways",
-      lorry: "Lorry",
-      minivan: "Minivan",
+      vehicles: { lorry: "Lorry", van: "Minivan", frigo: "Frigo" },
       capacityFree: "{n} m³ free",
       edit: "Edit lane",
       resume: "Resume lane",
@@ -2085,7 +2081,6 @@ export const en = {
   phoneField: {
     countryLabel: "Country code",
     numberLabel: "Phone number",
-    numberPlaceholder: "532 111 22 33",
     searchPlaceholder: "Search country or code",
     noMatch: "No country matches “{query}”.",
     networkHint: "On the Rotamove network",
