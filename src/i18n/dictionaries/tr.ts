@@ -2060,6 +2060,89 @@ export const tr = {
     partnersTitle: "Taşıyıcılar için — talep satın almanın üç yolu, talep başına €7 üst sınırıyla",
     partnersDescription:
       "Rotamove partner ağına katılın. Sabit aylık ücretle sınırsız talep, talep başına ödeme ya da yalnızca açmayı seçtiğiniz talepler için ödeme — her zaman kesin €7 üst sınırıyla.",
+    contactTitle: "Bize ulaşın",
+    contactDescription:
+      "Taşıma, fatura veya taşıyıcı ağına katılma hakkındaki sorularınız. Hepsini okuyor ve bir iş günü içinde yanıtlıyoruz.",
+  },
+
+  /* ------------------------------------------------------ phone field -- */
+  phoneField: {
+    countryLabel: "Ülke kodu",
+    numberLabel: "Telefon numarası",
+    numberPlaceholder: "532 111 22 33",
+    searchPlaceholder: "Ülke veya kod ara",
+    noMatch: "“{query}” ile eşleşen ülke yok.",
+    networkHint: "Rotamove ağında",
+    selected: "{country}, ülke kodu {code}",
+  },
+
+  /* ----------------------------------------------------- contact page -- */
+  contactPage: {
+    eyebrow: "İletişim",
+    title: "Neye ihtiyacınız olduğunu yazın.",
+    lede: "Devam eden bir taşıma, açıklanması gereken bir teklif, hatalı görünen bir fatura ya da ağa katmak istediğiniz bir filo. Tek form, tek gelen kutusu.",
+
+    fullName: "Ad soyad",
+    fullNamePlaceholder: "Mert Hansen",
+    email: "E-posta",
+    emailPlaceholder: "siz@sirket.com",
+    phone: "Telefon",
+    phoneOptional: "İsteğe bağlı",
+    topic: "Konu",
+    topicPlaceholder: "Konu nedir?",
+    topics: {
+      quote: "Yeni bir teklif",
+      existing_move: "Hâlihazırda alınmış bir taşıma",
+      partner: "Taşıyıcı olarak katılmak",
+      billing: "Fatura veya ödeme",
+      complaint: "Şikâyet",
+      press: "Basın veya iş birliği",
+      other: "Başka bir konu",
+    },
+    message: "Mesajınız",
+    messagePlaceholder:
+      "Güzergâh, tarihler, hacim — ya da neyin ters gittiğini yazın, kaydı biz buluruz.",
+    messageCount: "{n} / {max}",
+
+    verifyTitle: "Doğrulama",
+    verifyBody:
+      "İnsan olduğunuzun kısa bir kontrolü. Çözülecek bulmaca yok — genelde kendiliğinden geçer.",
+    verifyLoading: "Doğrulama yükleniyor…",
+    verifyError:
+      "Doğrulama bileşeni yüklenemedi. Genelde bir içerik engelleyici ya da kurumsal vekil sunucu sebep olur — challenges.cloudflare.com adresine izin verin veya doğrudan e-posta gönderin.",
+    verifyTestKeys:
+      "Demo sürümü: bu doğrulama Cloudflare’in test anahtarlarıyla çalışır ve her zaman geçer. Canlı trafiğe geçmeden önce gerçek Turnstile anahtarlarını ayarlayın.",
+
+    submit: "Mesajı gönder",
+    sending: "Gönderiliyor…",
+    awaitingVerify: "Doğrulama kontrolü bekleniyor.",
+    fixErrors: "Bazı alanlar hâlâ düzeltilmeli.",
+    privacyNote:
+      "Buraya yazdıklarınızı yalnızca size yanıt vermek için kullanırız. Pazarlama listesi yok, satış yok.",
+
+    errFullName: "Kim olduğunuzu yazın.",
+    errEmail: "Bu e-posta doğru görünmüyor.",
+    errPhone: "Ülke kodunu ekleyin ya da boş bırakın.",
+    errTopic: "Bir konu seçin.",
+    errMessage: "Biraz daha ayrıntı — en az on karakter.",
+
+    errorRejected: "Doğrulama geçmedi. Kutuyu yeniden deneyin.",
+    errorUnavailable:
+      "Doğrulama servisine ulaşılamadı. Biraz bekleyip yeniden gönderin.",
+    errorNetwork: "Gönderilemedi. Bağlantınızı kontrol edip yeniden deneyin.",
+
+    sentTitle: "Mesaj alındı",
+    sentBody: "Bize ulaştı. Yanıt {email} adresine, genelde bir iş günü içinde gelir.",
+    reference: "Referans",
+    sendAnother: "Yeni mesaj gönder",
+
+    channelEmailTitle: "E-posta",
+    channelHoursTitle: "Çalışma saatleri",
+    channelHoursBody: "Pazartesi–Cuma, 09.00–18.00 İstanbul saati (UTC+3).",
+    channelReplyTitle: "Yanıt süresi",
+    channelReplyBody: "Çoğu konu için bir iş günü; devam eden bir taşımada aynı gün.",
+    asideNote:
+      "Hesabı olan taşıyıcılar panelden yazmalı — partner kimliğinizi ekler ve doğrudan partner masasına ulaşır.",
   },
 } satisfies Dictionary;
 

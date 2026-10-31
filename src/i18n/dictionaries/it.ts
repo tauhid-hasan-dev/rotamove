@@ -2068,6 +2068,89 @@ export const it = {
     partnersTitle: "Per i trasportatori — tre modi per acquistare domanda, con tetto di 7 € per contatto",
     partnersDescription:
       "Entra nella rete di partner Rotamove. Richieste illimitate con una quota mensile fissa, pagamento per contatto, oppure pagamento solo per le richieste che scegli di sbloccare — sempre con un tetto massimo rigido di 7 €.",
+    contactTitle: "Contattaci",
+    contactDescription:
+      "Domande su un trasloco, una fattura o l’ingresso nella rete di trasportatori. Leggiamo tutto e rispondiamo entro un giorno lavorativo.",
+  },
+
+  /* ------------------------------------------------------ phone field -- */
+  phoneField: {
+    countryLabel: "Prefisso internazionale",
+    numberLabel: "Numero di telefono",
+    numberPlaceholder: "312 123 4567",
+    searchPlaceholder: "Cerca paese o prefisso",
+    noMatch: "Nessun paese corrisponde a «{query}».",
+    networkHint: "Nella rete Rotamove",
+    selected: "{country}, prefisso {code}",
+  },
+
+  /* ----------------------------------------------------- contact page -- */
+  contactPage: {
+    eyebrow: "Contatti",
+    title: "Dicci di cosa hai bisogno.",
+    lede: "Un trasloco in corso, un preventivo da spiegare, una fattura che sembra sbagliata o una flotta da portare in rete. Un modulo, una casella.",
+
+    fullName: "Nome e cognome",
+    fullNamePlaceholder: "Mert Hansen",
+    email: "Email",
+    emailPlaceholder: "tu@azienda.it",
+    phone: "Telefono",
+    phoneOptional: "Facoltativo",
+    topic: "Argomento",
+    topicPlaceholder: "Di cosa si tratta?",
+    topics: {
+      quote: "Un nuovo preventivo",
+      existing_move: "Un trasloco già prenotato",
+      partner: "Entrare come trasportatore",
+      billing: "Fatturazione o una fattura",
+      complaint: "Un reclamo",
+      press: "Stampa o partnership",
+      other: "Altro",
+    },
+    message: "Il tuo messaggio",
+    messagePlaceholder:
+      "Tratta, date, volume — oppure scrivi solo cosa non ha funzionato e troveremo noi la pratica.",
+    messageCount: "{n} / {max}",
+
+    verifyTitle: "Verifica",
+    verifyBody:
+      "Un controllo rapido per confermare che sei una persona. Nessun enigma — di solito passa da sola.",
+    verifyLoading: "Caricamento della verifica…",
+    verifyError:
+      "Il widget di verifica non si è caricato. Di solito la causa è un blocco contenuti o un proxy aziendale — consenti challenges.cloudflare.com, oppure scrivici direttamente.",
+    verifyTestKeys:
+      "Build dimostrativa: questa verifica usa le chiavi di test di Cloudflare e passa sempre. Imposta chiavi Turnstile reali prima del traffico live.",
+
+    submit: "Invia messaggio",
+    sending: "Invio…",
+    awaitingVerify: "In attesa della verifica.",
+    fixErrors: "Alcuni campi richiedono ancora attenzione.",
+    privacyNote:
+      "Usiamo quello che invii qui solo per risponderti. Nessuna lista marketing, nessuna rivendita.",
+
+    errFullName: "Dicci chi sei.",
+    errEmail: "Questa email non sembra corretta.",
+    errPhone: "Includi il prefisso internazionale, oppure lascia vuoto.",
+    errTopic: "Scegli un argomento.",
+    errMessage: "Qualche dettaglio in più, per favore — almeno dieci caratteri.",
+
+    errorRejected: "La verifica non è andata a buon fine. Riprova nel riquadro.",
+    errorUnavailable:
+      "Non siamo riusciti a raggiungere il servizio di verifica. Attendi un momento e reinvia.",
+    errorNetwork: "Invio non riuscito. Controlla la connessione e riprova.",
+
+    sentTitle: "Messaggio ricevuto",
+    sentBody: "Ci è arrivato. La risposta parte verso {email}, di norma entro un giorno lavorativo.",
+    reference: "Riferimento",
+    sendAnother: "Invia un altro messaggio",
+
+    channelEmailTitle: "Email",
+    channelHoursTitle: "Orari",
+    channelHoursBody: "Dal lunedì al venerdì, 9:00–18:00 ora di Istanbul (UTC+3).",
+    channelReplyTitle: "Tempi di risposta",
+    channelReplyBody: "Un giorno lavorativo per la maggior parte; stesso giorno per un trasloco in corso.",
+    asideNote:
+      "I trasportatori con un account dovrebbero scrivere dalla dashboard — allega il tuo id partner e arriva direttamente al desk partner.",
   },
 } satisfies Dictionary;
 

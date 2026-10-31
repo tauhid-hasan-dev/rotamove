@@ -8,6 +8,7 @@ import {
   isLocale,
   type Locale,
 } from "@/i18n/config";
+import { COUNTRY_COOKIE, COUNTRY_COOKIE_MAX_AGE, isDialIso } from "@/lib/phone";
 
 /**
  * Locale routing.
@@ -37,28 +38,29 @@ export function proxy(request: NextRequest) {
   const requested = searchParams.get("lang");
   const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
   const current = localeInPath(pathname);
+  const country = geoCountry(request);
 
   // An explicit ?lang= always redirects, even on an already-prefixed path, so
   // a pasted link can override a stale cookie.
   if (isLocale(requested)) {
-    if (requested === current) return persist(NextResponse.next(), requested, cookie);
+    if (requested === current) return persist(NextResponse.next(), requested, cookie, country);
     const url = request.nextUrl.clone();
     url.pathname = withLocale(pathname, requested);
     url.searchParams.delete("lang");
-    return persist(NextResponse.redirect(url), requested, cookie);
+    return persist(NextResponse.redirect(url), requested, cookie, country);
   }
 
   // Already prefixed: let it through, but remember it. Someone who navigates
   // straight to /de has chosen German just as deliberately as using the menu.
-  if (current) return persist(NextResponse.next(), current, cookie);
+  if (current) return persist(NextResponse.next(), current, cookie, country);
 
   const locale = isLocale(cookie)
     ? cookie
-    : (countryLocale(request) ?? acceptLanguageLocale(request) ?? DEFAULT_LOCALE);
+    : (COUNTRY_LOCALE[country ?? ""] ?? acceptLanguageLocale(request) ?? DEFAULT_LOCALE);
 
   const url = request.nextUrl.clone();
   url.pathname = withLocale(pathname, locale);
-  return persist(NextResponse.redirect(url), locale, cookie);
+  return persist(NextResponse.redirect(url), locale, cookie, country);
 }
 
 function localeInPath(pathname: string): Locale | null {
@@ -80,28 +82,62 @@ function withLocale(pathname: string, locale: Locale): string {
   return `/${locale}${rest === "/" ? "" : rest}`;
 }
 
-/** Only writes the cookie when it would actually change. */
-function persist(response: NextResponse, locale: Locale, existing: string | undefined) {
-  if (existing === locale) return response;
-  response.cookies.set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: LOCALE_COOKIE_MAX_AGE,
-    sameSite: "lax",
-  });
+/**
+ * Only writes each cookie when it would actually change.
+ *
+ * The country rides along beside the locale because the two answer different
+ * questions from the same signal: the locale decides what language the page
+ * is in, the country decides which dialling code a phone field opens on. A
+ * Turkish speaker in Berlin wants Turkish copy and `+49`, and conflating the
+ * two would force one of those to be wrong.
+ *
+ * It is a cookie rather than a header read at render time on purpose. Three
+ * hundred-odd pages here are prerendered at build; calling `headers()` in the
+ * layout to fetch one two-letter string would opt every one of them into
+ * dynamic rendering. A cookie the client reads after hydration keeps the
+ * static output static — see `I18nProvider` for the handover.
+ *
+ * Not `httpOnly`: the client is the only thing that reads it.
+ */
+function persist(
+  response: NextResponse,
+  locale: Locale,
+  existing: string | undefined,
+  country: string | null,
+) {
+  if (existing !== locale) {
+    response.cookies.set(LOCALE_COOKIE, locale, {
+      path: "/",
+      maxAge: LOCALE_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+  }
+  if (country && isDialIso(country)) {
+    response.cookies.set(COUNTRY_COOKIE, country, {
+      path: "/",
+      maxAge: COUNTRY_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+  }
   return response;
 }
 
 /**
  * `request.geo` was removed in Next 15; country now arrives as a header.
  * Cloudflare and Netlify set their own equivalents, so all three are read.
+ *
+ * `?country=` is here for the same reason `?lang=` is: without it there is no
+ * way to exercise geo detection on localhost, where no edge sets a header.
  */
-function countryLocale(request: NextRequest): Locale | null {
+function geoCountry(request: NextRequest): string | null {
+  const forced = request.nextUrl.searchParams.get("country");
+  if (forced && isDialIso(forced)) return forced.toUpperCase();
+
   const country =
     request.headers.get("x-vercel-ip-country") ??
     request.headers.get("cf-ipcountry") ??
     request.headers.get("x-nf-client-connection-country");
-  if (!country) return null;
-  return COUNTRY_LOCALE[country.toUpperCase()] ?? null;
+  return country ? country.toUpperCase() : null;
 }
 
 /**

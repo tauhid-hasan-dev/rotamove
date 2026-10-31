@@ -32,7 +32,10 @@ export function SiteFooter() {
       links: [
         { label: dict.footer.about, path: "/how-it-works#about" },
         { label: dict.footer.trust, path: "/how-it-works#trust" },
-        { label: dict.footer.contact, path: "/partners#contact" },
+        // The contact page, not the carrier CTA band it used to point at:
+        // a customer following "Contact" wants a form, not a pitch to join
+        // the network.
+        { label: dict.footer.contact, path: "/contact" },
       ],
     },
   ];

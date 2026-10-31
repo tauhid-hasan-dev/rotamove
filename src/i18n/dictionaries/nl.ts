@@ -2067,6 +2067,89 @@ export const nl = {
     partnersTitle: "Voor vervoerders — drie manieren om vraag te kopen, met een plafond van € 7 per aanvraag",
     partnersDescription:
       "Sluit u aan bij het partnernetwerk van Rotamove. Onbeperkt aanvragen voor een vast maandbedrag, betalen per aanvraag, of alleen betalen voor de aanvragen die u wilt vrijgeven — altijd met een harde bovengrens van € 7.",
+    contactTitle: "Contact",
+    contactDescription:
+      "Vragen over een verhuizing, een factuur of aansluiting bij het vervoerdersnetwerk. We lezen alles en reageren binnen één werkdag.",
+  },
+
+  /* ------------------------------------------------------ phone field -- */
+  phoneField: {
+    countryLabel: "Landnummer",
+    numberLabel: "Telefoonnummer",
+    numberPlaceholder: "6 12345678",
+    searchPlaceholder: "Zoek land of landnummer",
+    noMatch: "Geen land komt overeen met „{query}”.",
+    networkHint: "In het Rotamove-netwerk",
+    selected: "{country}, landnummer {code}",
+  },
+
+  /* ----------------------------------------------------- contact page -- */
+  contactPage: {
+    eyebrow: "Contact",
+    title: "Vertel ons wat u nodig hebt.",
+    lede: "Een lopende verhuizing, een offerte die uitleg vraagt, een factuur die niet klopt, of een wagenpark dat u in het netwerk wilt. Eén formulier, één postvak.",
+
+    fullName: "Volledige naam",
+    fullNamePlaceholder: "Mert Hansen",
+    email: "E-mail",
+    emailPlaceholder: "u@bedrijf.nl",
+    phone: "Telefoon",
+    phoneOptional: "Optioneel",
+    topic: "Onderwerp",
+    topicPlaceholder: "Waar gaat het over?",
+    topics: {
+      quote: "Een nieuwe offerte",
+      existing_move: "Een al geboekte verhuizing",
+      partner: "Aansluiten als vervoerder",
+      billing: "Facturatie of een factuur",
+      complaint: "Een klacht",
+      press: "Pers of samenwerking",
+      other: "Iets anders",
+    },
+    message: "Uw bericht",
+    messagePlaceholder:
+      "Route, data, volume — of schrijf gewoon wat er misging, dan zoeken wij het dossier erbij.",
+    messageCount: "{n} / {max}",
+
+    verifyTitle: "Verificatie",
+    verifyBody:
+      "Een snelle controle dat u een mens bent. Geen puzzel — meestal slaagt hij vanzelf.",
+    verifyLoading: "Verificatie laden…",
+    verifyError:
+      "De verificatiewidget kon niet laden. Meestal komt dat door een contentblokkering of een bedrijfsproxy — sta challenges.cloudflare.com toe, of mail ons rechtstreeks.",
+    verifyTestKeys:
+      "Demo-build: deze controle draait op de testsleutels van Cloudflare en slaagt altijd. Stel echte Turnstile-sleutels in voordat u live gaat.",
+
+    submit: "Bericht versturen",
+    sending: "Versturen…",
+    awaitingVerify: "Wachten op de verificatie.",
+    fixErrors: "Een paar velden hebben nog aandacht nodig.",
+    privacyNote:
+      "We gebruiken wat u hier stuurt om u te antwoorden, en voor niets anders. Geen mailinglijst, geen doorverkoop.",
+
+    errFullName: "Vertel ons wie u bent.",
+    errEmail: "Dit e-mailadres klopt niet.",
+    errPhone: "Vermeld het landnummer, of laat leeg.",
+    errTopic: "Kies een onderwerp.",
+    errMessage: "Iets meer detail graag — minstens tien tekens.",
+
+    errorRejected: "De verificatie is niet geslaagd. Probeer het vakje opnieuw.",
+    errorUnavailable:
+      "We konden de verificatiedienst niet bereiken. Wacht even en verstuur opnieuw.",
+    errorNetwork: "Versturen is mislukt. Controleer uw verbinding en probeer opnieuw.",
+
+    sentTitle: "Bericht ontvangen",
+    sentBody: "Binnengekomen. Een antwoord gaat naar {email}, meestal binnen één werkdag.",
+    reference: "Referentie",
+    sendAnother: "Nog een bericht sturen",
+
+    channelEmailTitle: "E-mail",
+    channelHoursTitle: "Openingstijden",
+    channelHoursBody: "Maandag tot en met vrijdag, 09:00–18:00 uur Istanboel-tijd (UTC+3).",
+    channelReplyTitle: "Reactietijd",
+    channelReplyBody: "Eén werkdag voor de meeste zaken; dezelfde dag bij een lopende verhuizing.",
+    asideNote:
+      "Vervoerders met een account kunnen beter vanuit het dashboard schrijven — dat hangt uw partner-id eraan en komt direct bij de partnerdesk terecht.",
   },
 } satisfies Dictionary;
 

@@ -46,7 +46,9 @@ export type MailKind =
   /** Plan change in force now — an upgrade, which does not wait. */
   | "plan_activated"
   /** Account contact details changed, sent to the address on file. */
-  | "contact_changed";
+  | "contact_changed"
+  /** Someone wrote in from the public contact page. */
+  | "contact_enquiry";
 
 export interface MailMessage {
   id: string;
@@ -209,6 +211,44 @@ export function contactChangedMail(
       `This message went to ${ctx.previousEmail} as well as the new address, so a change you did not make is visible from the mailbox you still control.`,
       `If this was not you, reply immediately and we will freeze the account.`,
       SIGN_OFF,
+    ].join("\n\n"),
+  };
+}
+
+/**
+ * An enquiry from the public contact form.
+ *
+ * Addressed to us, not to the sender — this is the only template in the file
+ * that runs inbound, so `to` is the support desk and the sender's address is
+ * in the body as the reply-to. That keeps it in the same outbox the admin
+ * console already reads, which is where a reviewer would look for it.
+ */
+export function contactEnquiryMail(ctx: {
+  fullName: string;
+  email: string;
+  phone: string;
+  topic: string;
+  message: string;
+  locale: string;
+  /** Country the edge saw, when it saw one. Context for the desk, not data. */
+  country?: string | null;
+}): MailInput {
+  return {
+    kind: "contact_enquiry",
+    to: SUPPORT_EMAIL,
+    locale: ctx.locale,
+    subject: `Contact form — ${ctx.topic} — ${ctx.fullName}`,
+    body: [
+      `${ctx.fullName} wrote in through the contact page.`,
+      [
+        `Topic:   ${ctx.topic}`,
+        `Email:   ${ctx.email}`,
+        `Phone:   ${ctx.phone || "(not given)"}`,
+        `Locale:  ${ctx.locale}`,
+        `Country: ${ctx.country ?? "(unknown)"}`,
+      ].join("\n"),
+      ctx.message,
+      `Reply to ${ctx.email}.`,
     ].join("\n\n"),
   };
 }

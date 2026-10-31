@@ -2074,6 +2074,89 @@ export const de = {
     partnersTitle: "Für Speditionen — drei Wege, Nachfrage zu kaufen, gedeckelt bei 7 € pro Anfrage",
     partnersDescription:
       "Werden Sie Teil des Rotamove-Partnernetzwerks. Unbegrenzt Anfragen für eine Monatspauschale, Zahlung pro Anfrage oder nur für die Anfragen zahlen, die Sie freischalten möchten — immer mit harter Obergrenze von 7 €.",
+    contactTitle: "Kontakt",
+    contactDescription:
+      "Fragen zu einem Umzug, einer Rechnung oder zur Aufnahme ins Speditionsnetzwerk. Wir lesen alles und antworten innerhalb eines Werktags.",
+  },
+
+  /* ------------------------------------------------------ phone field -- */
+  phoneField: {
+    countryLabel: "Ländervorwahl",
+    numberLabel: "Telefonnummer",
+    numberPlaceholder: "151 1234567",
+    searchPlaceholder: "Land oder Vorwahl suchen",
+    noMatch: "Kein Land passt zu „{query}“.",
+    networkHint: "Im Rotamove-Netzwerk",
+    selected: "{country}, Vorwahl {code}",
+  },
+
+  /* ----------------------------------------------------- contact page -- */
+  contactPage: {
+    eyebrow: "Kontakt",
+    title: "Sagen Sie uns, was Sie brauchen.",
+    lede: "Ein laufender Umzug, ein Angebot, das erklärt werden muss, eine Rechnung, die falsch aussieht, oder eine Flotte, die ins Netzwerk soll. Ein Formular, ein Postfach.",
+
+    fullName: "Vollständiger Name",
+    fullNamePlaceholder: "Mert Hansen",
+    email: "E-Mail",
+    emailPlaceholder: "sie@firma.de",
+    phone: "Telefon",
+    phoneOptional: "Optional",
+    topic: "Thema",
+    topicPlaceholder: "Worum geht es?",
+    topics: {
+      quote: "Ein neues Angebot",
+      existing_move: "Ein bereits gebuchter Umzug",
+      partner: "Als Spedition beitreten",
+      billing: "Abrechnung oder Rechnung",
+      complaint: "Eine Beschwerde",
+      press: "Presse oder Partnerschaften",
+      other: "Etwas anderes",
+    },
+    message: "Ihre Nachricht",
+    messagePlaceholder:
+      "Strecke, Termine, Volumen — oder schreiben Sie einfach, was schiefgelaufen ist, wir finden den Vorgang.",
+    messageCount: "{n} / {max}",
+
+    verifyTitle: "Verifizierung",
+    verifyBody:
+      "Eine kurze Prüfung, dass Sie ein Mensch sind. Kein Rätsel zu lösen — meist läuft sie von allein durch.",
+    verifyLoading: "Verifizierung wird geladen…",
+    verifyError:
+      "Das Verifizierungs-Widget konnte nicht geladen werden. Meist liegt es an einem Contentblocker oder Firmen-Proxy — geben Sie challenges.cloudflare.com frei oder schreiben Sie uns direkt.",
+    verifyTestKeys:
+      "Demo-Build: Diese Prüfung läuft mit den Testschlüsseln von Cloudflare und besteht immer. Vor dem Livegang echte Turnstile-Schlüssel hinterlegen.",
+
+    submit: "Nachricht senden",
+    sending: "Wird gesendet…",
+    awaitingVerify: "Warten auf die Verifizierung.",
+    fixErrors: "Einige Felder brauchen noch Aufmerksamkeit.",
+    privacyNote:
+      "Wir nutzen Ihre Angaben, um Ihnen zu antworten — für nichts anderes. Kein Verteiler, kein Weiterverkauf.",
+
+    errFullName: "Sagen Sie uns, wer Sie sind.",
+    errEmail: "Diese E-Mail sieht nicht richtig aus.",
+    errPhone: "Mit Ländervorwahl angeben oder leer lassen.",
+    errTopic: "Wählen Sie ein Thema.",
+    errMessage: "Etwas mehr Detail bitte — mindestens zehn Zeichen.",
+
+    errorRejected: "Die Verifizierung ist nicht durchgelaufen. Versuchen Sie es im Feld erneut.",
+    errorUnavailable:
+      "Der Verifizierungsdienst war nicht erreichbar. Kurz warten und erneut senden.",
+    errorNetwork: "Das ging nicht raus. Verbindung prüfen und erneut versuchen.",
+
+    sentTitle: "Nachricht erhalten",
+    sentBody: "Ist angekommen. Eine Antwort geht an {email}, meist innerhalb eines Werktags.",
+    reference: "Referenz",
+    sendAnother: "Weitere senden",
+
+    channelEmailTitle: "E-Mail",
+    channelHoursTitle: "Servicezeiten",
+    channelHoursBody: "Montag bis Freitag, 09:00–18:00 Uhr Istanbuler Zeit (UTC+3).",
+    channelReplyTitle: "Antwortzeit",
+    channelReplyBody: "Ein Werktag für das meiste; am selben Tag bei einem laufenden Umzug.",
+    asideNote:
+      "Speditionen mit Konto schreiben besser aus dem Dashboard — das hängt Ihre Partner-ID an und landet direkt beim Partner-Desk.",
   },
 } satisfies Dictionary;
 

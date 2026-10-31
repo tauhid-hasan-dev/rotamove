@@ -15,6 +15,7 @@ import {
 import { FieldSet, OptionCard, ToggleChip } from "@/components/quote/fields";
 import { VerifyField } from "@/components/quote/verify-field";
 import { DocumentField } from "@/components/partners/register/document-field";
+import { PhoneField } from "@/components/common/phone-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -304,13 +305,10 @@ export function StepContact({ draft, update, touched, invalid }: StepProps) {
 
         <div>
           <FieldLabel htmlFor="altPhone">{R.altPhone}</FieldLabel>
-          <Input
+          <PhoneField
             id="altPhone"
-            type="tel"
-            inputMode="tel"
             value={draft.altPhone}
-            onChange={(e) => update({ altPhone: e.target.value })}
-            className="h-12 rounded-2xl tnum"
+            onChange={(altPhone) => update({ altPhone })}
           />
         </div>
 

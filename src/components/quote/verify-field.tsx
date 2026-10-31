@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { BadgeCheck, Check, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneField } from "@/components/common/phone-field";
 import {
   CODE_LENGTH,
   useFakeVerification,
@@ -74,21 +75,36 @@ export function VerifyField({
       </div>
 
       <div className="flex items-center gap-2">
-        <Input
-          id={id}
-          type={type}
-          inputMode={inputMode}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          className={cn(
-            "h-12 min-w-0 flex-1 rounded-2xl",
-            kind === "phone" && "tnum",
-            invalid && "border-destructive",
-            verified && "border-verify/50",
-          )}
-        />
+        {/* A phone is two controls over one string — the dialling code is
+            picked, the rest is typed — and `PhoneField` owns both. Email
+            stays a plain input. */}
+        {kind === "phone" ? (
+          <PhoneField
+            id={id}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            invalid={invalid}
+            verified={verified}
+            autoComplete={autoComplete}
+            className="min-w-0 flex-1"
+          />
+        ) : (
+          <Input
+            id={id}
+            type={type}
+            inputMode={inputMode}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            autoComplete={autoComplete}
+            className={cn(
+              "h-12 min-w-0 flex-1 rounded-2xl",
+              invalid && "border-destructive",
+              verified && "border-verify/50",
+            )}
+          />
+        )}
 
         {!verified && (
           <button

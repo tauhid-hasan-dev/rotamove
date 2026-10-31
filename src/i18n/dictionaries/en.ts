@@ -2076,6 +2076,89 @@ export const en = {
     partnersTitle: "For carriers — three ways to buy demand, capped at €7 a lead",
     partnersDescription:
       "Join the Rotamove partner network. Unlimited leads for a flat monthly fee, pay per lead, or pay only for the leads you choose to open — always with a hard €7 cap.",
+    contactTitle: "Contact us",
+    contactDescription:
+      "Questions about a move, an invoice or joining the carrier network. We read everything and reply within one working day.",
+  },
+
+  /* ------------------------------------------------------ phone field -- */
+  phoneField: {
+    countryLabel: "Country code",
+    numberLabel: "Phone number",
+    numberPlaceholder: "532 111 22 33",
+    searchPlaceholder: "Search country or code",
+    noMatch: "No country matches “{query}”.",
+    networkHint: "On the Rotamove network",
+    selected: "{country}, dialling code {code}",
+  },
+
+  /* ----------------------------------------------------- contact page -- */
+  contactPage: {
+    eyebrow: "Contact",
+    title: "Tell us what you need.",
+    lede: "A move in progress, a quote that needs explaining, an invoice that looks wrong, or a fleet you want on the network. One form, one inbox.",
+
+    fullName: "Full name",
+    fullNamePlaceholder: "Mert Hansen",
+    email: "Email",
+    emailPlaceholder: "you@company.com",
+    phone: "Phone",
+    phoneOptional: "Optional",
+    topic: "Topic",
+    topicPlaceholder: "What is this about?",
+    topics: {
+      quote: "A new quote",
+      existing_move: "A move already booked",
+      partner: "Joining as a carrier",
+      billing: "Billing or an invoice",
+      complaint: "A complaint",
+      press: "Press or partnerships",
+      other: "Something else",
+    },
+    message: "Your message",
+    messagePlaceholder:
+      "Route, dates, volume — or just tell us what went wrong and we will find the file.",
+    messageCount: "{n} / {max}",
+
+    verifyTitle: "Verification",
+    verifyBody:
+      "A quick check that you are a person. No puzzle to solve — it usually passes on its own.",
+    verifyLoading: "Loading verification…",
+    verifyError:
+      "The verification widget could not load. A content blocker or a corporate proxy is the usual cause — allow challenges.cloudflare.com, or email us directly.",
+    verifyTestKeys:
+      "Demo build: this challenge runs on Cloudflare's test keys and always passes. Set real Turnstile keys before taking live traffic.",
+
+    submit: "Send message",
+    sending: "Sending…",
+    awaitingVerify: "Waiting on the verification check.",
+    fixErrors: "Some fields still need attention.",
+    privacyNote:
+      "We use what you send here to answer you, and for nothing else. No marketing list, no resale.",
+
+    errFullName: "Tell us who you are.",
+    errEmail: "That email does not look right.",
+    errPhone: "Include the country code, or leave this blank.",
+    errTopic: "Pick a topic.",
+    errMessage: "A little more detail, please — at least ten characters.",
+
+    errorRejected: "The verification check did not pass. Try the box again.",
+    errorUnavailable:
+      "We could not reach the verification service. Wait a moment and send again.",
+    errorNetwork: "That did not send. Check your connection and try again.",
+
+    sentTitle: "Message received",
+    sentBody: "We have it. A reply is on the way to {email}, usually within one working day.",
+    reference: "Reference",
+    sendAnother: "Send another",
+
+    channelEmailTitle: "Email",
+    channelHoursTitle: "Desk hours",
+    channelHoursBody: "Monday to Friday, 09:00–18:00 Istanbul time (UTC+3).",
+    channelReplyTitle: "Reply time",
+    channelReplyBody: "One working day for most things; same day for a move in progress.",
+    asideNote:
+      "Carriers with an account should write from the dashboard instead — it attaches your partner id and reaches the partner desk directly.",
   },
 } as const;
 

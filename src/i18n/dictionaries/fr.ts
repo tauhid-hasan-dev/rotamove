@@ -2071,6 +2071,89 @@ export const fr = {
     partnersTitle: "Pour les transporteurs — trois façons d’acheter de la demande, plafonnées à 7 € par demande",
     partnersDescription:
       "Rejoignez le réseau de partenaires Rotamove. Demandes illimitées pour un forfait mensuel, paiement à la demande, ou paiement uniquement pour les demandes que vous choisissez de débloquer — toujours avec un plafond strict de 7 €.",
+    contactTitle: "Nous contacter",
+    contactDescription:
+      "Questions sur un déménagement, une facture ou l’entrée dans le réseau de transporteurs. Nous lisons tout et répondons sous un jour ouvré.",
+  },
+
+  /* ------------------------------------------------------ phone field -- */
+  phoneField: {
+    countryLabel: "Indicatif pays",
+    numberLabel: "Numéro de téléphone",
+    numberPlaceholder: "6 12 34 56 78",
+    searchPlaceholder: "Rechercher un pays ou un indicatif",
+    noMatch: "Aucun pays ne correspond à « {query} ».",
+    networkHint: "Sur le réseau Rotamove",
+    selected: "{country}, indicatif {code}",
+  },
+
+  /* ----------------------------------------------------- contact page -- */
+  contactPage: {
+    eyebrow: "Contact",
+    title: "Dites-nous ce qu’il vous faut.",
+    lede: "Un déménagement en cours, un devis à expliquer, une facture qui semble erronée, ou une flotte à intégrer au réseau. Un formulaire, une boîte de réception.",
+
+    fullName: "Nom complet",
+    fullNamePlaceholder: "Mert Hansen",
+    email: "E-mail",
+    emailPlaceholder: "vous@entreprise.fr",
+    phone: "Téléphone",
+    phoneOptional: "Facultatif",
+    topic: "Sujet",
+    topicPlaceholder: "De quoi s’agit-il ?",
+    topics: {
+      quote: "Un nouveau devis",
+      existing_move: "Un déménagement déjà réservé",
+      partner: "Rejoindre en tant que transporteur",
+      billing: "Facturation ou facture",
+      complaint: "Une réclamation",
+      press: "Presse ou partenariats",
+      other: "Autre chose",
+    },
+    message: "Votre message",
+    messagePlaceholder:
+      "Trajet, dates, volume — ou dites-nous simplement ce qui ne va pas, nous retrouverons le dossier.",
+    messageCount: "{n} / {max}",
+
+    verifyTitle: "Vérification",
+    verifyBody:
+      "Une vérification rapide que vous êtes bien une personne. Aucune énigme — elle passe généralement toute seule.",
+    verifyLoading: "Chargement de la vérification…",
+    verifyError:
+      "Le module de vérification n’a pas pu se charger. En général, un bloqueur de contenu ou un proxy d’entreprise est en cause — autorisez challenges.cloudflare.com, ou écrivez-nous directement.",
+    verifyTestKeys:
+      "Version de démonstration : cette vérification utilise les clés de test de Cloudflare et réussit toujours. Configurez de vraies clés Turnstile avant la mise en production.",
+
+    submit: "Envoyer le message",
+    sending: "Envoi…",
+    awaitingVerify: "En attente de la vérification.",
+    fixErrors: "Certains champs demandent encore votre attention.",
+    privacyNote:
+      "Nous utilisons ce que vous envoyez ici pour vous répondre, et pour rien d’autre. Aucune liste de diffusion, aucune revente.",
+
+    errFullName: "Dites-nous qui vous êtes.",
+    errEmail: "Cet e-mail ne semble pas correct.",
+    errPhone: "Indiquez l’indicatif pays, ou laissez vide.",
+    errTopic: "Choisissez un sujet.",
+    errMessage: "Un peu plus de détail, s’il vous plaît — au moins dix caractères.",
+
+    errorRejected: "La vérification n’est pas passée. Réessayez dans la case.",
+    errorUnavailable:
+      "Impossible de joindre le service de vérification. Patientez un instant et renvoyez.",
+    errorNetwork: "L’envoi a échoué. Vérifiez votre connexion et réessayez.",
+
+    sentTitle: "Message reçu",
+    sentBody: "C’est bien arrivé. Une réponse part vers {email}, généralement sous un jour ouvré.",
+    reference: "Référence",
+    sendAnother: "Envoyer un autre message",
+
+    channelEmailTitle: "E-mail",
+    channelHoursTitle: "Horaires",
+    channelHoursBody: "Du lundi au vendredi, 9h–18h heure d’Istanbul (UTC+3).",
+    channelReplyTitle: "Délai de réponse",
+    channelReplyBody: "Un jour ouvré pour l’essentiel ; le jour même pour un déménagement en cours.",
+    asideNote:
+      "Les transporteurs disposant d’un compte devraient plutôt écrire depuis le tableau de bord — votre identifiant partenaire est joint et le message arrive directement au service partenaires.",
   },
 } satisfies Dictionary;
 

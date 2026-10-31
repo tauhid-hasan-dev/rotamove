@@ -12,6 +12,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { localePath } from "@/i18n/paths";
 import * as fmt from "@/i18n/format";
 import { plural, type Plural } from "@/i18n/plural";
+import { COUNTRY_COOKIE, countryForLocale, isDialIso } from "@/lib/phone";
 
 /**
  * Locale context for client components.
@@ -29,6 +30,14 @@ interface I18nValue {
   dir: "ltr" | "rtl";
   /** True for Arabic. Lets a component flip a direction-bearing animation. */
   rtl: boolean;
+  /**
+   * ISO country the visitor appears to be browsing from.
+   *
+   * Drives which dialling code a phone field opens on. Inferred from the
+   * locale on the server and corrected from the edge's geo cookie once the
+   * page is interactive — see `useViewerCountry`.
+   */
+  country: string;
   /** Prefixes an internal path with the active locale. */
   href: (path: string) => string;
   t: {
@@ -88,6 +97,39 @@ function useViewerTimeZone(): fmt.TimeZone {
   );
 }
 
+/**
+ * Where the visitor is browsing from.
+ *
+ * The edge knows this on the first request and the proxy writes it to a
+ * cookie; the pages that need it are prerendered, so nothing on the server
+ * can read that cookie without making three hundred static pages dynamic.
+ *
+ * The same `useSyncExternalStore` handover the timezone uses solves it: the
+ * server snapshot is the country implied by the locale — which the URL
+ * already carries, so it costs nothing and is right for most visitors — and
+ * the client snapshot is the cookie. React hydrates against the first and
+ * repaints with the second, so a Turkish-speaking visitor in Berlin sees
+ * `+90` for one frame and `+49` thereafter, with no mismatch warning and no
+ * state set from an effect.
+ */
+function useViewerCountry(locale: Locale): string {
+  const fallback = countryForLocale(locale);
+  return useSyncExternalStore(
+    noSubscribe,
+    () => readCountryCookie() ?? fallback,
+    () => fallback,
+  );
+}
+
+function readCountryCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${COUNTRY_COOKIE.replace(".", "\\.")}=([^;]*)`),
+  );
+  const value = match?.[1] ? decodeURIComponent(match[1]) : null;
+  return value && isDialIso(value) ? value.toUpperCase() : null;
+}
+
 export function I18nProvider({
   locale,
   dict,
@@ -98,6 +140,7 @@ export function I18nProvider({
   children: ReactNode;
 }) {
   const tz = useViewerTimeZone();
+  const country = useViewerCountry(locale);
 
   const value = useMemo<I18nValue>(
     () => ({
@@ -105,6 +148,7 @@ export function I18nProvider({
       dict,
       dir: dirFor(locale),
       rtl: dirFor(locale) === "rtl",
+      country,
       href: (path) => localePath(locale, path),
       t: {
         fill: fmt.fill,
@@ -133,7 +177,7 @@ export function I18nProvider({
         list: (items) => fmt.formatList(locale, items),
       },
     }),
-    [locale, dict, tz],
+    [locale, dict, tz, country],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
